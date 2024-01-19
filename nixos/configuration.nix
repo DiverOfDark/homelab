@@ -5,7 +5,6 @@
       ./hardware-configuration.nix
       ./proxmox.nix
       ./k8s.nix
-      #./mediacenter.nix
     ];
 
   boot = {
