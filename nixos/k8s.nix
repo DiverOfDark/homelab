@@ -13,7 +13,7 @@ in
     package = pkgs.k3s_1_29;
     role = "server";
 #    clusterInit = true;
-    extraFlags = "--default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=500 --etcd-arg election-timeout=3000";
+    extraFlags = "--default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
     clusterInit = false;
     token = "${kubeMasterToken}";
     serverAddr = "https://${kubeMasterIP}:6443";
