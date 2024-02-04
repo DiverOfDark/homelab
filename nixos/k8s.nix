@@ -8,12 +8,16 @@ in
        k9s
     ];
 
+  services.openiscsi.name = "iqn.2020-08.org.linux-iscsi.initiatorhost:kirillorlovhomelab";
+  services.openiscsi.enable = true;
+
   services.k3s = {
     enable = true;
     package = pkgs.k3s_1_29;
-    role = "server";
+    role = "agent";
+#    role = "server";
 #    clusterInit = true;
-    extraFlags = "--default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
+    #extraFlags = " --default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
     clusterInit = false;
     token = "${kubeMasterToken}";
     serverAddr = "https://${kubeMasterIP}:6443";

@@ -2,27 +2,7 @@
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./proxmox.nix
-      ./k8s.nix
     ];
-
-  boot = {
-    supportedFilesystems = [ "ntfs" ];
-    kernelPackages = pkgs.linuxPackages_latest;
-
-    kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 80;
-
-    loader.systemd-boot = {
-      enable = true;
-      configurationLimit = 3;
-    };
-    loader.grub = {
-      efiSupport = true;
-      efiInstallAsRemovable = true;
-      device = "nodev";
-    };
-  };
 
   time.timeZone = "Europe/Berlin";
 

@@ -8,6 +8,23 @@
     [ (modulesPath + "/profiles/qemu-guest.nix")
     ];
 
+  boot = {
+    supportedFilesystems = [ "ntfs" ];
+    kernelPackages = pkgs.linuxPackages_latest;
+
+    kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 80;
+
+    loader.systemd-boot = {
+      enable = true;
+      configurationLimit = 3;
+    };
+    loader.grub = {
+      efiSupport = true;
+      efiInstallAsRemovable = true;
+      device = "nodev";
+    };
+  };
+
   boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "sr_mod" "virtio_blk" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
