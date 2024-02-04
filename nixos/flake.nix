@@ -28,7 +28,7 @@
         ];
       };
     in {
-      #munin = kubeMaster true;
+      munin = kubeMaster true;
       hugin = kubeMaster false;
       odin = kubeMaster false;
 
