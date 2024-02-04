@@ -30,7 +30,7 @@
     in {
       #munin = kubeMaster "";
       hugin = kubeMaster "";
-      #odin = kubeMaster "";
+      odin = kubeMaster "";
 
       wsl = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -51,7 +51,7 @@
     };
 
     deploy.nodes = {
-     hugin = {
+      hugin = {
         hostname = "hugin";
         fastConnection = true;
         profiles = {
@@ -63,7 +63,19 @@
         };
       };
 
-     wsl = {
+      odin = {
+        hostname = "odin";
+        fastConnection = true;
+        profiles = {
+          system = {
+            sshUser = "diverofdark";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.hugin;
+            user = "root";
+          };
+        };
+      };
+
+      wsl = {
         hostname = "localhost";
         fastConnection = true;
         profiles = {
