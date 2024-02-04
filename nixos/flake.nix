@@ -10,7 +10,7 @@
     kubeMasterToken = "K10b05f385da6dc1ca3c25c7fe6ac0dbbfc2e0d7d6986d42dac872c4a0b35411c7e::server:3d179dbdfbeb24ec278a306b5d64919c";
  in {
     nixosConfigurations = let 
-      kubeMaster = hostname: nixpkgs.lib.nixosSystem {
+      kubeMaster = clusterInit: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [ 
             nixpkgs.nixosModules.notDetected
@@ -23,14 +23,14 @@
               services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
               services.k3s.token = "${kubeMasterToken}";
               services.k3s.serverAddr = "https://${kubeMasterIP}:6443";
-#    clusterInit = true;
+              services.k3s.clusterInit = clusterInit;
             })
         ];
       };
     in {
-      #munin = kubeMaster "";
-      hugin = kubeMaster "";
-      odin = kubeMaster "";
+      #munin = kubeMaster true;
+      hugin = kubeMaster false;
+      odin = kubeMaster false;
 
       wsl = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -58,6 +58,18 @@
           system = {
             sshUser = "diverofdark";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.hugin;
+            user = "root";
+          };
+        };
+      };
+
+      munin = {
+        hostname = "munin";
+        fastConnection = true;
+        profiles = {
+          system = {
+            sshUser = "diverofdark";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.munin;
             user = "root";
           };
         };
