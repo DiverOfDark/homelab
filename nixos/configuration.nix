@@ -92,4 +92,5 @@
   system.stateVersion = "23.05"; # Did you read the comment?
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.trusted-users = [ "root" "@wheel" ];
 }
