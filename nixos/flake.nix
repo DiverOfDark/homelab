@@ -81,7 +81,7 @@
         profiles = {
           system = {
             sshUser = "diverofdark";
-            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.hugin;
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.odin;
             user = "root";
           };
         };
