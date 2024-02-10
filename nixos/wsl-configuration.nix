@@ -4,11 +4,8 @@
 { config, lib, pkgs, modulesPath, nixpkgs-wsl, ... }:
 
 {
-  imports = [
-          #<nixpkgs-wsl/modules>
-    # include NixOS-WSL modules
-  ];
   networking.hostName = "archerwsl";
   wsl.enable = true;
   wsl.defaultUser = "nixos";
+  wsl.interop.register = true;
 }
