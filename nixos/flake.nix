@@ -51,6 +51,7 @@
             sshUser = "diverofdark";
             path = deploy-rs.lib.${arch}.activate.nixos config;
             user = "root";
+            magicRollback = false;
           };
         };
     };
