@@ -66,6 +66,12 @@
         })
       ];
 
+      onemix = mkSystem "x86_64-linux" [
+        nixpkgs-wsl.nixosModules.wsl
+        ./onemix-configuration.nix
+        ./desktop.nix
+      ];
+
       firstMaster = kubeMaster true;
       otherMasters = kubeMaster false;
 
@@ -78,6 +84,7 @@
       odin  = nodeDef { hostname = "odin"; arch = "x86_64-linux"; config = self.nixosConfigurations.otherMasters; };
       
       ratatoskr = nodeDef { hostname = "ratatoskr"; arch = "aarch64-linux"; config = self.nixosConfigurations.ratatoskr; };
+      needle = nodeDef { hostname = "needle"; arch = "x86_64-linux"; config = self.nixosConfigurations.onemix; };
       wsl = nodeDef { hostname = "localhost"; arch = "x86_64-linux"; config = self.nixosConfigurations.wsl; };
     };
 
