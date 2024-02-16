@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 {
   systemd.services."cloud-init-local".before = [ "network-pre.target" "systemd-networkd.service" "dhcpcd.service" ];
+  environment.etc.hostname.enable = false;
+
   systemd.services."nixos-cloud-cleanup" = {
     description = "delete hostname";
     serviceConfig.PassEnvironment = "DISPLAY";

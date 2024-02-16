@@ -34,8 +34,6 @@
      fi  
     '';
   
-    etc.hostname.enable = false;
-
     systemPackages = with pkgs; [
       nano
       wget
