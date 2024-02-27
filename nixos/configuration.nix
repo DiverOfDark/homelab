@@ -56,11 +56,11 @@
 
   system = {
     #copySystemConfiguration = true;
-    autoUpgrade = {
-      enable = true;
-      operation = "switch";
-      allowReboot = true;
-    };
+#    autoUpgrade = {
+#      enable = true;
+#      operation = "switch";
+#      allowReboot = true;
+#    };
   };
 
   nix = {
