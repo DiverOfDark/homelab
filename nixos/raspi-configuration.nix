@@ -41,6 +41,7 @@
     enable = true;
     settings.bind_port = 80;
     openFirewall = true;
+    allowDHCP = true;
   };
 
   networking.firewall.enable = false;
@@ -49,7 +50,7 @@
   # (the default) this is the recommended approach. When using systemd-networkd it's
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  networking.useDHCP = lib.mkDefault true;
+  networking.useDHCP = lib.mkForce false;
   # networking.interfaces.enu1u1.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlan0.useDHCP = lib.mkDefault true;
   
