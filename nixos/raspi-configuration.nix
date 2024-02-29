@@ -23,6 +23,14 @@
     { device = "/dev/disk/by-uuid/44444444-4444-4444-8888-888888888888";
       fsType = "ext4";
     };
+  
+  networking.interfaces.enu1u1.useDHCP = lib.mkForce false;
+  networking.interfaces.enu1u1.ipv4.addresses = [ {
+    address = "192.168.178.2";
+    prefixLength = 24;
+  } ];
+  networking.defaultGateway = "192.168.178.1";
+  networking.nameservers = [ "127.0.0.1" ];
 
   swapDevices = [ {
     device = "/swapfile";
@@ -49,7 +57,7 @@
   
   networking.hostName = "ratatoskr";
   networking.wireless = {
-    enable = true;
+    enable = false;
     environmentFile = config.age.secrets.wifipassword.path;
     networks = {
       DeepWiFi = {
