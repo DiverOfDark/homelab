@@ -66,7 +66,7 @@
         ({ config, pkgs, ... }: {
           services.k3s.role = "server";
           services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
-          services.k3s.clusterInit = clusterInit;
+          services.k3s.clusterInit = true;
         })
       ];
 
