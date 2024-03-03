@@ -66,12 +66,6 @@
           services.k3s.role = "server";
           services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
           services.k3s.clusterInit = true;
-
-          environment.etc."kubenix.yaml".text = builtins.readFile ./k3s-ns.yaml;
-
-          system.activationScripts.kubenix.text = ''
-            ln -sf /etc/kubenix.yaml /var/lib/rancher/k3s/server/manifests/kubenix.yaml
-          '';
         })
       ];
 

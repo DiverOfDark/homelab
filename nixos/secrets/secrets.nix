@@ -3,8 +3,10 @@ let
   users = [ diverofdark ];
 
   raspi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIERL96KCXBRNMaS/zherCUsnNN+y23pp9Xse4CBBmkPz";
-  machines = [ raspi ];
+  alfheimr = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBz6Q0DpnCNOkzAeTzxtyj1haQAg+WGy2ULshkoOAxkZ";
+  machines = [ raspi alfheimr ];
 in
 {
   "wifipassword.age".publicKeys = users ++ machines;
+  "k3s-secrets.age".publicKeys = users ++ machines;
 }

@@ -7,11 +7,10 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
+  namespace: kube-system
 spec:
   chart: https://kubernetes.github.io/dashboard/kubernetes-dashboard-7.0.0-alpha1.tgz
   targetNamespace: kubernetes-dashboard
-# TODO move metrics server outside of this chart
   valuesContent: |-
     nginx:
       enabled: false
@@ -27,9 +26,38 @@ spec:
           - dashboard.k8s.kirillorlov.pro
         ingressClassName: traefik
         issuer:
-          name: default
-
+          name: acme-issuer
+          scope: cluster
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/service-account.name: "admin-user"   
+type: kubernetes.io/service-account-token  
+---
+
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -39,7 +67,7 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: argocd
-  namespace: argocd
+  namespace: kube-system
 spec:
   chart: https://github.com/argoproj/argo-helm/releases/download/argo-cd-6.6.0/argo-cd-6.6.0.tgz
   targetNamespace: argocd
@@ -55,7 +83,7 @@ spec:
       certificate:
         enabled: true
         issuer:
-          name: default
+          name: acme-issuer
           kind: ClusterIssuer
           group: cert-manager.io
       autoscaling:
@@ -97,7 +125,7 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: cert-manager
-  namespace: cert-manager
+  namespace: kube-system
 spec:
   repo: https://charts.jetstack.io
   chart: cert-manager
@@ -106,3 +134,23 @@ spec:
   valuesContent: |-
     installCRDs: true
 ---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: acme-issuer
+spec:
+  acme:
+    email: diverofdark@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: acme-issuer-account-key
+    solvers:
+    - dns01:
+        cloudflare:
+          email: "diverofdark@gmail.com"
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+      selector:
+        dnsZones:
+        - 'k8s.kirillorlov.pro'

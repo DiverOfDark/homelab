@@ -32,6 +32,16 @@
     };
   };
 
+  age.secrets.k3s-secrets.file = secrets/k3s-secrets.age; 
+
+  environment.etc."kubenix.yaml".text = builtins.readFile ./k3s-ns.yaml;
+  environment.etc."kubenix-secrets.yaml".source = config.age.secrets.k3s-secrets.path;
+
+  system.activationScripts.kubenix.text = ''
+    ln -sf /etc/kubenix.yaml /var/lib/rancher/k3s/server/manifests/kubenix.yaml
+    ln -sf /etc/kubenix-secrets.yaml /var/lib/rancher/k3s/server/manifests/kubenix-secrets.yaml
+  '';
+
   networking.hostName = "alfheimr"; # Define your hostname.
 
   networking.interfaces.eth0.useDHCP = lib.mkForce false;
