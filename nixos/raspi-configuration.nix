@@ -39,7 +39,9 @@
 
   services.adguardhome = {
     enable = true;
-    settings.bind_port = 80;
+    settings = {
+      bind_port = 80;
+    };
     openFirewall = true;
     allowDHCP = true;
   };

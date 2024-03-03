@@ -8,4 +8,7 @@
   wsl.enable = true;
   wsl.defaultUser = "nixos";
   wsl.interop.register = true;
+
+  virtualisation.docker.enable = true;
+  users.extraGroups.docker.members = [ "diverofdark" "nixos" ];
 }

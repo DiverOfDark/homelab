@@ -31,18 +31,6 @@
           ] ++ extraModules;
         };
 
-      kubeMaster = clusterInit: mkSystem "x86_64-linux" [
-        ./k8s.nix
-        ./hardware-configuration.nix
-        ./proxmox.nix
-        ./configuration.nix 
-        ({ config, pkgs, ... }: {
-          services.k3s.role = "server";
-          services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
-          services.k3s.clusterInit = clusterInit;
-        })
-      ];
-
       nodeDef = {hostname, arch, config}: {
         hostname = "${hostname}";
         fastConnection = true;
@@ -72,18 +60,23 @@
         ./desktop.nix
       ];
 
-      firstMaster = kubeMaster true;
-      otherMasters = kubeMaster false;
+      alfheimr = mkSystem "x86_64-linux" [
+        ./alfheimr-configuration.nix
+        ./k8s.nix
+        ({ config, pkgs, ... }: {
+          services.k3s.role = "server";
+          services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --disable-helm-controller --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
+          services.k3s.clusterInit = clusterInit;
+        })
+      ];
 
       ratatoskr = mkSystem "aarch64-linux" [ ./raspi-configuration.nix ];
     };
     
     deploy.nodes = {
-      munin = nodeDef { hostname = "munin"; arch = "x86_64-linux"; config = self.nixosConfigurations.firstMaster; };
-      hugin = nodeDef { hostname = "hugin"; arch = "x86_64-linux"; config = self.nixosConfigurations.otherMasters; };
-      odin  = nodeDef { hostname = "odin"; arch = "x86_64-linux"; config = self.nixosConfigurations.otherMasters; };
+      alfheimr = nodeDef { hostname = "192.168.178.10"; arch = "x86_64-linux"; config = self.nixosConfigurations.alfheimr; };
       
-      ratatoskr = nodeDef { hostname = "ratatoskr"; arch = "aarch64-linux"; config = self.nixosConfigurations.ratatoskr; };
+      ratatoskr = nodeDef { hostname = "192.168.178.2"; arch = "aarch64-linux"; config = self.nixosConfigurations.ratatoskr; };
       needle = nodeDef { hostname = "needle"; arch = "x86_64-linux"; config = self.nixosConfigurations.onemix; };
       wsl = nodeDef { hostname = "localhost"; arch = "x86_64-linux"; config = self.nixosConfigurations.wsl; };
     };
