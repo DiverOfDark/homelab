@@ -47,7 +47,7 @@
     nixosConfigurations = {
       wsl = mkSystem "x86_64-linux" [
         nixpkgs-wsl.nixosModules.wsl
-        ./k8s.nix
+#        ./k8s.nix
         ./wsl-configuration.nix
         ({ config, pkgs, ... }: {
           boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
