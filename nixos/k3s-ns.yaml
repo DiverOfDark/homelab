@@ -1,6 +1,38 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: kubernetes-dashboard
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  chart: https://kubernetes.github.io/dashboard/kubernetes-dashboard-7.0.0-alpha1.tgz
+  targetNamespace: kubernetes-dashboard
+# TODO move metrics server outside of this chart
+  valuesContent: |-
+    nginx:
+      enabled: false
+    cert-manager:
+      enabled: false
+      installCRDs: false
+    metrics-server:
+      enabled: false
+
+    app:
+      ingress:
+        hosts: 
+          - dashboard.k8s.kirillorlov.pro
+        ingressClassName: traefik
+        issuer:
+          name: default
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: argocd
 ---
 apiVersion: helm.cattle.io/v1
@@ -9,12 +41,52 @@ metadata:
   name: argocd
   namespace: argocd
 spec:
-  repo: https://argoproj.github.io/argo-helm
-  chart: argocd
+  chart: https://github.com/argoproj/argo-helm/releases/download/argo-cd-6.6.0/argo-cd-6.6.0.tgz
   targetNamespace: argocd
-  version: 6.6.0
   valuesContent: |-
-    installCRDs: true
+    global:
+      domain: argo.k8s.kirillorlov.pro
+      affinity.nodeAffinity.type: soft
+
+    server:
+      ingress:
+        enabled: true
+        tls: true
+      certificate:
+        enabled: true
+        issuer:
+          name: default
+          kind: ClusterIssuer
+          group: cert-manager.io
+      autoscaling:
+        enabled: false
+        minReplicas: 2
+
+    redis-ha:
+      enabled: false
+      haproxy:
+        hardAntiAffinity: false
+
+    configs:
+      params:
+        server.insecure: true
+      cm:
+        exec:
+          enabled: true
+
+    dex:
+      enabled: false
+
+    controller:
+      replicas: 2
+
+    repoServer:
+      autoscaling:
+        enabled: false
+        minReplicas: 2
+
+    applicationSet:
+      replicas: 2
 ---
 apiVersion: v1
 kind: Namespace

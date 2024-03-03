@@ -49,6 +49,7 @@
       dig
 
       k9s
+      kubernetes-helm
       kubectx
     ];
   };
