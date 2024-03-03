@@ -3,3 +3,34 @@ kind: Namespace
 metadata:
   name: argocd
 ---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  repo: https://argoproj.github.io/argo-helm
+  chart: argocd
+  targetNamespace: argocd
+  version: 6.6.0
+  valuesContent: |-
+    installCRDs: true
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  repo: https://charts.jetstack.io
+  chart: cert-manager
+  targetNamespace: cert-manager
+  version: v1.14.3
+  valuesContent: |-
+    installCRDs: true
+---

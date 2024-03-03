@@ -47,6 +47,9 @@
       pciutils
       bintools
       dig
+
+      k9s
+      kubectx
     ];
   };
 

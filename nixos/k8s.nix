@@ -1,9 +1,5 @@
 { config, pkgs, lib, ... }:
 {
-  environment.systemPackages = with pkgs; [
-       k9s
-    ];
-
   services.k3s = {
     enable = true;
     package = pkgs.k3s_1_29;
