@@ -2,11 +2,13 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nixpkgs-wsl.url = "github:nix-community/NixOS-WSL";
+
+    kubenix.url = "github:hall/kubenix";
     
     agenix.url = "github:ryantm/agenix";
     deploy-rs.url = "github:serokell/deploy-rs";
   };
-  outputs = { self, nixpkgs, nixpkgs-wsl, agenix, deploy-rs }@inputs: let
+  outputs = { self, kubenix, nixpkgs, nixpkgs-wsl, agenix, deploy-rs }@inputs: let
       mkSystem = arch: extraModules:
         nixpkgs.lib.nixosSystem rec {
           system = arch;
@@ -42,7 +44,40 @@
             magicRollback = false;
           };
         };
-    };
+      };  
+
+      kubernetesInitConfig = arch: kubenix.evalModules.${arch} {
+        module = { kubenix, ... }: {
+          imports = [ kubenix.modules.helm ];
+
+          kubernetes.helm.releases.argocd = {
+              chart = kubenix.lib.helm.fetch {
+                repo = "https://argoproj.github.io/argo-helm";
+                chart = "argo-cd";
+                version = "6.6.0";
+                sha256 = "iolvDY7v7YetylQdvFDpTf9OcnAaKpexDaPrni/utcI=";
+              };
+              namespace = "argocd";
+
+              # arbitrary attrset passed as values to the helm release
+              values = {
+                config.global.domain = "argo.k8s.kirillorlov.pro";
+                
+                redis-ha.enabled = false;
+
+                controller.replicas = 1;
+
+                server.autoscaling.enabled = false;
+                server.autoscaling.minReplicas = 1;
+
+                repoServer.autoscaling.enabled = false;
+                repoServer.autoscaling.minReplicas = 1;
+
+                applicationSet.replicas = 1;
+              };
+            };
+          };
+      };
  in {
     nixosConfigurations = {
       wsl = mkSystem "x86_64-linux" [
@@ -55,7 +90,6 @@
       ];
 
       onemix = mkSystem "x86_64-linux" [
-        nixpkgs-wsl.nixosModules.wsl
         ./onemix-configuration.nix
         ./desktop.nix
       ];
@@ -67,6 +101,14 @@
           services.k3s.role = "server";
           services.k3s.extraFlags = " --default-local-storage-path /root/k3s/ --etcd-arg heartbeat-interval=1500 --etcd-arg election-timeout=15000 --etcd-arg snapshot-count=1000";
           services.k3s.clusterInit = true;
+
+          environment.etc."kubenix-namespaces.yaml".text = builtins.readFile ./k3s-ns.yaml;
+          environment.etc."kubenix.yaml".source = (kubernetesInitConfig "x86_64-linux").config.kubernetes.resultYAML;
+
+          system.activationScripts.kubenix.text = ''
+            ln -sf /etc/kubenix-namespaces.yaml /var/lib/rancher/k3s/server/manifests/kubenix-namespaces.yaml
+            ln -sf /etc/kubenix.yaml /var/lib/rancher/k3s/server/manifests/kubenix.yaml
+          '';
         })
       ];
 
