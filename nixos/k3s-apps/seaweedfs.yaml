@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: seaweedfs
+  namespace: argocd
+spec:
+  destination:
+    namespace: seaweedfs
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: seaweedfs
+    helm:
+      values: |
+        global:
+          monitoring:
+            enabled:
+              true
+        master:
+          ingress:
+            enabled: true
+            host: seaweed-master.k8s.kirillorlov.pro
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "acme-issuer"
+        filer:
+          s3:
+            enabled: true
+          ingress:
+            enabled: true
+            host: seaweed-filer.k8s.kirillorlov.pro
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "acme-issuer"
+        s3:
+          enabled: true
+          domainName: "s3.k8s.kirillorlov.pro"
+          ingress:
+            enabled: true
+            host: s3.k8s.kirillorlov.pro
+            annotations:
+              cert-manager.io/cluster-issuer: "acme-issuer"
+
+    repoURL: https://seaweedfs.github.io/seaweedfs/helm
+    targetRevision: 3.63.0
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
