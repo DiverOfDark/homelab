@@ -38,7 +38,7 @@ spec:
           ingress:
             enabled: true
             host: s3.k8s.kirillorlov.pro
-            annotations: [ "cert-manager.io/cluster-issuer: acme-issuer" ]
+# not supported by chart - annotations: [ "cert-manager.io/cluster-issuer: acme-issuer" ]
 
     repoURL: https://seaweedfs.github.io/seaweedfs/helm
     targetRevision: 3.63.0
