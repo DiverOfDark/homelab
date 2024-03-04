@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     chart: prometheus
-     helm:
+    helm:
       values: |
         alertmanager.ingress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
