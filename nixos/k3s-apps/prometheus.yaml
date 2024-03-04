@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    chart: prometheus
+    chart: kube-prometheus-stack
     helm:
       values: |
         alertmanager.ingress.annotations:
