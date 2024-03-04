@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   time.timeZone = "Europe/Berlin";
 
@@ -68,9 +68,9 @@
   };
 
   nix = {
-    optimise.automatic = true;
+    optimise.automatic = lib.mkDefault true;
     gc = {
-      automatic = true;
+      automatic = lib.mkDefault true;
       dates = "weekly";
       options = "--delete-older-than 3d";
     };

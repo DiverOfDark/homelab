@@ -13,7 +13,6 @@
   users.extraGroups.docker.members = [ "diverofdark" "nixos" ];
 
   nix = {
-    optimise.automatic = lib.mkForce false;
     gc = {
       automatic = lib.mkForce false;
     };
