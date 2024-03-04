@@ -24,7 +24,7 @@ spec:
             tls:
               - hosts:
                 - seaweed-master.k8s.kirillorlov.pro
-                secretName: traefik-server-tls
+                secretName: master-server-tls
             annotations: |
               cert-manager.io/cluster-issuer: "acme-issuer"
         filer:
@@ -37,7 +37,7 @@ spec:
             tls:
               - hosts:
                 - seaweed-filer.k8s.kirillorlov.pro
-                secretName: traefik-server-tls
+                secretName: filer-server-tls
             annotations: |
               cert-manager.io/cluster-issuer: "acme-issuer"
         s3:
@@ -49,7 +49,7 @@ spec:
             tls:
               - hosts:
                 - s3.k8s.kirillorlov.pro
-                secretName: traefik-server-tls
+                secretName: s3-server-tls
             host: s3.k8s.kirillorlov.pro
 # not supported by chart - annotations: [ "cert-manager.io/cluster-issuer: acme-issuer" ]
 
