@@ -8,6 +8,11 @@ spec:
     namespace: seaweedfs
     server: https://kubernetes.default.svc
   project: default
+  ignoreDifferences:
+    - group: storage.k8s.io
+      kind: CSIDriver
+      jqPathExpressions:
+        - .spec.seLinuxMount
   source:
     chart: seaweedfs-csi-driver
     helm:
