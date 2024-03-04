@@ -11,7 +11,7 @@ spec:
   source:
     chart: prometheus
      helm:
-      values: |
+      values: |-
         alertmanager.ingress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
         grafana.ingress.annotations:
@@ -32,6 +32,3 @@ spec:
     - CreateNamespace=true
     - ServerSideApply=true
 
-
-
-    #    
