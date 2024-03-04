@@ -15,7 +15,7 @@ spec:
         seaweedfsFiler: seaweedfs-filer-client:8888
         isDefaultStorageClass: true
 
-    repoURL: https://seaweedfs.github.io/seaweedfs/helm
+    repoURL: https://seaweedfs.github.io/seaweedfs-csi-driver/helm
     targetRevision: 0.2.1
   syncPolicy:
     automated:
