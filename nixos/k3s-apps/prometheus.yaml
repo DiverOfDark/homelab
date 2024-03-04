@@ -15,23 +15,33 @@ spec:
         alertmanager:
           ingress:
             enabled: true
+            hosts:
+              - alertmanager.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
         grafana:
           ingress:
             enabled: true
+            hosts:
+              - grafana.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
         prometheus:
           thanosIngress:
+            hosts:
+              - thanos.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
           ingress:
             enabled: true
+            hosts:
+              - prometheus.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
         thanosRuler:
           ingress:
+            hosts:
+              - thanos-ruler.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
     repoURL: https://prometheus-community.github.io/helm-charts
