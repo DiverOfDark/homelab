@@ -9,6 +9,33 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
+    chart: seaweedfs-csi-driver
+    helm:
+      values: |
+        seaweedfsFiler: seaweedfs-filer-client:8888
+        isDefaultStorageClass: true
+
+    repoURL: https://seaweedfs.github.io/seaweedfs/helm
+    targetRevision: 0.2.1
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: seaweedfs
+  namespace: argocd
+spec:
+  destination:
+    namespace: seaweedfs
+    server: https://kubernetes.default.svc
+  project: default
+  source:
     chart: seaweedfs
     helm:
       values: |
