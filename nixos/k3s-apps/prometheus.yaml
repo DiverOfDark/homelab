@@ -12,12 +12,15 @@ spec:
     chart: kube-prometheus-stack
     helm:
       values: |
+        alertmanager.ingress.enabled: true
         alertmanager.ingress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
+        grafana.ingress.enabled: true
         grafana.ingress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
         prometheus.thanosIngress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
+        prometheus.ingress.enabled: true
         prometheus.ingress.annotations:
           cert-manager.io/cluster-issuer: "acme-issuer"
         thanosRuler.ingress.annotations:
