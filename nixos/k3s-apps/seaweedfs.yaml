@@ -45,6 +45,7 @@ spec:
           domainName: "s3.k8s.kirillorlov.pro"
           ingress:
             enabled: true
+            className: traefik
             tls:
               - hosts:
                 - s3.k8s.kirillorlov.pro
