@@ -21,8 +21,8 @@ spec:
             enabled: true
             host: seaweed-master.k8s.kirillorlov.pro
             className: traefik
-            annotations: 
-            - cert-manager.io/cluster-issuer: "acme-issuer"
+            annotations: |
+              cert-manager.io/cluster-issuer: "acme-issuer"
         filer:
           s3:
             enabled: true
@@ -30,8 +30,8 @@ spec:
             enabled: true
             host: seaweed-filer.k8s.kirillorlov.pro
             className: traefik
-            annotations:
-            - cert-manager.io/cluster-issuer: "acme-issuer"
+            annotations: |
+              cert-manager.io/cluster-issuer: "acme-issuer"
         s3:
           enabled: true
           domainName: "s3.k8s.kirillorlov.pro"
