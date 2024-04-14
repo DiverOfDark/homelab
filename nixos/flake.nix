@@ -1,12 +1,11 @@
 {
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    nixpkgs-wsl.url = "github:nix-community/NixOS-WSL";
 
     agenix.url = "github:ryantm/agenix";
     deploy-rs.url = "github:serokell/deploy-rs";
   };
-  outputs = { self, nixpkgs, nixpkgs-wsl, agenix, deploy-rs }@inputs: let
+  outputs = { self, nixpkgs, agenix, deploy-rs }@inputs: let
       mkSystem = arch: extraModules:
         nixpkgs.lib.nixosSystem rec {
           system = arch;
@@ -45,15 +44,6 @@
       };  
  in {
     nixosConfigurations = {
-      wsl = mkSystem "x86_64-linux" [
-        nixpkgs-wsl.nixosModules.wsl
-#        ./k8s.nix
-        ./wsl-configuration.nix
-        ({ config, pkgs, ... }: {
-          boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-        })
-      ];
-
       onemix = mkSystem "x86_64-linux" [
         ./onemix-configuration.nix
         ./desktop.nix
@@ -77,7 +67,6 @@
       
       ratatoskr = nodeDef { hostname = "192.168.178.2"; arch = "aarch64-linux"; config = self.nixosConfigurations.ratatoskr; };
       needle = nodeDef { hostname = "needle"; arch = "x86_64-linux"; config = self.nixosConfigurations.onemix; };
-      wsl = nodeDef { hostname = "localhost"; arch = "x86_64-linux"; config = self.nixosConfigurations.wsl; };
     };
 
     checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
