@@ -1,0 +1,7 @@
+---
+packages:
+  - htop
+  - nala
+  - neofetch
+  - sudo
+  - avahi-daemon

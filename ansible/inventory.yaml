@@ -1,0 +1,23 @@
+all_hosts:
+  hosts:
+    svartalfheimr:
+      ansible_host: 192.168.178.12
+      notes: pi3+
+    ratatoskr:
+      ansible_host: 192.168.178.13
+      notes: pi3
+    ovhnode:
+      ansible_host: node.kirillorlov.pro:2200
+      notes: ovh
+
+working_hosts:
+  hosts:
+    alfheimr:
+      ansible_host: 192.168.178.10
+      notes: thin pc
+    midgard:
+      ansible_host: 192.168.178.11
+      notes: hyperv
+  vars:
+    ansible_user: root
+
