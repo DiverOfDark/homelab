@@ -1,8 +1,5 @@
 all_hosts:
   hosts:
-    svartalfheimr:
-      ansible_host: 192.168.178.12
-      notes: pi3+
     ratatoskr:
       ansible_host: 192.168.178.13
       notes: pi3
@@ -20,6 +17,9 @@ working_hosts:
         midgard:
           ansible_host: 192.168.178.11
           notes: hyperv
+        svartalfheimr:
+          ansible_host: 192.168.178.12
+          notes: pi3+
       #agent:
   vars:
     ansible_user: root
