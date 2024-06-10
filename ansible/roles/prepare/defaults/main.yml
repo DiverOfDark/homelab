@@ -5,3 +5,6 @@ packages:
   - neofetch
   - sudo
   - avahi-daemon
+  - policycoreutils
+
+api_port: 6443  # noqa var-naming[no-role-prefix]
