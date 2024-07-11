@@ -14,7 +14,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: nixos/k3s-apps
+    path: k3s-apps
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
