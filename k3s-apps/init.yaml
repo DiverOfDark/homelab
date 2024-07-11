@@ -30,7 +30,7 @@ metadata:
   name: argocd
   namespace: kube-system
 spec:
-  chart: https://github.com/argoproj/argo-helm/releases/download/argo-cd-6.6.0/argo-cd-6.6.0.tgz
+  chart: https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.3.5/argo-cd-7.3.5.tgz
   targetNamespace: argocd
   valuesContent: |-
     global:
