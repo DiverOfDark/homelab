@@ -10,18 +10,24 @@ metadata:
   name: cert-manager
   namespace: argocd
 spec:
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: cert-manager
   project: default
   source:
     chart: cert-manager
     repoURL: https://charts.jetstack.io
     targetRevision: v1.14.3
     helm:
-      releaseName: sealed-secrets
+      releaseName: cert-manager
       values: |
         installCRDs: true
-  destination:
-    server: "https://kubernetes.default.svc"
-    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - PruneLast=true
+    - ServerSideApply=true
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
