@@ -4,18 +4,24 @@ kind: Namespace
 metadata:
   name: cert-manager
 ---
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: cert-manager
-  namespace: kube-system
+  namespace: argocd
 spec:
-  repo: https://charts.jetstack.io
-  chart: cert-manager
-  targetNamespace: cert-manager
-  version: v1.14.3
-  valuesContent: |-
-    installCRDs: true
+  project: default
+  source:
+    chart: cert-manager
+    repoURL: https://charts.jetstack.io
+    targetRevision: v1.14.3
+    helm:
+      releaseName: sealed-secrets
+      values: |
+        installCRDs: true
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: cert-manager
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
