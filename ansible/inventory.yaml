@@ -1,0 +1,36 @@
+all_hosts:
+  hosts:
+    ratatoskr:
+      ansible_host: 192.168.178.13
+      notes: pi3
+    ovhnode:
+      ansible_host: node.kirillorlov.pro:2200
+      notes: ovh
+
+working_hosts:
+  children:
+    server:
+      hosts:
+        alfheimr:
+          ansible_host: 192.168.178.10
+          notes: thin pc
+        midgard:
+          ansible_host: 192.168.178.11
+          notes: hyperv
+        svartalfheimr:
+          ansible_host: 192.168.178.12
+          notes: pi3+
+      #agent:
+  vars:
+    ansible_user: root
+    k3s_version: v1.30.0+k3s1
+    token: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      31643632323137326332653139366336326232616338613863653962353734373539326431643338
+      3537653563336261653832616534326337393332396264380a346433653864353133646234376539
+      65643436306332323733306438616134393636643734393061613662323062336535633630623864
+      6134653836336533620a343061376563656634366531333734303031646165663234343237336666
+      3265
+    api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+    extra_server_args: ""
+    extra_agent_args: ""

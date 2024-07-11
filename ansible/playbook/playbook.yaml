@@ -1,0 +1,30 @@
+---
+- name: Prepare hosts
+  hosts: working_hosts
+  gather_facts: true
+  become: true
+  roles:
+    #- role: prepare
+    - role: k3s_server
+    #- role: k3s_upgrade
+
+
+# before image:
+# - create user diverofdark, add authorized keys
+# - setup networkmanager and wifi to deepwifi
+#
+#
+# things to install:
+#
+# - create user diverofdark, add authorized keys
+# - apt install nala
+# - - nala upgrade
+# - - nala install neofetch
+# apt-get install unattended-upgrades
+# - htop - hide userland process threads
+#
+# -- todo
+#
+# k3s
+# tailscale
+
