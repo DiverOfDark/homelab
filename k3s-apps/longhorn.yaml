@@ -36,7 +36,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: argo.k8s.kirillorlov.pro
+  - host: longhorn.k8s.kirillorlov.pro
     http:
       paths:
       - backend:
