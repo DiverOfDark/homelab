@@ -21,6 +21,12 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
