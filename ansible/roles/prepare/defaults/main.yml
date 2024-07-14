@@ -7,5 +7,6 @@ packages:
   - avahi-daemon
   - policycoreutils
   - curl
+  - open-iscsi
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
