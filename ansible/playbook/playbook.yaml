@@ -5,8 +5,8 @@
   become: true
   roles:
     #- role: prepare
-    - role: k3s_server
-    #- role: k3s_upgrade
+    #- role: k3s_server
+    - role: k3s_upgrade
 
 
 # before image:

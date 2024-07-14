@@ -283,6 +283,7 @@
   register: boot_firmware_cmdline_txt
 
 - name: Enable cgroup via boot commandline if not already enabled
+  when: boot_firmware_cmdline_txt.stat.exists
   ansible.builtin.lineinfile:
     path: "{{ (boot_firmware_cmdline_txt.stat.exists) | ternary('/boot/firmware/cmdline.txt', '/boot/cmdline.txt') }}"
     backrefs: true

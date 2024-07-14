@@ -6,5 +6,6 @@ packages:
   - sudo
   - avahi-daemon
   - policycoreutils
+  - curl
 
 api_port: 6443  # noqa var-naming[no-role-prefix]

@@ -13,17 +13,24 @@ working_hosts:
       hosts:
         alfheimr:
           ansible_host: 192.168.178.10
+          server: 100.64.0.1
           notes: thin pc
         midgard:
           ansible_host: 192.168.178.11
+          server: 100.64.0.3
           notes: hyperv
-        svartalfheimr:
-          ansible_host: 192.168.178.12
-          notes: pi3+
+#        svartalfheimr:
+#          ansible_host: 192.168.178.12
+#          server: 100.64.0.2
+#          notes: pi3+
+        niflheimr:
+          ansible_host: 192.168.178.14
+          server: 100.64.0.4
+          notes: hyperv2
       #agent:
   vars:
     ansible_user: root
-    k3s_version: v1.30.0+k3s1
+    k3s_version: v1.30.2+k3s1
     token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       31643632323137326332653139366336326232616338613863653962353734373539326431643338
