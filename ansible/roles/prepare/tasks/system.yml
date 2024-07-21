@@ -25,3 +25,10 @@
 - name: Upgrade the OS (apt-get dist-upgrade)
   apt:
     upgrade: dist
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto

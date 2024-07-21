@@ -44,7 +44,6 @@
         state: link
 
 - name: Setup extra manifests
-  when: extra_manifests is defined
   block:
     - name: Make manifests directory
       ansible.builtin.file:
@@ -57,6 +56,14 @@
         dest: "/var/lib/rancher/k3s/server/manifests"
         mode: "0600"
       loop: "{{ extra_manifests }}"
+      when: extra_manifests is defined
+    - name: Setup secrets
+      no_log: true
+      ansible.builtin.template:
+        src: "secret.yaml.j2"
+        dest: "/var/lib/rancher/k3s/server/manifests/{{ item.namespace }}-{{ item.name }}.yaml"
+        mode: "0700"
+      loop: "{{ secrets }}"
 
 - name: Setup optional private registry configuration
   when: registries_config_yaml is defined

@@ -7,19 +7,16 @@
 
 - name: Configure System
   include_tasks: system.yml
-
-- name: Populate service facts
-  ansible.builtin.service_facts:
-
-- name: Gather the package facts
-  ansible.builtin.package_facts:
-    manager: auto
+  when: prepare_system
 
 - name: Prepare for K3S
   include_tasks: k3s-config.yml
+  when: prepare_k3s
 
 - name: Configure Keepalived
   include_tasks: keepalived.yml
+  when: prepare_keepalived
 
 - name: Configure MySQL
   include_tasks: mysql.yml
+  when: prepare_mysql
