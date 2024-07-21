@@ -12,6 +12,7 @@ packages:
   - software-properties-common
   - rsync
   - keepalived
+  - python3-pymysql
   - mariadb-server
 
 api_port: 6443  # noqa var-naming[no-role-prefix]

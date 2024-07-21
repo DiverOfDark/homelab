@@ -1,0 +1,14 @@
+---
+- name: Copy Keepalived config
+  ansible.builtin.template:
+    src: "keepalived.conf.j2"
+    dest: "/etc/keepalived/keepalived.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable service Keepalived and ensure it is not masked
+  ansible.builtin.systemd_service:
+    name: keepalived
+    enabled: true
+    state: started

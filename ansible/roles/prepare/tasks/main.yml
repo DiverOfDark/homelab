@@ -5,48 +5,8 @@
       - ansible_version.full is version('2.14', '>=')
     msg: "Minimum ansible-core version required is 2.14"
 
-- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
-  apt:
-    update_cache: yes
-    cache_valid_time: 3600
-
-- name: Install packages
-  apt:
-    pkg: "{{ packages }}"
-    state: present
-
-- name: Update diverofdark user groups (enable sudo)
-  user:
-    name: diverofdark
-    groups: "sudo"
-    append: true
-
-- name: Add Neofetch command to system-wide bashrc
-  lineinfile:
-    path: /etc/bash.bashrc
-    create: yes
-    line: 'neofetch'
-    state: present
-
-- name: Upgrade the OS (apt-get dist-upgrade)
-  apt:
-    upgrade: dist
-
-
-- name: Enable IPv4 forwarding
-  ansible.posix.sysctl:
-    name: net.ipv4.ip_forward
-    value: "1"
-    state: present
-    reload: true
-
-- name: Enable IPv6 forwarding
-  ansible.posix.sysctl:
-    name: net.ipv6.conf.all.forwarding
-    value: "1"
-    state: present
-    reload: true
-  when: ansible_all_ipv6_addresses
+- name: Configure System
+  include_tasks: system.yml
 
 - name: Populate service facts
   ansible.builtin.service_facts:
@@ -55,73 +15,11 @@
   ansible.builtin.package_facts:
     manager: auto
 
+- name: Prepare for K3S
+  include_tasks: k3s-config.yml
 
-- name: Add /usr/local/bin to sudo secure_path
-  ansible.builtin.lineinfile:
-    line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
-    regexp: "Defaults(\\s)*secure_path(\\s)*="
-    state: present
-    insertafter: EOF
-    path: /etc/sudoers
-    validate: 'visudo -cf %s'
-  when: ansible_os_family == 'RedHat'
+- name: Configure Keepalived
+  include_tasks: keepalived.yml
 
-- name: Setup alternative K3s directory
-  when:
-    - k3s_server_location is defined
-    - k3s_server_location != "/var/lib/rancher/k3s"
-  block:
-    - name: Make rancher directory
-      ansible.builtin.file:
-        path: "/var/lib/rancher"
-        mode: "0755"
-        state: directory
-    - name: Create symlink
-      ansible.builtin.file:
-        dest: /var/lib/rancher/k3s
-        src: "{{ k3s_server_location }}"
-        force: true
-        state: link
-
-- name: Setup extra manifests
-  when: extra_manifests is defined
-  block:
-    - name: Make manifests directory
-      ansible.builtin.file:
-        path: "/var/lib/rancher/k3s/server/manifests"
-        mode: "0700"
-        state: directory
-    - name: Copy manifests
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/var/lib/rancher/k3s/server/manifests"
-        mode: "0600"
-      loop: "{{ extra_manifests }}"
-
-- name: Setup optional private registry configuration
-  when: registries_config_yaml is defined
-  block:
-    - name: Make k3s config directory
-      ansible.builtin.file:
-        path: "/etc/rancher/k3s"
-        mode: "0755"
-        state: directory
-    - name: Copy config values
-      ansible.builtin.copy:
-        content: "{{ registries_config_yaml }}"
-        dest: "/etc/rancher/k3s/registries.yaml"
-        mode: "0644"
-
-- name: Copy Keepalived config
-  ansible.builtin.template:
-    src: "keepalived.conf.j2"
-    dest: "/etc/keepalived/keepalived.conf"
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Enable service Keepalived and ensure it is not masked
-  ansible.builtin.systemd_service:
-    name: keepalived
-    enabled: true
-    state: started
+- name: Configure MySQL
+  include_tasks: mysql.yml
