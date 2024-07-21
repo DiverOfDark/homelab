@@ -69,12 +69,14 @@ To be installed:
   - PiHole as DNS server
   - promtheus-operator (node-exporter, grafana, prometheus)
   - csi-driver-sshfs (for seedbox)
+  - External Secret Operator 
 
 # Apps
 
 To be installed:
 
 K3S - apps:
+ - BitWarden
  - bonsai (+postgres)
  - jackett
  - sonarr

@@ -8,5 +8,13 @@ packages:
   - policycoreutils
   - curl
   - open-iscsi
+  - dirmngr
+  - software-properties-common
+  - rsync
+  - keepalived
+  - mariadb-server
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
+
+virtual_ip_address: 192.168.179.1
+keepalived_token: somelongrandomstring
