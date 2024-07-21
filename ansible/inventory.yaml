@@ -15,18 +15,18 @@ working_hosts:
           ansible_host: 192.168.178.10
           server: 100.64.0.1
           notes: thin pc
-        midgard:
-          ansible_host: 192.168.178.11
-          server: 100.64.0.3
-          notes: hyperv
+#        midgard:
+#          ansible_host: 192.168.178.11
+#          server: 100.64.0.3
+#          notes: hyperv
 #        svartalfheimr:
 #          ansible_host: 192.168.178.12
 #          server: 100.64.0.2
 #          notes: pi3+
-        niflheimr:
-          ansible_host: 192.168.178.14
-          server: 100.64.0.4
-          notes: hyperv2
+#        niflheimr:
+#          ansible_host: 192.168.178.14
+#          server: 100.64.0.4
+#          notes: hyperv2
       #agent:
   vars:
     ansible_user: root
