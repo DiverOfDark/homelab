@@ -21,15 +21,45 @@
   register: root_pwd_check
   tags: mariadb
 
-- name: Set MariaDB root password for 127.0.0.1, ::1, FQDN
-  mysql_user:
-    name: root
-    password: "{{ mariadb_root_password }}"
-    host: "%.%"
-    priv: "*.*:ALL"
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-    login_unix_socket: "/var/run/mysqld/mysqld.sock"
-    state: present
-  when: root_pwd_check.rc == 0
-  tags: mariadb
+- name: Ensure mariadb running
+  ansible.builtin.systemd_service:
+    name: mariadb
+    enabled: true
+    state: started
+
+- name: Setup galera.cnf
+  ansible.builtin.template:
+    src: "galera.cnf.j2"
+    dest: "/etc/mysql/mariadb.conf.d/galera.cnf"
+    mode: "0766"
+  notify: restart mariadb
+
+- name: Init galera cluster
+  when: inventory_hostname == groups['server'][0]
+  block:
+  - name: Set MariaDB root password for 127.0.0.1, ::1, FQDN
+    mysql_user:
+      name: root
+      password: "{{ mariadb_root_password }}"
+      host: "%.%"
+      priv: "*.*:ALL"
+      login_user: root
+      login_password: "{{ mariadb_root_password }}"
+      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+      state: present
+    when: root_pwd_check.rc == 0
+    tags: mariadb
+
+  - name: Check current cluster size
+    mysql_query:
+      login_db: mysql
+      login_user: root
+      login_password: "{{ mariadb_root_password }}"
+      login_unix_socket: /run/mysqld/mysqld.sock
+      query: SHOW STATUS LIKE 'wsrep_cluster_size'
+    register: cluster_size
+
+  - name: Create cluster if not exists
+    shell: >
+      systemctl stop mariadb && galera_new_cluster
+    when: cluster_size.query_result[0][0].Value == '0'

@@ -61,6 +61,9 @@ working_hosts:
     extra_server_args: ""
     extra_agent_args: ""
 
+    galera:
+      cluster_name: "k3s_cluster"
+      addresses: "192.168.178.10,192.168.178.11,192.168.178.12"
 
     secrets:
       - name: cloudflare-api-token-secret
