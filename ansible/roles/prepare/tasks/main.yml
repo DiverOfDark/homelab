@@ -27,6 +27,4 @@
 
 - name: K3S cluster init
   include_tasks: k3s-init-cluster.yml
-  when:
-    - prepare_k3s_cluster_init
-    - inventory_hostname == groups['server'][0]
+  when: prepare_k3s_cluster_init

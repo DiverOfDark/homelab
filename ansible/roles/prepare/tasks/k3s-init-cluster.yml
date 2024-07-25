@@ -1,9 +1,19 @@
 ---
 - name: Init first server node
   block:
-    - name: Copy K3s service file [HA]
+    - name: Copy K3s service file [HA-first]
+      when: inventory_hostname == groups['server'][0]
       ansible.builtin.template:
         src: "k3s-cluster-init.service.j2"
+        dest: "/etc/systemd/system/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy K3s service file [HA-others]
+      when: inventory_hostname != groups['server'][0]
+      ansible.builtin.template:
+        src: "k3s-cluster-join.service.j2"
         dest: "/etc/systemd/system/k3s.service"
         owner: root
         group: root
