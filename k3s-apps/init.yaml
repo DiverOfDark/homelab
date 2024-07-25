@@ -63,7 +63,7 @@ spec:
         enabled: true
         tls: true
       certificate:
-        enabled: true
+        enabled: false
         issuer:
           name: acme-issuer
           kind: ClusterIssuer

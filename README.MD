@@ -23,14 +23,14 @@ HW
     - MySQL Galera Cluster
     - Keepalived
     - K3S Master 1
+- ThinkCentre M710q (Midgard)     
+  - 192.168.179.11
+  - Roles:
+    - K3S Master 2
+    - Keepalived
+    - MySQL Galera cluster
 
 TBD:
-- Freika nettop     
-  - 192.168.179.11
-  - Midgard
-  - K3S Master 2
-  - MySQL Galera cluster
-  - Keepalived
 - Ali nettop
   - 192.168.179.12
   - Niflheimr
@@ -93,3 +93,4 @@ K3S - apps:
 # ToDo how to:
 
 Backup MySQL?
+ArgoCD - initial install without certificate, then enable after certmgr installed - how?

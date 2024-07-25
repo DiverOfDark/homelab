@@ -1,0 +1,17 @@
+---
+- name: Init first server node
+  block:
+    - name: Copy K3s service file [HA]
+      ansible.builtin.template:
+        src: "k3s-cluster-init.service.j2"
+        dest: "/etc/systemd/system/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
