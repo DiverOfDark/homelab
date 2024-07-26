@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - chart: argocd
+      repoURL: https://argoproj.github.io/argo-helm
+      targetRevision: 7.3.11
+      helm:
+        values: |
+            global:
+              domain: argo.k8s.kirillorlov.pro
+              affinity.nodeAffinity.type: soft
+        
+            server:
+              ingress:
+                enabled: true
+                tls: true
+              certificate:
+                enabled: true
+                issuer:
+                  name: acme-issuer
+                  kind: ClusterIssuer
+                  group: cert-manager.io
+              autoscaling:
+                enabled: false
+                minReplicas: 2
+        
+            redis-ha:
+              enabled: false
+              haproxy:
+                hardAntiAffinity: false
+        
+            configs:
+              params:
+                server.insecure: true
+              cm:
+                exec:
+                  enabled: true
+        
+            dex:
+              enabled: false
+        
+            controller:
+              replicas: 2
+        
+            repoServer:
+              autoscaling:
+                enabled: false
+                minReplicas: 2
+        
+            applicationSet:
+              replicas: 2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

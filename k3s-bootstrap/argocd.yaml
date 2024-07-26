@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argocd
+  namespace: kube-system
+spec:
+  chart: https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.3.5/argo-cd-7.3.5.tgz
+  targetNamespace: argocd
+  valuesContent: |-
+    global:
+      domain: argo.k8s.kirillorlov.pro
+      affinity.nodeAffinity.type: soft
+
+    server:
+      ingress:
+        enabled: true
+        tls: true
+      certificate:
+        enabled: false
+        issuer:
+          name: acme-issuer
+          kind: ClusterIssuer
+          group: cert-manager.io
+      autoscaling:
+        enabled: false
+        minReplicas: 2
+
+    redis-ha:
+      enabled: false
+      haproxy:
+        hardAntiAffinity: false
+
+    configs:
+      params:
+        server.insecure: true
+      cm:
+        exec:
+          enabled: true
+
+    dex:
+      enabled: false
+
+    controller:
+      replicas: 2
+
+    repoServer:
+      autoscaling:
+        enabled: false
+        minReplicas: 2
+
+    applicationSet:
+      replicas: 2
