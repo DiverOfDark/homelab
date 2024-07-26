@@ -18,6 +18,9 @@ spec:
         values: |
           preUpgradeChecker:
             jobEnabled: false
+          ingress:
+            enabled: true
+            host: longhorn.k8s.kirillorlov.pro
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
