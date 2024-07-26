@@ -22,7 +22,9 @@ spec:
             enabled: true
             tls: true
             host: longhorn.k8s.kirillorlov.pro
-          persistenct:
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+          persistence:
             defaultClassReplicaCount: 2
             defaultDataLocality: best-effort
             migratable: true
