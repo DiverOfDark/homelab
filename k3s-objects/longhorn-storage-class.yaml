@@ -4,7 +4,7 @@ kind: StorageClass
 metadata:
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-  name: longhorn
+  name: default
 parameters:
   dataLocality: best-effort
   fromBackup: ""
