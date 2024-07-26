@@ -14,6 +14,7 @@ packages:
   - keepalived
   - python3-pymysql
   - mariadb-server
+  - nfs-common
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
 
