@@ -14,13 +14,19 @@ spec:
     - chart: longhorn
       repoURL: https://charts.longhorn.io/
       targetRevision: v1.6.2 # Replace with the Longhorn version you'd like to install or upgrade to
-      helm:
+      helm: # https://github.com/longhorn/longhorn/blob/v1.6.2/chart/values.yaml
         values: |
           preUpgradeChecker:
             jobEnabled: false
           ingress:
             enabled: true
+            tls: true
             host: longhorn.k8s.kirillorlov.pro
+          persistenct:
+            defaultClassReplicaCount: 2
+            defaultDataLocality: best-effort
+            migratable: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
