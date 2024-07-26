@@ -1,0 +1,39 @@
+global:
+  domain: argo.k8s.kirillorlov.pro
+  affinity.nodeAffinity.type: soft
+
+server:
+  ingress:
+    enabled: true
+    tls: false
+  certificate:
+    enabled: false
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+
+redis-ha:
+  enabled: false
+  haproxy:
+    hardAntiAffinity: false
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    exec:
+      enabled: true
+
+dex:
+  enabled: false
+
+controller:
+  replicas: 2
+
+repoServer:
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+
+applicationSet:
+  replicas: 2
