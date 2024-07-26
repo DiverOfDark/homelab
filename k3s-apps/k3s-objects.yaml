@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: k3s-apps
+    path: k3s-objects
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
