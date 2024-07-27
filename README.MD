@@ -5,7 +5,6 @@ Physical Network IPs
 - 192.168.178.10 - 192.168.178.20 -> Servers
 - 192.168.178.100-255 -> DHCP
 
-
 Virtual Network IP
 ---
 - 192.168.179.1 - 192.168.179.10 -> Servers VIP
@@ -41,15 +40,14 @@ TBD:
 Physical Hardware Placement
 ---
 
-Target state:
-
 Server Rack:
  - older router
  - Alfheimr
  - Midgard
- - Niflheimr
- - TBD NAS 
 
+TBD:
+ - Niflheimr
+ - NAS
 
 # Infrastructure
 
@@ -63,13 +61,16 @@ To be installed:
   - MetalLB
   - CertMgr ( *.k8s.kirillorlov.pro )
   - Longhorn (backup to OVH S3)
-  - Minio for S3 over longhorn
   - Cloudflared
+  - promtheus-operator (node-exporter, grafana, prometheus)
+
+TBD:
+  - Minio for S3 over longhorn
   - External DNS (to sync with pi-hole)
   - PiHole as DNS server
-  - promtheus-operator (node-exporter, grafana, prometheus)
   - csi-driver-sshfs (for seedbox)
   - External Secret Operator 
+  - Velero for backups
 
 # Apps
 
@@ -92,5 +93,9 @@ K3S - apps:
  
 # ToDo how to:
 
-Backup MySQL?
-ArgoCD - initial install without certificate, then enable after certmgr installed - how?
+- Backup MySQL?
+- Backup K3s objects?
+- Automate initial install?
+- Automate backup&recovery?
+- Default credentials:
+  - argocd - secret 

@@ -21,6 +21,12 @@
     mode: "0755"
   notify: restart mariadb
 
+- name: Configure mysqld exporter service
+  ansible.builtin.template:
+    src: "prometheus-mysqld-exporter.j2"
+    dest: "/etc/default/prometheus-mysqld-exporter"
+    mode: "0755"
+
 - name: Setup galera.cnf
   ansible.builtin.template:
     src: "galera.cnf.j2"
@@ -51,6 +57,11 @@
     enabled: true
     state: started
 
+- name: Ensure prometheus exporter running
+  ansible.builtin.systemd_service:
+    name: prometheus-mysqld-exporter
+    enabled: true
+    state: started
 
 - name: Init galera cluster
   when: inventory_hostname == groups['server'][0]
