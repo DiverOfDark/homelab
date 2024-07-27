@@ -19,6 +19,16 @@ spec:
               - alertmanager.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+          alertmanagerSpec:
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: longhorn
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
+                  selector: {}
         grafana:
           ingress:
             enabled: true
@@ -26,6 +36,14 @@ spec:
               - grafana.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+          persistence:
+            enabled: true
+            type: sts
+            storageClassName: "longhorn"
+            accessModes: ["ReadWriteOnce"]
+            size: 5Gi
+            finalizers:
+              - kubernetes.io/pvc-protection
         prometheus:
           prometheusSpec:
             podMonitorNamespaceSelector: {}
@@ -37,6 +55,16 @@ spec:
             serviceMonitorNamespaceSelector: {}
             serviceMonitorSelector: {}
             serviceMonitorSelectorNilUsesHelmValues: false
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: longhorn
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 10Gi
+                  selector: {}
+
           thanosIngress:
             hosts:
               - thanos.k8s.kirillorlov.pro
@@ -54,6 +82,16 @@ spec:
               - thanos-ruler.k8s.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: longhorn
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 25Gi
+                selector: {}
+
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 56.21.0
   syncPolicy:
