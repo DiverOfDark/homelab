@@ -1,56 +1,20 @@
-﻿apiVersion: v1
-kind: Namespace
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: cloudflared
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cloudflared-cloudflare-tunnel-remote
-  namespace: cloudflared
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cloudflared-cloudflare-tunnel-remote
-  namespace: cloudflared
+  namespace: argocd
 spec:
-  progressDeadlineSeconds: 600
-  replicas: 2
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      pod: cloudflared
-  template:
-    metadata:
-      labels:
-        pod: cloudflared
-    spec:
-      containers:
-        - command:
-            - cloudflared
-            - tunnel
-            - '--no-autoupdate'
-            - '--metrics'
-            - '0.0.0.0:2000'
-            - run
-          env:
-            - name: TUNNEL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: tunnelToken
-                  name: cloudflared-cloudflare-tunnel-remote
-          image: 'cloudflare/cloudflared:latest'
-          imagePullPolicy: IfNotPresent
-          livenessProbe:
-            failureThreshold: 1
-            httpGet:
-              path: /ready
-              port: 2000
-              scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          name: cloudflared
-      serviceAccount: cloudflared-cloudflare-tunnel-remote
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: k3s-cloudflared
+    repoURL: https://github.com/DiverOfDark/homelab.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - PruneLast=true
+    - ServerSideApply=true
