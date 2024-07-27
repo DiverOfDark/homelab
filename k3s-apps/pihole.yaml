@@ -33,7 +33,7 @@ spec:
             - secretName: pihole-cert-secret
               hosts:
                 - pihole.k8s.kirillorlov.pro
-        persistenceVolumeClaim:
+        persistentVolumeClaim:
           enabled: true
           storageClass: longhorn
         admin:
