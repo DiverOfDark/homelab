@@ -40,7 +40,7 @@ spec:
                 secretKeyRef:
                   key: tunnelToken
                   name: cloudflared-cloudflare-tunnel-remote
-          image: 'cloudflare/cloudflared:latest'
+          image: 'cloudflare/cloudflared:2024.6.1'
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 1
