@@ -102,4 +102,5 @@ K3S - apps:
 - Grafana dashboards to autoimport:
   - 16888 - longhorn
   - 7362 - mysql overview
-  - 15641 - mysql cluster overview
+  - 13106 - mysql cluster overview
+- Setup additional scrape target for prometheus from ansible (now it's hardcoded in values)
