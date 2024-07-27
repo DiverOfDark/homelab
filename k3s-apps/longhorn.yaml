@@ -28,6 +28,9 @@ spec:
             defaultClassReplicaCount: 2
             defaultDataLocality: best-effort
             migratable: true
+          metrics:
+            serviceMonitor:
+              enabled: true
 
   destination:
     server: https://kubernetes.default.svc
