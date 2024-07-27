@@ -16,7 +16,7 @@ spec:
       values: |
         serviceDns:
           type: LoadBalancer
-          loadBalancerIP: 192.168.179.2
+          loadBalancerIP: 192.168.179.254
           annotations:
             metallb.universe.tf/allow-shared-ip: pihole-svc
         serviceDhcp:
