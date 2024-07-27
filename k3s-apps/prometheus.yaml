@@ -28,7 +28,6 @@ spec:
                   resources:
                     requests:
                       storage: 5Gi
-                  selector: {}
         grafana:
           ingress:
             enabled: true
@@ -63,7 +62,6 @@ spec:
                   resources:
                     requests:
                       storage: 10Gi
-                  selector: {}
 
           thanosIngress:
             hosts:
@@ -90,7 +88,6 @@ spec:
                 resources:
                   requests:
                     storage: 25Gi
-                selector: {}
 
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 56.21.0
