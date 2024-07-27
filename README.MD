@@ -99,3 +99,7 @@ K3S - apps:
 - Automate backup&recovery?
 - Default credentials:
   - argocd - secret 
+- Grafana dashboards to autoimport:
+  - 16888 - longhorn
+  - 7362 - mysql overview
+  - 15641 - mysql cluster overview
