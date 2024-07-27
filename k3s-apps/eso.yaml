@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: eso
+  namespace: argocd
+spec:
+  destination:
+    namespace: eso
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: external-secrets
+    repoURL: https://charts.external-secrets.io
+    targetRevision: 0.9.20
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
