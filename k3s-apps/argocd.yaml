@@ -20,7 +20,7 @@ spec:
                 enabled: true
                 tls: true
                  annotations:
-                  cert-manager.io/cluster-issuer: acme-issuer
+                  - cert-manager.io/cluster-issuer: acme-issuer
               autoscaling:
                 enabled: false
                 minReplicas: 2
