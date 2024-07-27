@@ -99,8 +99,12 @@ K3S - apps:
 - Automate backup&recovery?
 - Default credentials:
   - argocd - secret 
+  - grafana: 
+    - default: admin/prom-operator
+    - secret 
 - Grafana dashboards to autoimport:
   - 16888 - longhorn
   - 7362 - mysql overview
   - 13106 - mysql cluster overview
 - Setup additional scrape target for prometheus from ansible (now it's hardcoded in values)
+- Check prometheus compaction over time - volume of 10gb might be not enough
