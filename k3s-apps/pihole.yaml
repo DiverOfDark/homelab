@@ -36,6 +36,8 @@ spec:
         persistentVolumeClaim:
           enabled: true
           storageClass: longhorn
+          accessModes:
+            - ReadWriteMany
         admin:
           existingSecret: pihole-secret
         monitoring:
