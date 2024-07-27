@@ -10,12 +10,12 @@ working_hosts:
           server: 100.64.0.2
       #agent:
   vars:
-    prepare_system: false
-    prepare_k3s: true
+    prepare_system: true
+    prepare_k3s: false
     prepare_k3s_binary: false
     prepare_k3s_cluster_init: false
     prepare_keepalived: false
-    prepare_mysql: false
+    prepare_mysql: true
 
     mariadb_root_password: !vault |
       $ANSIBLE_VAULT;1.1;AES256
