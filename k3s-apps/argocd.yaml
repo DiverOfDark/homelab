@@ -19,7 +19,7 @@ spec:
               ingress:
                 enabled: true
                 tls: true
-                 annotations:
+                annotations:
                   cert-manager.io/cluster-issuer: "acme-issuer"
               autoscaling:
                 enabled: false
