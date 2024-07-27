@@ -62,7 +62,7 @@ To be installed:
   - CertMgr ( *.k8s.kirillorlov.pro )
   - Longhorn (backup to OVH S3)
   - Cloudflared
-  - promtheus-operator (node-exporter, grafana, prometheus)
+  - prometheus-operator (node-exporter, grafana, prometheus)
 
 TBD:
   - Minio for S3 over longhorn
