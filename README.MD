@@ -8,7 +8,7 @@ Physical Network IPs
 Virtual Network IP
 ---
 - 192.168.179.1 - 192.168.179.10 -> Servers VIP
-  - 192.168.179.1 - K3S server group
+  - 192.168.179.1 - K3S server group keepalived
     - Alfheimr
     - Midgard
     - Niflheimr
@@ -77,7 +77,6 @@ TBD:
 To be installed:
 
 K3S - apps:
- - BitWarden
  - bonsai (+postgres)
  - jackett
  - sonarr
