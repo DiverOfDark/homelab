@@ -67,7 +67,6 @@ spec:
                   remoteRef:
                     key: golden-secret
                     property: user-password
-            ---
 
   syncPolicy:
     automated:
