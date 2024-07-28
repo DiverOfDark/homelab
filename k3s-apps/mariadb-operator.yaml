@@ -12,6 +12,22 @@ spec:
     chart: mariadb-operator
     repoURL: https://helm.mariadb.com/mariadb-operator
     targetRevision: 0.29.0
+    helm:
+      values: |
+        image:
+          repository: ghcr.io/mariadb-operator/mariadb-operator
+          pullPolicy: IfNotPresent
+        logLevel: INFO
+        ha:
+          enabled: true
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+        webhook:
+          cert:
+            certManager:
+              enabled: false
   syncPolicy:
     automated:
       prune: true
