@@ -68,6 +68,7 @@ To be installed:
   - External Secret Operator 
 
 TBD:
+  - MariaDB-operator
   - Minio for S3 over longhorn
   - csi-driver-sshfs (for seedbox)
   - Velero for backups
