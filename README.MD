@@ -63,13 +63,13 @@ To be installed:
   - Longhorn (backup to OVH S3)
   - Cloudflared
   - prometheus-operator (node-exporter, grafana, prometheus)
+  - External DNS (to sync with pi-hole)
+  - PiHole as DNS server
+  - External Secret Operator 
 
 TBD:
   - Minio for S3 over longhorn
-  - External DNS (to sync with pi-hole)
-  - PiHole as DNS server
   - csi-driver-sshfs (for seedbox)
-  - External Secret Operator 
   - Velero for backups
 
 # Apps
