@@ -5,7 +5,7 @@ metadata:
   namespace: rss-telegram-bot
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 0
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -17,7 +17,8 @@ spec:
     spec:
       volumes:
         - name: config-volume
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: sqlite-pvc
       containers:
         - image: 'rongronggg9/rss-to-telegram:dev'
           imagePullPolicy: IfNotPresent
@@ -27,11 +28,7 @@ spec:
                 name: rss-telegram-bot-secret
           env:
             - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  key: dsn
-                  name: mariadb-connection
-
+              value: sqlite:///app/config/db.sqlite3
           volumeMounts:
             - mountPath: /app/config
               name: config-volume
