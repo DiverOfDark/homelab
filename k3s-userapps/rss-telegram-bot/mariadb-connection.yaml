@@ -3,6 +3,7 @@ apiVersion: k8s.mariadb.com/v1alpha1
 kind: Connection
 metadata:
   name: connection
+  namespace: rss-telegram-bot
 spec:
   mariaDbRef:
     name: mariadb
