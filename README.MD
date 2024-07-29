@@ -51,9 +51,6 @@ TBD:
 
 # Infrastructure
 
-
-To be installed:
-
 - Keepalived
 - MySQL Galera cluster
 - K3S
@@ -67,7 +64,7 @@ To be installed:
   - PiHole as DNS server
   - External Secret Operator 
 
-TBD:
+To be installed:
   - MariaDB-operator
   - Minio for S3 over longhorn
   - csi-driver-sshfs (for seedbox)
@@ -75,15 +72,15 @@ TBD:
 
 # Apps
 
-To be installed:
+Running:
+ - rss-to-telegram
 
-K3S - apps:
+To be installed:
  - bonsai (+postgres)
  - jackett
  - sonarr
  - radarr
  - homarr (status page)
- - rss-to-telegram
  - photoprism
  - paperless (+redis)
  - nextcloud (+mariadb)
@@ -94,14 +91,10 @@ K3S - apps:
 # ToDo how to:
 
 - Backup MySQL?
-- Backup K3s objects?
+- Backup K3s objects? Restore PV?
+- Backup PV / Restore PV?
 - Automate initial install?
 - Automate backup&recovery?
-- Default credentials:
-  - argocd - secret 
-  - grafana: 
-    - default: admin/prom-operator
-    - secret 
 - Grafana dashboards to autoimport:
   - 16888 - longhorn
   - 7362 - mysql overview
