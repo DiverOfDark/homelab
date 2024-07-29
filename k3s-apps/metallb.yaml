@@ -9,11 +9,13 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    chart: metallb/metallb
+    chart: metallb
     repoURL: https://metallb.github.io/metallb
     targetRevision: 0.14.8
     helm:
       values: |
+        namespace: metallb
+        serviceAccount: default
         prometheus:
           serviceMonitor:
             enabled: true
