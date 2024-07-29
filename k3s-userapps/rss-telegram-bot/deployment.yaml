@@ -22,7 +22,7 @@ spec:
         - image: 'rongronggg9/rss-to-telegram:dev'
           imagePullPolicy: IfNotPresent
           name: rss-telegram-bot
-          env_from:
+          envFrom:
             - secretRef:
                 name: rss-telegram-bot-secret
           env:
