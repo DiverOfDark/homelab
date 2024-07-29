@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rss-telegram-bot
+  namespace: rss-telegram-bot
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: rss-telegram-bot
+  template:
+    metadata:
+      labels:
+        pod: rss-telegram-bot
+    spec:
+      volumes:
+        - name: configVolume
+          emptyDir: {}
+      containers:
+        - image: 'rongronggg9/rss-to-telegram:dev'
+          imagePullPolicy: IfNotPresent
+          name: rss-telegram-bot
+          env_from:
+            - secretRef:
+                name: rss-telegram-bot-secret
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: mariadb-connection
+
+          volumeMounts:
+            - mountPath: /app/config
+              name: configVolume
