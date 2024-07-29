@@ -73,6 +73,9 @@ spec:
               data:
                 - secretKey: password
                   remoteRef:
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
                     key: golden-secret
                     property: user-password
 
