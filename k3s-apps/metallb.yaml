@@ -14,9 +14,9 @@ spec:
     targetRevision: 0.14.8
     helm:
       values: |
-        namespace: metallb
-        serviceAccount: default
         prometheus:
+          serviceAccount: default
+          namespace: metallb
           serviceMonitor:
             enabled: true
           prometheusRule:
