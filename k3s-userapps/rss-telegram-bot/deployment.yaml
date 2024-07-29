@@ -16,7 +16,7 @@ spec:
         pod: rss-telegram-bot
     spec:
       volumes:
-        - name: configVolume
+        - name: config-volume
           emptyDir: {}
       containers:
         - image: 'rongronggg9/rss-to-telegram:dev'
@@ -34,4 +34,4 @@ spec:
 
           volumeMounts:
             - mountPath: /app/config
-              name: configVolume
+              name: config-volume
