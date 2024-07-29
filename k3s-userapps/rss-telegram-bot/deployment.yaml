@@ -5,7 +5,7 @@ metadata:
   namespace: rss-telegram-bot
 spec:
   progressDeadlineSeconds: 600
-  replicas: 0
+  replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
