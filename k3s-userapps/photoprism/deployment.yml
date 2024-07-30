@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photoprism
+  namespace: photoprism
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 0
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: photoprism
+  template:
+    metadata:
+      labels:
+        pod: photoprism
+    spec:
+      volumes:
+        - name: originals
+          persistentVolumeClaim:
+            claimName: originals
+        - name: storage
+          persistentVolumeClaim:
+            claimName: storage
+      containers:
+        - image: 'photoprism/photoprism:latest'
+          imagePullPolicy: IfNotPresent
+          name: photoprism
+          envFrom:
+            - configMapRef:
+                name: photoprism-cm
+          volumeMounts:
+            - mountPath: /photoprism/originals
+              name: originals
+            - mountPath: /photoprism/storage
+              name: storage
