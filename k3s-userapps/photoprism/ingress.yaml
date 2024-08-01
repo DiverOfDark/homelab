@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: photoprism
+  namespace: photoprism
+spec:
+  rules:
+  - host: photo.k8s.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: photoprism
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - photo.k8s.kirillorlov.pro
+    secretName: photo-server-tls
