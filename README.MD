@@ -28,14 +28,12 @@ HW
     - K3S Master 2
     - Keepalived
     - MySQL Galera cluster
-
-TBD:
-- Ali nettop
+- Firebat AM02 (Niflheimr)
   - 192.168.179.12
-  - Niflheimr
-  - K3S Master 3
-  - MySQL Galera cluster
-  - Keepalived
+  - Roles:
+    - K3S Master 3
+    - Keepalived
+    - MySQL Galera cluster
 
 Physical Hardware Placement
 ---
@@ -44,9 +42,9 @@ Server Rack:
  - older router
  - Alfheimr
  - Midgard
+ - Niflheimr
 
 TBD:
- - Niflheimr
  - NAS
 
 # Infrastructure

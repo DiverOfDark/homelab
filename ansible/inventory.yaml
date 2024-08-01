@@ -8,14 +8,17 @@ working_hosts:
         midgard:
           ansible_host: 192.168.178.11
           server: 100.64.0.2
+        niflheimr:
+          ansible_host: 192.168.178.12
+          server: 100.64.0.3
       #agent:
   vars:
-    prepare_system: false
+    prepare_system: true
     prepare_k3s: true
-    prepare_k3s_binary: false
-    prepare_k3s_cluster_init: false
-    prepare_keepalived: false
-    prepare_mysql: false
+    prepare_k3s_binary: true
+    prepare_k3s_cluster_init: true
+    prepare_keepalived: true
+    prepare_mysql: true
 
     mariadb_root_password: !vault |
       $ANSIBLE_VAULT;1.1;AES256
@@ -140,6 +143,7 @@ working_hosts:
             35373561373034633438366361363933393465346333613535656664313665663336386432623635
             6231373632363035636432313363393433343832356330363637
 
+          ovh-s3-longhorn-backups-endpoint: https://s3.de.io.cloud.ovh.net/
           ovh-s3-longhorn-backups-username: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             32376331386165656537313666663264346264303663613664396638396236613136386364613030

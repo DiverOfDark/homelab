@@ -1,1 +1,1 @@
-DATA_SOURCE_NAME="root:{{ mariadb_root_password }}@unix(/run/mysqld/mysqld.sock)/"
+ARGS="--mysqld.username=root:{{ mariadb_root_password }} --mysqld.address=localhost:3306"
