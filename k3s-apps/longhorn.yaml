@@ -30,6 +30,9 @@ spec:
           metrics:
             serviceMonitor:
               enabled: true
+          defaultSettings:
+            backupTarget: s3://diverofdark-homelab-longhorn-backups@de/
+            backupTargetCredentialSecret: longhorn-s3-secret
 
   destination:
     server: https://kubernetes.default.svc
