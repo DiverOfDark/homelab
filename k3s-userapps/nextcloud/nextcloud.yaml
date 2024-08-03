@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: nextcloud
+  template:
+    metadata:
+      labels:
+        pod: nextcloud
+    spec:
+      volumes:
+        - name: nextcloud
+          persistentVolumeClaim:
+            claimName: nextcloud
+      containers:
+        - image: 'nextcloud:29.0.4'
+          imagePullPolicy: IfNotPresent
+          name: nextcloud
+          env:
+            - name: MYSQL_PASSWORD
+              value: nonrootpass
+            - name: MYSQL_DATABASE
+              value: nextcloud
+            - name: MYSQL_USER
+              value: nextcloud
+            - name: MYSQL_HOST
+              value: mysql
+            - name: OVERWRITEHOST
+              value: cloud.k8s.kirillorlov.pro
+            - name: OVERWRITEPROTOCOL
+              value: https
+            - name: TRUSTED_PROXIES
+              value: 10.42.0.0/16
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: nextcloud
