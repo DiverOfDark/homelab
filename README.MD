@@ -95,3 +95,5 @@ To be installed:
 - Setup proper requests / limits for userapps
 - Setup proper liveness / startup / readyness checks for userapps
 - Ensure all tags are not current - so that renovate would work
+- Reloader to restart app if ConfigMap changes
+  - Or KEDA operator? 
