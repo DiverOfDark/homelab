@@ -27,4 +27,4 @@ spec:
         - --registry=noop
         # - --policy=upsert-only
         - --provider=pihole
-        - --pihole-server=https://pihole.kirillorlov.pro
+        - --pihole-server=http://pihole-web.pihole
