@@ -94,3 +94,4 @@ To be installed:
 - Setup additional scrape target for prometheus from ansible (now it's hardcoded in values)
 - Setup proper requests / limits for userapps
 - Setup proper liveness / startup / readyness checks for userapps
+- Ensure all tags are not current - so that renovate would work
