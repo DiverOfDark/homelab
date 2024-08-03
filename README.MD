@@ -90,12 +90,7 @@ To be installed:
 
 - Backup MySQL?
 - Backup K3s objects? Restore PV?
-- Backup PV / Restore PV?
-- Automate initial install?
-- Automate backup&recovery?
-- Grafana dashboards to autoimport:
-  - 16888 - longhorn
-  - 7362 - mysql overview
-  - 13106 - mysql cluster overview
+- Try to Restore PV?
 - Setup additional scrape target for prometheus from ansible (now it's hardcoded in values)
-- Check prometheus compaction over time - volume of 10gb might be not enough
+- Setup proper requests / limits for userapps
+- Setup proper liveness / startup / readyness checks for userapps
