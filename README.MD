@@ -97,3 +97,5 @@ To be installed:
 - Ensure all tags are not current - so that renovate would work
 - Reloader to restart app if ConfigMap changes
   - Or KEDA operator? 
+- HA for ALL apps
+- HA for PiHole (?) - or caching proxy-server / fallback dns server?
