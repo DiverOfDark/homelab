@@ -72,6 +72,9 @@ To be installed:
 
 Running:
  - rss-to-telegram
+ - nextcloud (+mariadb)
+ - hugo (website)
+ - photoprism
 
 To be installed:
  - bonsai (+postgres)
@@ -79,11 +82,8 @@ To be installed:
  - sonarr
  - radarr
  - homarr (status page)
- - photoprism
  - paperless (+redis)
- - nextcloud (+mariadb)
  - plex (disk space??? need nas... or connect hdds to each of nodes)
- - hugo (website)
  - overseerr
  
 # ToDo how to:
