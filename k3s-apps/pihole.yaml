@@ -22,17 +22,17 @@ spec:
             metallb.universe.tf/allow-shared-ip: pihole-svc
         serviceDhcp:
           enabled: false
-        virtualHost: pihole.k8s.kirillorlov.pro 
+        virtualHost: pihole.kirillorlov.pro 
         ingress:
           enabled: true
           annotations: 
             cert-manager.io/cluster-issuer: "acme-issuer"
           hosts:
-            - pihole.k8s.kirillorlov.pro
+            - pihole.kirillorlov.pro
           tls: 
             - secretName: pihole-cert-secret
               hosts:
-                - pihole.k8s.kirillorlov.pro
+                - pihole.kirillorlov.pro
         persistentVolumeClaim:
           enabled: true
           storageClass: longhorn

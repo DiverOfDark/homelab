@@ -33,7 +33,7 @@ spec:
             - name: MYSQL_HOST
               value: mysql
             - name: OVERWRITEHOST
-              value: cloud.k8s.kirillorlov.pro
+              value: cloud.kirillorlov.pro
             - name: OVERWRITEPROTOCOL
               value: https
             - name: TRUSTED_PROXIES

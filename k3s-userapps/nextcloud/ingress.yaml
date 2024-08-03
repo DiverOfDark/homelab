@@ -7,7 +7,7 @@ metadata:
   namespace: nextcloud
 spec:
   rules:
-  - host: cloud.k8s.kirillorlov.pro
+  - host: cloud.kirillorlov.pro
     http:
       paths:
       - backend:
@@ -19,5 +19,5 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - cloud.k8s.kirillorlov.pro
+    - cloud.kirillorlov.pro
     secretName: photo-server-tls

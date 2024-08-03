@@ -12,7 +12,7 @@ spec:
       helm:
         values: |
             global:
-              domain: argo.k8s.kirillorlov.pro
+              domain: argo.kirillorlov.pro
               affinity.nodeAffinity.type: soft
         
             server:

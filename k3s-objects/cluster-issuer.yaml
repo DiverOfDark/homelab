@@ -19,4 +19,4 @@ spec:
             key: api-token
       selector:
         dnsZones:
-        - 'k8s.kirillorlov.pro'
+        - 'kirillorlov.pro'

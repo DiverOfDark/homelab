@@ -7,7 +7,7 @@ metadata:
   namespace: photoprism
 spec:
   rules:
-  - host: photo.k8s.kirillorlov.pro
+  - host: photo.kirillorlov.pro
     http:
       paths:
       - backend:
@@ -19,5 +19,5 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - photo.k8s.kirillorlov.pro
+    - photo.kirillorlov.pro
     secretName: photo-server-tls

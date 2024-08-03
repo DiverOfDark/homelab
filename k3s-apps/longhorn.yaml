@@ -21,7 +21,7 @@ spec:
           ingress:
             enabled: true
             tls: true
-            host: longhorn.k8s.kirillorlov.pro
+            host: longhorn.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
           persistence:

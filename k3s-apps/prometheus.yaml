@@ -18,7 +18,7 @@ spec:
           ingress:
             enabled: true
             hosts:
-              - alertmanager.k8s.kirillorlov.pro
+              - alertmanager.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
           alertmanagerSpec:
@@ -34,7 +34,7 @@ spec:
           ingress:
             enabled: true
             hosts:
-              - grafana.k8s.kirillorlov.pro
+              - grafana.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
           persistence:
@@ -75,7 +75,7 @@ spec:
           ingress:
             enabled: true
             hosts:
-              - prometheus.k8s.kirillorlov.pro
+              - prometheus.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
 
