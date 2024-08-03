@@ -22,15 +22,11 @@ spec:
         - image: 'klakegg/hugo:0.101.0-asciidoctor'
           imagePullPolicy: IfNotPresent
           name: homepage
-
-          args: [ "server", "-b", "http://www.kirillorlov.pro/", "--appendPort=false", "--log" ]
+          args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
           ports:
-            - containerPort: 80
+            - containerPort: 1313
               protocol: TCP
               name: "http"
-            - containerPort: 443
-              protocol: TCP
-              name: "https"
           volumeMounts:
             - mountPath: /src
               name: nextcloud
@@ -47,7 +43,7 @@ spec:
   - name: http
     port: 80
     protocol: TCP
-    targetPort: 80
+    targetPort: 1313
   selector:
     pod: homepage
   type: ClusterIP
@@ -85,4 +81,4 @@ spec:
   - hosts:
     - www.kirillorlov.pro
     - kirillorlov.pro
-    secretName: photo-server-tls
+    secretName: homepage-tls
