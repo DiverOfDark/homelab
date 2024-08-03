@@ -31,7 +31,7 @@ spec:
             serviceMonitor:
               enabled: true
           defaultSettings:
-            backupTarget: s3://diverofdark-homelab-longhorn-backups@de/
+            backupTarget: cifs://archer.fritz.box/LonghornBackups/
             backupTargetCredentialSecret: longhorn-s3-secret
 
   destination:
