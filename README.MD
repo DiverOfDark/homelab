@@ -99,3 +99,4 @@ To be installed:
   - Or KEDA operator? 
 - HA for ALL apps
 - HA for PiHole (?) - or caching proxy-server / fallback dns server?
+- Custom metrics for all installed apps - check what doesn't and whether they support
