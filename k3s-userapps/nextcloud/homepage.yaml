@@ -19,7 +19,7 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud
       containers:
-        - image: 'klakegg/hugo:0.101.0-asciidoctor'
+        - image: 'klakegg/hugo:0.111.3-asciidoctor'
           imagePullPolicy: IfNotPresent
           name: homepage
           args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
