@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: homepage
+  namespace: nextcloud
+spec:
+  rules:
+  - host: www.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: homepage
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: homepage
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - www.kirillorlov.pro
+    - kirillorlov.pro
+    secretName: homepage-tls

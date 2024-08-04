@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: nextcloud
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: homepage
+  template:
+    metadata:
+      labels:
+        pod: homepage
+    spec:
+      volumes:
+        - name: nextcloud
+          persistentVolumeClaim:
+            claimName: nextcloud
+      containers:
+        - image: 'klakegg/hugo:0.111.3-asciidoctor'
+          imagePullPolicy: IfNotPresent
+          name: homepage
+          args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
+          ports:
+            - containerPort: 1313
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /src
+              name: nextcloud
+              subPath: data/diverofdark/files/website

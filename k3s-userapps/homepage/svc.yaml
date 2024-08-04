@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage
+  namespace: nextcloud
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 1313
+  selector:
+    pod: homepage
+  type: ClusterIP
