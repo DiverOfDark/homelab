@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: paperless
+  template:
+    metadata:
+      labels:
+        pod: paperless
+    spec:
+      volumes:
+        - name: paperless
+          persistentVolumeClaim:
+            claimName: paperless
+      containers:
+        - image: 'docker.io/library/redis:7'
+          name: redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /data
+              name: paperless
+              subPath: redis
+        - image: 'ghcr.io/paperless-ngx/paperless-ngx:2.11.2'
+          name: paperless
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+              name: "http"
+          env:
+            - name: PAPERLESS_REDIS
+              value: redis://localhost:6379
+            - name: PAPERLESS_OCR_LANGUAGES
+              value: rus eng deu
+            - name: PAPERLESS_URL
+              value: https://paper.kirillorlov.pro
+            - name: PAPERLESS_TIME_ZONE
+              value: Europe/Berlin
+            - name: PAPERLESS_ADMIN_USER
+              value: diverofdark
+          envFrom:
+            - secretRef:
+                name: paperless-secret
+          volumeMounts:
+            - mountPath: /root/paperless/data
+              name: paperless
+              subPath: data
+            - mountPath: /root/paperless/media
+              name: paperless
+              subPath: media
+            - mountPath: /root/paperless/export
+              name: paperless
+              subPath: export
+            - mountPath: /root/paperless/consume
+              name: paperless
+              subPath: consume
