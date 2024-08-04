@@ -53,15 +53,15 @@ spec:
             - secretRef:
                 name: paperless-secret
           volumeMounts:
-            - mountPath: /root/paperless/data
+            - mountPath: /usr/src/paperless/data
               name: paperless
               subPath: data
-            - mountPath: /root/paperless/media
+            - mountPath: /usr/src/paperless/media
               name: paperless
               subPath: media
-            - mountPath: /root/paperless/export
+            - mountPath: /usr/src/paperless/export
               name: paperless
               subPath: export
-            - mountPath: /root/paperless/consume
+            - mountPath: /usr/src/paperless/consume
               name: paperless
               subPath: consume
