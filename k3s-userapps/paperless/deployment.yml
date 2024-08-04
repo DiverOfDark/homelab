@@ -37,6 +37,8 @@ spec:
               protocol: TCP
               name: "http"
           env:
+            - name: PAPERLESS_PORT
+              value: "8000"
             - name: PAPERLESS_REDIS
               value: redis://localhost:6379
             - name: PAPERLESS_OCR_LANGUAGES
