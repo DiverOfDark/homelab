@@ -76,6 +76,7 @@ Running:
  - hugo (website)
  - photoprism
  - actualbudget
+ - paperless (+redis)
 
 To be installed:
  - bonsai (+postgres)
@@ -83,7 +84,6 @@ To be installed:
  - sonarr
  - radarr
  - homarr (status page)
- - paperless (+redis)
  - plex (disk space??? need nas... or connect hdds to each of nodes)
  - overseerr
  
