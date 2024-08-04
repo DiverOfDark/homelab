@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actualbudget
+  namespace: actualbudget
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: actualbudget
+  template:
+    metadata:
+      labels:
+        pod: actualbudget
+    spec:
+      volumes:
+        - name: actualbudget
+          persistentVolumeClaim:
+            claimName: actualbudget
+      containers:
+        - image: 'actualbudget/actual-server:latest'
+          imagePullPolicy: IfNotPresent
+          name: actualbudget
+          ports:
+            - containerPort: 5006
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /data
+              name: actualbudget

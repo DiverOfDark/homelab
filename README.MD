@@ -75,6 +75,7 @@ Running:
  - nextcloud (+mariadb)
  - hugo (website)
  - photoprism
+ - actualbudget
 
 To be installed:
  - bonsai (+postgres)

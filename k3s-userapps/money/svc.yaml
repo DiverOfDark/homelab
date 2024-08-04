@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: actualbudget
+  namespace: actualbudget
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 5006
+  selector:
+    pod: actualbudget
+  type: ClusterIP
