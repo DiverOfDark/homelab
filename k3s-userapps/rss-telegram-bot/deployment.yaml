@@ -20,7 +20,7 @@ spec:
           persistentVolumeClaim:
             claimName: sqlite-pvc
       containers:
-        - image: 'rongronggg9/rss-to-telegram:dev'
+        - image: 'rongronggg9/rss-to-telegram:2.8.0'
           imagePullPolicy: IfNotPresent
           name: rss-telegram-bot
           envFrom:

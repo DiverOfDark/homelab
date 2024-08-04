@@ -23,7 +23,7 @@ spec:
           persistentVolumeClaim:
             claimName: storage
       containers:
-        - image: 'photoprism/photoprism:latest'
+        - image: 'photoprism/photoprism:240711'
           imagePullPolicy: IfNotPresent
           name: photoprism
           envFrom:
