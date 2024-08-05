@@ -46,3 +46,27 @@ spec:
     - radarr.kirillorlov.pro
     secretName: radarr-tls
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: sonarr
+  namespace: media
+spec:
+  rules:
+  - host: sonarr.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: sonarr
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - sonarr.kirillorlov.pro
+    secretName: sonarr-tls
+---

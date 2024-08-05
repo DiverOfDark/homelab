@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: media
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: sonarr
+  template:
+    metadata:
+      labels:
+        pod: sonarr
+    spec:
+      volumes:
+        - name: sonarr
+          persistentVolumeClaim:
+            claimName: sonarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: video
+        - name: downloads
+          hostPath:
+            path: "/mnt/seedbox"
+      containers:
+        - image: 'lscr.io/linuxserver/sonarr:4.0.8'
+          imagePullPolicy: IfNotPresent
+          name: sonarr
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: PUID
+              value: "0000"
+            - name: PGID
+              value: "000"
+            - name: AUTO_UPDATE
+              value: "false"
+          ports:
+            - containerPort: 8989
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /config
+              name: sonarr
+            - mountPath: /downloads
+              name: downloads
+            - mountPath: /media
+              name: media
