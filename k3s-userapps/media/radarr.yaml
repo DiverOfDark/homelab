@@ -33,9 +33,9 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: PUID
-              value: "1000"
+              value: "0000"
             - name: PGID
-              value: "100"
+              value: "000"
             - name: AUTO_UPDATE
               value: "false"
           ports:
