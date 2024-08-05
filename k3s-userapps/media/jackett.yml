@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett
+  namespace: media
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: jackett
+  template:
+    metadata:
+      labels:
+        pod: jackett
+    spec:
+      volumes:
+        - name: jackett
+          persistentVolumeClaim:
+            claimName: jackett
+      containers:
+        - image: 'lscr.io/linuxserver/jackett:0.22.410'
+          imagePullPolicy: IfNotPresent
+          name: jackett
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "100"
+            - name: AUTO_UPDATE
+              value: "false"
+          ports:
+            - containerPort: 9117
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /config
+              name: jackett
