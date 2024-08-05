@@ -51,6 +51,7 @@ TBD:
 
 - Keepalived
 - MySQL Galera cluster
+- RClone mount to seedbox ftp on each node to /mnt/seedbox
 - K3S
   - ArgoCD
   - MetalLB
@@ -65,7 +66,6 @@ TBD:
 To be installed:
   - MariaDB-operator
   - Minio for S3 over longhorn
-  - csi-driver-sshfs (for seedbox)
   - Velero for backups
 
 # Apps
