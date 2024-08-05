@@ -3,6 +3,30 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+  name: jackett
+  namespace: media
+spec:
+  rules:
+  - host: jackett.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: jackett
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - jackett.kirillorlov.pro
+    secretName: jackett-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
   name: radarr
   namespace: media
 spec:
@@ -21,3 +45,4 @@ spec:
   - hosts:
     - radarr.kirillorlov.pro
     secretName: radarr-tls
+---
