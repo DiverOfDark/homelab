@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      pod: radarr
+  template:
+    metadata:
+      labels:
+        pod: radarr
+    spec:
+      volumes:
+        - name: radarr
+          persistentVolumeClaim:
+            claimName: radarr
+        - name: media
+          persistentVolumeClaim:
+            claimName: video
+        - name: downloads
+          hostPath:
+            path: "/mnt/seedbox"
+      containers:
+        - image: 'lscr.io/linuxserver/radarr:nightly-version-5.9.0.8962'
+          imagePullPolicy: IfNotPresent
+          name: radarr
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "100"
+            - name: AUTO_UPDATE
+              value: "false"
+          ports:
+            - containerPort: 7878
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /config
+              name: radarr
+            - mountPath: /downloads
+              name: downloads
+            - mountPath: /media
+              name: media
