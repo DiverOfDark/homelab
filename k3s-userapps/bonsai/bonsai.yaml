@@ -97,6 +97,36 @@ spec:
     - kirillorlov.pro
     secretName: bonsai-tls
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: patch-deployment-sa
+  namespace: bonsai
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: patch-deployment-role
+  namespace: bonsai
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: patch-deployment-rolebinding
+  namespace: bonsai
+subjects:
+- kind: ServiceAccount
+  name: patch-deployment-sa
+  namespace: bonsai
+roleRef:
+  kind: Role
+  name: patch-deployment-role
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -108,6 +138,7 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: patch-deployment-sa
           containers:
           - name: patch-deployment
             image: bitnami/kubectl:latest
