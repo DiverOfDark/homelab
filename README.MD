@@ -82,9 +82,9 @@ Running:
  - radarr
  - plex
  - overseerr
+ - bonsai
 
 To be installed:
- - bonsai (+postgres)
  - homarr (status page)
  
 # ToDo how to:
