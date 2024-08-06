@@ -77,15 +77,15 @@ Running:
  - photoprism
  - actualbudget
  - paperless (+redis)
-
-To be installed:
- - bonsai (+postgres)
  - jackett
  - sonarr
  - radarr
- - homarr (status page)
- - plex (disk space??? need nas... or connect hdds to each of nodes)
+ - plex
  - overseerr
+
+To be installed:
+ - bonsai (+postgres)
+ - homarr (status page)
  
 # ToDo how to:
 
