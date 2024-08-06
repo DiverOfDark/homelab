@@ -102,3 +102,6 @@ To be installed:
 - HA for PiHole (?) - or caching proxy-server / fallback dns server?
 - Custom metrics for all installed apps - check what doesn't and whether they support
 - RSSTT - switch to statefulset 
+- Default resource limit for all pods = 50cpu / 16mib
+- All ingresses - check http(s) 
+  - or even better - write a policy for Kyverno for that
