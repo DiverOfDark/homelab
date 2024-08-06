@@ -70,3 +70,27 @@ spec:
     - sonarr.kirillorlov.pro
     secretName: sonarr-tls
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: overseerr
+  namespace: media
+spec:
+  rules:
+  - host: overseerr.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: overseerr
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - overseerr.kirillorlov.pro
+    secretName: overseerr-tls
+---
