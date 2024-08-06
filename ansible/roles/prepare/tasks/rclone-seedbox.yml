@@ -21,9 +21,23 @@
     group: root
     mode: "0644"
 
+- name: Copy rclone service
+  ansible.builtin.template:
+    src: "rclone-cifs.service"
+    dest: "/etc/systemd/system/rclone-cifs.service"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Make seedbox mount dir
   ansible.builtin.file:
     path: "/mnt/seedbox"
+    mode: "0777"
+    state: directory
+
+- name: Make seedbox mount dir
+  ansible.builtin.file:
+    path: "/mnt/cifs"
     mode: "0777"
     state: directory
 
@@ -34,5 +48,11 @@
 - name: Ensure rclone running
   ansible.builtin.systemd_service:
     name: rclone
+    enabled: true
+    state: started
+
+- name: Ensure rclone running
+  ansible.builtin.systemd_service:
+    name: rclone-cifs
     enabled: true
     state: started

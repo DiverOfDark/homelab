@@ -1,0 +1,21 @@
+[Unit]
+Description=RClone CIFS Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+TimeoutStopSec=60
+Environment=GOMAXPROCS=2
+
+ExecStart=/usr/bin/rclone mount cifs:/ /mnt/cifs \
+  --config /etc/rclone.conf \
+  --temp-dir /tmp \
+  --use-mmap \
+  --umask 000
+
+ExecStop=/bin/fusermount -uz /mnt/seedbox
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
