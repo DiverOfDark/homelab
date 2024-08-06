@@ -160,21 +160,6 @@
     validate: 'visudo -cf %s'
   when: ansible_os_family == 'RedHat'
 
-- name: Create a new database with name 'k3s'
-  community.mysql.mysql_db:
-    name: k3s
-    state: present
-    login_unix_socket: /run/mysqld/mysqld.sock
-
-- name: Create K3S MySQL database user
-  community.mysql.mysql_user:
-    name: k3s
-    password: "{{ mariadb_root_password }}"
-    host: "%.%"
-    priv: 'k3s.*:ALL'
-    login_unix_socket: /run/mysqld/mysqld.sock
-    state: present
-
 - name: Add /usr/local/bin to sudo secure_path
   ansible.builtin.lineinfile:
     line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'

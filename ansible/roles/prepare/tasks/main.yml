@@ -9,17 +9,25 @@
   include_tasks: system.yml
   when: prepare_system
 
+- name: Configure Swap
+  include_tasks: swap.yml
+  when: prepare_swap
+
 - name: Configure rclone seedbox mount
   include_tasks: rclone-seedbox.yml
   when: prepare_rclone
 
 - name: Configure Keepalived
   include_tasks: keepalived.yml
-  when: prepare_keepalived
+  when:
+   - prepare_keepalived
+   - k3s_master == true
 
 - name: Configure MySQL
   include_tasks: mysql.yml
-  when: prepare_mysql
+  when:
+   - prepare_mysql
+   - k3s_master == true
 
 - name: Prepare for K3S
   include_tasks: k3s-config.yml

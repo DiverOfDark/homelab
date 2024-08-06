@@ -92,3 +92,19 @@
     shell: >
       systemctl stop mariadb && galera_new_cluster
     when: cluster_size.query_result[0][0].Value == '0'
+
+- name: Create a new database with name 'k3s'
+  community.mysql.mysql_db:
+    name: k3s
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Create K3S MySQL database user
+  community.mysql.mysql_user:
+    name: k3s
+    password: "{{ mariadb_root_password }}"
+    host: "%.%"
+    priv: 'k3s.*:ALL'
+    login_unix_socket: /run/mysqld/mysqld.sock
+    state: present
+

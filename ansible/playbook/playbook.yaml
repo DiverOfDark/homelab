@@ -3,7 +3,7 @@
   hosts: working_hosts
   gather_facts: true
   become: true
-  serial: 1
+  serial: 2
   roles:
     - role: prepare
     #- role: k3s_server
