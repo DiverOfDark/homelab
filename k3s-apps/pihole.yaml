@@ -13,8 +13,14 @@ spec:
     repoURL: https://mojo2600.github.io/pihole-kubernetes/
     targetRevision: v2.26.1
     helm:
+      releaseName: pihole
       values: |
+        DNS1: "192.168.178.1"
+        DNS2: "1.1.1.1"        
         replicaCount: 1
+        antiaff:
+          enabled: true
+          avoidRelease: pihole-dr
         serviceDns:
           type: LoadBalancer
           loadBalancerIP: 192.168.179.254
@@ -85,3 +91,98 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pihole-dr
+  namespace: argocd
+spec:
+  destination:
+    namespace: pihole
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: pihole
+    repoURL: https://mojo2600.github.io/pihole-kubernetes/
+    targetRevision: v2.26.1
+    helm:
+      releaseName: pihole-dr
+      values: |
+        DNS1: "192.168.178.1"
+        DNS2: "1.1.1.1"        
+        replicaCount: 1
+        antiaff:
+          enabled: true
+          avoidRelease: pihole
+        serviceDns:
+          type: LoadBalancer
+          loadBalancerIP: 192.168.179.253
+          annotations:
+            metallb.universe.tf/allow-shared-ip: pihole-svc
+        serviceDhcp:
+          enabled: false
+        virtualHost: pihole-dr.kirillorlov.pro 
+        ingress:
+          enabled: true
+          annotations: 
+            cert-manager.io/cluster-issuer: "acme-issuer"
+          hosts:
+            - pihole-dr.kirillorlov.pro
+          tls: 
+            - secretName: pihole-dr-cert-secret
+              hosts:
+                - pihole-dr.kirillorlov.pro
+        persistentVolumeClaim:
+          enabled: true
+          storageClass: longhorn
+          accessModes:
+            - ReadWriteMany
+        admin:
+          existingSecret: pihole-secret
+        monitoring:
+          podMonitor:
+            enabled: true
+          sidecar:
+            enabled: true
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+        
+        extraObjects:
+          - apiVersion: external-secrets.io/v1beta1
+            kind: ExternalSecret
+            metadata:
+              name: "pihole-secret"
+              namespace: pihole
+            spec:
+              secretStoreRef:
+                name: default-secret-store
+                kind: ClusterSecretStore  # or ClusterSecretStore
+            
+              refreshInterval: "10s"
+            
+              target:
+                name: pihole-secret
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    password: "{{ .password }}"
+              data:
+                - secretKey: password
+                  remoteRef:
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    key: golden-secret
+                    property: user-password
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
