@@ -64,7 +64,7 @@ spec:
               name: pihole-ha-dns-tcp
               namespace: pihole
             spec:
-              externalTrafficPolicy: Local
+              externalTrafficPolicy: Cluster
               loadBalancerIP: 192.168.179.254
               ports:
                 - name: dns
@@ -83,7 +83,7 @@ spec:
               name: pihole-ha-dns-udp
               namespace: pihole
             spec:
-              externalTrafficPolicy: Local
+              externalTrafficPolicy: Cluster
               loadBalancerIP: 192.168.179.254
               ports:
                 - name: dns-udp
