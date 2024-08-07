@@ -23,7 +23,7 @@ spec:
           avoidRelease: pihole-dr
         serviceDns:
           type: LoadBalancer
-          loadBalancerIP: 192.168.179.254
+          loadBalancerIP: 192.168.179.253
           annotations:
             metallb.universe.tf/allow-shared-ip: pihole-svc
         serviceDhcp:
@@ -56,6 +56,44 @@ spec:
           minAvailable: 1
         
         extraObjects:
+          - apiVersion: v1
+            kind: Service
+            metadata:
+              annotations:
+                metallb.universe.tf/allow-shared-ip: pihole-svc
+              name: pihole-ha-dns-tcp
+              namespace: pihole
+            spec:
+              externalTrafficPolicy: Local
+              loadBalancerIP: 192.168.179.254
+              ports:
+                - name: dns
+                  port: 53
+                  protocol: TCP
+                  targetPort: dns
+              selector:
+                app: pihole
+              type: LoadBalancer
+            
+          - apiVersion: v1
+            kind: Service
+            metadata:
+              annotations:
+                metallb.universe.tf/allow-shared-ip: pihole-svc
+              name: pihole-ha-dns-udp
+              namespace: pihole
+            spec:
+              externalTrafficPolicy: Local
+              loadBalancerIP: 192.168.179.254
+              ports:
+                - name: dns-udp
+                  port: 53
+                  protocol: UDP
+                  targetPort: dns-udp
+              selector:
+                app: pihole
+              type: LoadBalancer      
+        
           - apiVersion: external-secrets.io/v1beta1
             kind: ExternalSecret
             metadata:
@@ -119,7 +157,7 @@ spec:
           avoidRelease: pihole
         serviceDns:
           type: LoadBalancer
-          loadBalancerIP: 192.168.179.253
+          loadBalancerIP: 192.168.179.252
           annotations:
             metallb.universe.tf/allow-shared-ip: pihole-svc
         serviceDhcp:
