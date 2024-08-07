@@ -23,11 +23,11 @@ working_hosts:
     prepare_system: false
     prepare_rclone: false
     prepare_swap: false
-    prepare_k3s: true
+    prepare_k3s: false
     prepare_k3s_binary: false
     prepare_k3s_cluster_init: false
     prepare_keepalived: false
-    prepare_mysql: false
+    prepare_mysql: true
 
     swap_vars:
       size: 8G
@@ -90,7 +90,7 @@ working_hosts:
 
     galera:
       cluster_name: "k3s_cluster"
-      addresses: "192.168.178.10,192.168.178.11" #,192.168.178.12
+      addresses: "192.168.178.10,192.168.178.11,192.168.178.12"
 
     secrets:
       - name: golden-secret
