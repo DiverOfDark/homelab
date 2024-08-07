@@ -173,7 +173,7 @@ spec:
                     nameservers:
                     - 192.168.179.254
                   containers:
-                    - image: 'mattwebbio/orbital-sync:1.8.1'
+                    - image: 'mattwebbio/orbital-sync:1.8.2'
                       imagePullPolicy: IfNotPresent
                       name: sync
                       envFrom:
