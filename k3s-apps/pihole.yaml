@@ -169,7 +169,7 @@ spec:
                     pod: orbital-sync
                 spec:
                   containers:
-                    - image: 'mattwebbio/orbital-sync:1.8.5'
+                    - image: 'mattwebbio/orbital-sync:1.8.1'
                       imagePullPolicy: IfNotPresent
                       name: homepage
                       args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
