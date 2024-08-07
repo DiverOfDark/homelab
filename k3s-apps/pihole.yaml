@@ -168,6 +168,10 @@ spec:
                   labels:
                     pod: orbital-sync
                 spec:
+                  dnsPolicy: None
+                  dnsConfig:
+                    nameservers:
+                    - 192.168.179.254
                   containers:
                     - image: 'mattwebbio/orbital-sync:1.8.1'
                       imagePullPolicy: IfNotPresent
