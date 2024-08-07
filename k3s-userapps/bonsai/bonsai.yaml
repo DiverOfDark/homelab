@@ -94,7 +94,7 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - kirillorlov.pro
+    - bonsai.kirillorlov.pro
     secretName: bonsai-tls
 ---
 apiVersion: v1
