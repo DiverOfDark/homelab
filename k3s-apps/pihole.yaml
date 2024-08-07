@@ -76,6 +76,8 @@ spec:
                   type: Opaque
                   data:
                     password: "{{ .password }}"
+                    PRIMARY_HOST_PASSWORD: "{{ .password }}"
+                    SECONDARY_HOSTS_1_PASSWORD: "{{ .password }}"
               data:
                 - secretKey: password
                   remoteRef:
@@ -150,35 +152,37 @@ spec:
           minAvailable: 1
         
         extraObjects:
-          - apiVersion: external-secrets.io/v1beta1
-            kind: ExternalSecret
+          - apiVersion: apps/v1
+            kind: Deployment
             metadata:
-              name: "pihole-secret"
+              name: orbital-sync
               namespace: pihole
             spec:
-              secretStoreRef:
-                name: default-secret-store
-                kind: ClusterSecretStore  # or ClusterSecretStore
-            
-              refreshInterval: "10s"
-            
-              target:
-                name: pihole-secret
-                creationPolicy: 'Owner'
-                deletionPolicy: "Retain"
-                template:
-                  type: Opaque
-                  data:
-                    password: "{{ .password }}"
-              data:
-                - secretKey: password
-                  remoteRef:
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    key: golden-secret
-                    property: user-password
-
+              replicas: 1
+              revisionHistoryLimit: 1
+              selector:
+                matchLabels:
+                  pod: orbital-sync
+              template:
+                metadata:
+                  labels:
+                    pod: orbital-sync
+                spec:
+                  containers:
+                    - image: 'mattwebbio/orbital-sync:1.8.5'
+                      imagePullPolicy: IfNotPresent
+                      name: homepage
+                      args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
+                      envFrom:
+                       - secretRef:
+                          name: pihole-secret
+                      env:
+                        - name: PRIMARY_HOST_BASE_URL
+                          value: https://pihole.kirillorlov.pro
+                        - name: SECONDARY_HOSTS_1_BASE_URL
+                          value: https://pihole-dr.kirillorlov.pro
+                        - name: INTERVAL_MINUTES
+                          value: 60
   syncPolicy:
     automated:
       prune: true
