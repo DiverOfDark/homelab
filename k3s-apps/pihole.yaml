@@ -171,8 +171,7 @@ spec:
                   containers:
                     - image: 'mattwebbio/orbital-sync:1.8.1'
                       imagePullPolicy: IfNotPresent
-                      name: homepage
-                      args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
+                      name: sync
                       envFrom:
                        - secretRef:
                           name: pihole-secret
