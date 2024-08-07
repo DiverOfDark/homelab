@@ -182,7 +182,7 @@ spec:
                         - name: SECONDARY_HOSTS_1_BASE_URL
                           value: https://pihole-dr.kirillorlov.pro
                         - name: INTERVAL_MINUTES
-                          value: 60
+                          value: "60"
   syncPolicy:
     automated:
       prune: true
