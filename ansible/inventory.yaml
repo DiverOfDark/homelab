@@ -23,11 +23,11 @@ working_hosts:
     prepare_system: false
     prepare_rclone: false
     prepare_swap: false
-    prepare_k3s: false
+    prepare_k3s: true
     prepare_k3s_binary: false
-    prepare_k3s_cluster_init: false
+    prepare_k3s_cluster_init: true
     prepare_keepalived: false
-    prepare_mysql: true
+    prepare_mysql: false
 
     swap_vars:
       size: 8G
@@ -85,8 +85,8 @@ working_hosts:
       3265
     api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 
-    extra_server_args: "--datastore-endpoint=\"mysql://k3s:{{ mariadb_root_password }}@tcp(127.0.0.1:3306)/k3s\" --tls-san=\"{{ virtual_ip_address }}\""
-    extra_agent_args: ""
+    extra_server_args: "--disable servicelb --datastore-endpoint=\"mysql://k3s:{{ mariadb_root_password }}@tcp(127.0.0.1:3306)/k3s\" --tls-san=\"{{ virtual_ip_address }}\""
+    extra_agent_args: "--disable servicelb"
 
     galera:
       cluster_name: "k3s_cluster"
