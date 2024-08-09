@@ -15,6 +15,8 @@ spec:
     helm:
       values: |
           reloader.enableHA: true
+          reloader.deployment.replicas: 2
+
   syncPolicy:
     automated:
       prune: true
