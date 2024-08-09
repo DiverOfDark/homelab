@@ -84,15 +84,15 @@ spec:
               namespace: pihole
             spec:
               externalTrafficPolicy: Cluster
-              loadBalancerIP: 192.168.179.254
               ports:
                 - name: dns-udp
                   port: 53
+                  nodePort: 53
                   protocol: UDP
                   targetPort: dns-udp
               selector:
                 app: pihole
-              type: LoadBalancer      
+              type: NodePort      
         
           - apiVersion: external-secrets.io/v1beta1
             kind: ExternalSecret
