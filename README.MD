@@ -104,3 +104,6 @@ Running:
 - Default resource limit for all pods = 50cpu / 16mib
 - All ingresses - check http(s) 
   - or even better - write a policy for Kyverno for that
+- Add all ingresses to status page
+- For Out-of-sync Argo apps add annotations for fields to ignore on comparing
+- Configure prometheus long-term storage size (currently not fits into 10gb limit)
