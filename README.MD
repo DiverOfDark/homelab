@@ -61,7 +61,8 @@ TBD:
   - prometheus-operator (node-exporter, grafana, prometheus)
   - External DNS (to sync with pi-hole)
   - PiHole as DNS server
-  - External Secret Operator 
+  - External Secret Operator
+  - Reloader
 
 To be installed:
   - MariaDB-operator
@@ -83,10 +84,8 @@ Running:
  - plex
  - overseerr
  - bonsai
+ - homepage
 
-To be installed:
- - homarr (status page)
- 
 # ToDo how to:
 
 - Backup MySQL?

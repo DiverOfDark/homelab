@@ -14,8 +14,7 @@ spec:
     targetRevision: 1.0.121
     helm:
       values: |
-          reloader:
-            enableHA: true
+          reloader.enableHA: true
   syncPolicy:
     automated:
       prune: true
