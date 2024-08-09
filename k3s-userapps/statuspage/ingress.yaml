@@ -7,11 +7,18 @@ metadata:
     app.kubernetes.io/name: homepage
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/description: Dynamically Detected Homepage
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://status.kirillorlov.pro"
     gethomepage.dev/group: Cluster Management
-    gethomepage.dev/icon: homepage.png
     gethomepage.dev/name: Homepage
+    gethomepage.dev/icon: homepage.png
+    gethomepage.dev/description: this page
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=homepage"
+    #gethomepage.dev/app: emby-app # optional, may be needed if app.kubernetes.io/name != ingress metadata.name
+    #gethomepage.dev/widget.type: "emby"
+    #gethomepage.dev/widget.url: "https://emby.example.com"
+    #gethomepage.dev/pod-selector: ""
+    #gethomepage.dev/instance: "public" # optional
 spec:
   rules:
     - host: "status.kirillorlov.pro"

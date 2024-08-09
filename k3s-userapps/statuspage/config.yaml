@@ -9,9 +9,25 @@ data:
   kubernetes.yaml: |
     mode: cluster
   settings.yaml: |
+    title: Kirill Orlov HomeLab
+    startUrl: https://status.kirillorlov.pro
+    base: https://status.kirillorlov.pro
+    theme: dark
+    disableCollapse: true
+    useEqualHeights: true
+    statusStyle: dot
     providers:
       longhorn:
         url: https://longhorn.kirillorlov.pro
+#    layout:
+#      Section before Media:
+#        header: false
+#        icon: ?.png
+#        initiallyCollapsed: true
+#      Media:
+#        tab: "First" // set to activate tabbing
+#        style: row
+#        columns: 4
   custom.css: ""
   custom.js: ""
   bookmarks.yaml: |
