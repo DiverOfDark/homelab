@@ -3,6 +3,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://paperless.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Paperless
+    gethomepage.dev/icon: paperless.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=paperless"
   name: paperless
   namespace: paperless
 spec:

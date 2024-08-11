@@ -3,6 +3,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://jackett.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Jackett
+    gethomepage.dev/icon: jackett.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jackett"
   name: jackett
   namespace: media
 spec:
@@ -27,6 +33,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://radarr.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Radarr
+    gethomepage.dev/icon: radarr.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=radarr"
   name: radarr
   namespace: media
 spec:
@@ -51,6 +63,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://sonarr.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Sonarr
+    gethomepage.dev/icon: sonarr.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
   name: sonarr
   namespace: media
 spec:
@@ -75,6 +93,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://overseerr.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Overserr
+    gethomepage.dev/icon: overseerr.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=overseerr"
   name: overseerr
   namespace: media
 spec:
@@ -99,6 +123,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://plex.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Plex
+    gethomepage.dev/icon: plex.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=plex"
   name: plex
   namespace: media
 spec:

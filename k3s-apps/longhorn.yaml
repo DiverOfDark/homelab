@@ -24,6 +24,12 @@ spec:
             host: longhorn.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://longhorn.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Longhorn
+              gethomepage.dev/icon: longhorn.png
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=longhorn"
           persistence:
             defaultClassReplicaCount: 2
             defaultDataLocality: best-effort

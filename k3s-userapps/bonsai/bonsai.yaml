@@ -78,6 +78,11 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://bonsai.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Bonsai
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=bonsai"
   name: bonsai
   namespace: bonsai
 spec:

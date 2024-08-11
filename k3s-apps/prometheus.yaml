@@ -27,6 +27,12 @@ spec:
               - alertmanager.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://alertmanager.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Alertmanager
+              gethomepage.dev/icon: alertmanager.png
+              gethomepage.dev/pod-selector: "app.kubernetes.io/instance=alertmanager"
           alertmanagerSpec:
             storage:
               volumeClaimTemplate:
@@ -43,6 +49,13 @@ spec:
               - grafana.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://grafana.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Grafana
+              gethomepage.dev/icon: grafana.png
+              gethomepage.dev/pod-selector: "app.kubernetes.io/instance=grafana"
+
           persistence:
             enabled: true
             type: sts
@@ -84,6 +97,13 @@ spec:
               - prometheus.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://prometheus.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Prometheus
+              gethomepage.dev/icon: prometheus.png
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=prometheus"
+
 
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 61.8.0

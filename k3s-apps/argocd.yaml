@@ -21,10 +21,21 @@ spec:
                 tls: true
                 ingressClassName: traefik
                 annotations:
-                  cert-manager.io/cluster-issuer: "acme-issuer"
+                  gethomepage.dev/enabled: "true"
+                  gethomepage.dev/href: "https://argo.kirillorlov.pro"
+                  gethomepage.dev/group: Cluster Management
+                  gethomepage.dev/name: ArgoCD
+                  gethomepage.dev/icon: argocd.png
+                  gethomepage.dev/pod-selector: "app.kubernetes.io/instance=argocd"
               autoscaling:
                 enabled: false
                 minReplicas: 2
+              certificate:
+                enabled: true
+                issuer:
+                  group: cert-manager.io
+                  kind: ClusterIssuer
+                  name: acme-issuer
         
             redis-ha:
               enabled: false

@@ -33,6 +33,12 @@ spec:
           enabled: true
           annotations: 
             cert-manager.io/cluster-issuer: "acme-issuer"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://pihole.kirillorlov.pro"
+            gethomepage.dev/group: Infra
+            gethomepage.dev/name: Pihole
+            gethomepage.dev/icon: pihole.png
+            gethomepage.dev/pod-selector: "release=pihole"
           hosts:
             - pihole.kirillorlov.pro
           tls: 
@@ -168,6 +174,12 @@ spec:
           enabled: true
           annotations: 
             cert-manager.io/cluster-issuer: "acme-issuer"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://pihole-dr.kirillorlov.pro"
+            gethomepage.dev/group: Infra
+            gethomepage.dev/name: pihole-DR
+            gethomepage.dev/icon: pihole.png
+            gethomepage.dev/pod-selector: "release=pihole-dr"
           hosts:
             - pihole-dr.kirillorlov.pro
           tls: 
