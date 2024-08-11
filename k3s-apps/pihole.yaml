@@ -41,7 +41,7 @@ spec:
             gethomepage.dev/pod-selector: "release=pihole"
             gethomepage.dev/widget.type: pihole
             gethomepage.dev/widget.url: https://pihole.kirillorlov.pro
-            gethomepage.dev/widget.version: 5 # required if running v6 or higher, defaults to 5
+            gethomepage.dev/widget.version: "5" # required if running v6 or higher, defaults to 5
           hosts:
             - pihole.kirillorlov.pro
           tls: 
@@ -185,7 +185,7 @@ spec:
             gethomepage.dev/pod-selector: "release=pihole-dr"
             gethomepage.dev/widget.type: pihole
             gethomepage.dev/widget.url: https://pihole-dr.kirillorlov.pro
-            gethomepage.dev/widget.version: 5 # required if running v6 or higher, defaults to 5
+            gethomepage.dev/widget.version: "5" # required if running v6 or higher, defaults to 5
           hosts:
             - pihole-dr.kirillorlov.pro
           tls: 
