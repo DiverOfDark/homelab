@@ -1,3 +1,5 @@
+# https://github.com/walkxcode/dashboard-icons - here are icons
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -36,10 +38,13 @@ data:
             - abbr: GH
               href: https://github.com/
   services.yaml: |
-    - My First Group:
-        - My First Service:
-            href: http://localhost/
-            description: Homepage is awesome
+    - Infra:
+        - FritzBox:
+            href: http://192.168.178.1/
+            icon: avmfritzbox.svg
+            widget:
+              type: fritzbox
+              url: http://192.168.178.1/
 
     - My Second Group:
         - My Second Service:
@@ -63,11 +68,22 @@ data:
           cpu: true
           memory: true
           showLabel: true
-    - resources:
-        backend: resources
+    
+    - longhorn:
         expanded: true
-        cpu: true
-        memory: true
+        total: true
+        labels: true
+        nodes: true
+    
+    - openmeteo:
+        label: Berlin # optional
+        latitude: 52.50
+        longitude: 13.33
+        timezone: Europe/Berlin 
+        units: metric 
+        cache: 10
+        format: # optional, Intl.NumberFormat options
+          maximumFractionDigits: 1
     - search:
         provider: google
         target: _blank

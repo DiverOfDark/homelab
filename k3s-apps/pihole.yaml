@@ -37,8 +37,11 @@ spec:
             gethomepage.dev/href: "https://pihole.kirillorlov.pro"
             gethomepage.dev/group: Infra
             gethomepage.dev/name: Pihole
-            gethomepage.dev/icon: pihole.png
+            gethomepage.dev/icon: pi-hole.png
             gethomepage.dev/pod-selector: "release=pihole"
+            gethomepage.dev/widget.type: pihole
+            gethomepage.dev/widget.url: http://pi.hole.or.ip
+            gethomepage.dev/widget.version: 5 # required if running v6 or higher, defaults to 5
           hosts:
             - pihole.kirillorlov.pro
           tls: 
@@ -178,8 +181,11 @@ spec:
             gethomepage.dev/href: "https://pihole-dr.kirillorlov.pro"
             gethomepage.dev/group: Infra
             gethomepage.dev/name: pihole-DR
-            gethomepage.dev/icon: pihole.png
+            gethomepage.dev/icon: pi-hole.png
             gethomepage.dev/pod-selector: "release=pihole-dr"
+            gethomepage.dev/widget.type: pihole
+            gethomepage.dev/widget.url: http://pi.hole.or.ip
+            gethomepage.dev/widget.version: 5 # required if running v6 or higher, defaults to 5
           hosts:
             - pihole-dr.kirillorlov.pro
           tls: 
