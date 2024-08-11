@@ -27,7 +27,6 @@ working_hosts:
     prepare_k3s_binary: false
     prepare_k3s_cluster_init: true
     prepare_keepalived: false
-    prepare_mysql: false
 
     swap_vars:
       size: 8G
@@ -85,12 +84,8 @@ working_hosts:
       3265
     api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 
-    extra_server_args: "--disable servicelb --datastore-endpoint=\"mysql://k3s:{{ mariadb_root_password }}@tcp(127.0.0.1:3306)/k3s\" --tls-san=\"{{ virtual_ip_address }}\""
+    extra_server_args: "--disable servicelb --tls-san=\"{{ virtual_ip_address }}\" --kube-controller-manager-arg leader-elect-lease-duration=10m --kube-controller-manager-arg leader-elect-renew-deadline=8m"
     extra_agent_args: "--disable servicelb"
-
-    galera:
-      cluster_name: "k3s_cluster"
-      addresses: "192.168.178.10,192.168.178.11,192.168.178.12"
 
     secrets:
       - name: golden-secret

@@ -23,12 +23,6 @@
    - prepare_keepalived
    - k3s_master == true
 
-- name: Configure MySQL
-  include_tasks: mysql.yml
-  when:
-   - prepare_mysql
-   - k3s_master == true
-
 - name: Prepare for K3S
   include_tasks: k3s-config.yml
   when: prepare_k3s

@@ -12,10 +12,9 @@ packages:
   - software-properties-common
   - rsync
   - keepalived
-  - python3-pymysql
-  - mariadb-server
   - nfs-common
-  - prometheus-mysqld-exporter
+  - iotop
+  - ncdu
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
 
