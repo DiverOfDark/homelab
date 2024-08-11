@@ -21,9 +21,9 @@ spec:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: kubernetes.io/hostname
-                    operator: NotIn
+                    operator: In
                     values:
-                      - alfheimr # too weak for plex
+                      - niflheimr # the only one powerful enough for transcoding
       volumes:
         - name: plex
           persistentVolumeClaim:
