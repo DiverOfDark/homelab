@@ -8,6 +8,12 @@ spec:
     namespace: prometheus
     server: https://kubernetes.default.svc
   project: default
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .data."admin-user"
+        - .data."admin-password"
+      kind: Secret
   source:
     chart: kube-prometheus-stack
     helm:

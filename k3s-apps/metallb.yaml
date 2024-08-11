@@ -4,6 +4,11 @@ metadata:
   name: metallb
   namespace: argocd
 spec:
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .spec.conversion.webhook.clientConfig.caBundle
+      kind: CustomResourceDefinition
   destination:
     namespace: metallb
     server: https://kubernetes.default.svc

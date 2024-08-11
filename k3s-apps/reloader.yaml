@@ -8,6 +8,11 @@ spec:
     namespace: reloader
     server: https://kubernetes.default.svc
   project: default
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
+      kind: Deployment
   source:
     chart: reloader
     repoURL: https://stakater.github.io/stakater-charts
