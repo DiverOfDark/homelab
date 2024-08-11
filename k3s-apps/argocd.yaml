@@ -21,6 +21,7 @@ spec:
                 tls: true
                 ingressClassName: traefik
                 annotations:
+                  cert-manager.io/cluster-issuer: acme-issuer
                   gethomepage.dev/enabled: "true"
                   gethomepage.dev/href: "https://argo.kirillorlov.pro"
                   gethomepage.dev/group: Cluster Management
@@ -31,7 +32,7 @@ spec:
                 enabled: false
                 minReplicas: 2
               certificate:
-                enabled: true
+                enabled: false
                 issuer:
                   group: cert-manager.io
                   kind: ClusterIssuer
