@@ -20,7 +20,7 @@ data:
     statusStyle: dot
     providers:
       longhorn:
-        url: https://longhorn.kirillorlov.pro
+        url: http://longhorn-frontend.longhorn-system.svc.cluster.local
 #    layout:
 #      Section before Media:
 #        header: false
@@ -49,6 +49,10 @@ data:
         - Voron:
             href: http://voron2.fritz.box/
             description: 3d Printer
+            widget:
+              type: moonraker
+              url: http://voron2.fritz.box
+
         - Knomi:
             href: http://knomi.fritz.box/
             description: Knomi display
