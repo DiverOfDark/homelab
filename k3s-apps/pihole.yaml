@@ -8,14 +8,6 @@ spec:
     namespace: pihole
     server: https://kubernetes.default.svc
   project: default
-  ignoreDifferences:
-    - group: '*'
-      jqPathExpressions:
-        - .spec.volumeName
-        - .metadata.finalizers
-        - .metadata.annotations
-        - .metadata.labels."recurring-job-group.longhorn.io/default"
-      kind: PersistentVolumeClaim
   source:
     chart: pihole
     repoURL: https://mojo2600.github.io/pihole-kubernetes/
@@ -150,14 +142,6 @@ spec:
   destination:
     namespace: pihole
     server: https://kubernetes.default.svc
-  ignoreDifferences:
-    - group: '*'
-      jqPathExpressions:
-        - .spec.volumeName
-        - .metadata.finalizers
-        - .metadata.annotations
-        - .metadata.labels."recurring-job-group.longhorn.io/default"
-      kind: PersistentVolumeClaim
   project: default
   source:
     chart: pihole
