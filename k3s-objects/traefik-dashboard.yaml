@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/instance: traefik
+    app.kubernetes.io/name: traefik-dashboard
+spec:
+  type: ClusterIP
+  ports:
+  - name: traefik
+    port: 9000
+    targetPort: traefik
+    protocol: TCP
+  selector:
+    app.kubernetes.io/instance: traefik-kube-system
+    app.kubernetes.io/name: traefik
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-ingress
+  namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://traefik.kirillorlov.pro"
+    gethomepage.dev/group: Cluster Management
+    gethomepage.dev/name: Traefik
+    gethomepage.dev/description: Your friendly K8s loadbalancer
+    gethomepage.dev/icon: traefik.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+    gethomepage.dev/widget.type: traefik
+    gethomepage.dev/widget.url: http://traefik-dashboard.kube-system.svc.cluster.local:9000
+spec:
+  rules:
+    - host: traefik.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: traefik-dashboard
+                port:
+                  number: 9000
+  tls:
+    - hosts:
+        - traefik.kirillorlov.pro
+      secretName: traefik-tls
