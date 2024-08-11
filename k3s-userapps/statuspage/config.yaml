@@ -38,23 +38,23 @@ data:
             - abbr: GH
               href: https://github.com/
   services.yaml: |
-    - Infra:
+    - Home:
         - FritzBox:
             href: http://192.168.178.1/
             icon: avmfritzbox.svg
             widget:
               type: fritzbox
               url: http://192.168.178.1/
-
-    - My Second Group:
-        - My Second Service:
-            href: http://localhost/
-            description: Homepage is the best
-
-    - My Third Group:
-        - My Third Service:
-            href: http://localhost/
-            description: Homepage is 😎
+    - 3D Printer:
+        - Voron:
+            href: http://voron2.fritz.box/
+            description: 3d Printer
+        - Knomi:
+            href: http://knomi.fritz.box/
+            description: Knomi display
+        - Knomi V2:
+            href: http://knomi2.fritz.box/
+            description: Knomi V2 display
   widgets.yaml: |
     - kubernetes:
         cluster:
