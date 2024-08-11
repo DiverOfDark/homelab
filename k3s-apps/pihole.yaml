@@ -186,7 +186,7 @@ spec:
           sidecar:
             enabled: true
         podDisruptionBudget:
-          enabled: true
+          enabled: false
           minAvailable: 1
         
         extraObjects:
