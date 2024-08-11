@@ -15,6 +15,15 @@ spec:
       labels:
         pod: plex
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - alfheimr # too weak for plex
       volumes:
         - name: plex
           persistentVolumeClaim:
