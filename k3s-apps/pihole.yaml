@@ -40,7 +40,7 @@ spec:
             gethomepage.dev/icon: pi-hole.png
             gethomepage.dev/pod-selector: "release=pihole"
             gethomepage.dev/widget.type: pihole
-            gethomepage.dev/widget.url: https://pihole-web.pihole.svc.cluster.local
+            gethomepage.dev/widget.url: http://pihole-web.pihole.svc.cluster.local
             gethomepage.dev/widget.version: "5" # required if running v6 or higher, defaults to 5
           hosts:
             - pihole.kirillorlov.pro
@@ -184,7 +184,7 @@ spec:
             gethomepage.dev/icon: pi-hole.png
             gethomepage.dev/pod-selector: "release=pihole-dr"
             gethomepage.dev/widget.type: pihole
-            gethomepage.dev/widget.url: https://pihole-dr-web.pihole.svc.cluster.local
+            gethomepage.dev/widget.url: http://pihole-dr-web.pihole.svc.cluster.local
             gethomepage.dev/widget.version: "5" # required if running v6 or higher, defaults to 5
           hosts:
             - pihole-dr.kirillorlov.pro
