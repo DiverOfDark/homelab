@@ -13,11 +13,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: bonsai
+      app.kubernetes.io/pod: bonsai
   template:
     metadata:
       labels:
-        pod: bonsai
+        app.kubernetes.io/pod: bonsai
     spec:
       containers:
         - image: 'impworks/bonsai:latest'

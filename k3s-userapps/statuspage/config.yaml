@@ -18,6 +18,7 @@ data:
     disableCollapse: true
     useEqualHeights: true
     statusStyle: dot
+    showStats: true
     providers:
       longhorn:
         url: http://longhorn-frontend.longhorn-system.svc.cluster.local

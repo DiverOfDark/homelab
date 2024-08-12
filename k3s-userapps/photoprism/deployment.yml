@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: photoprism
+      app.kubernetes.io/pod: photoprism
   template:
     metadata:
       labels:
-        pod: photoprism
+        app.kubernetes.io/pod: photoprism
     spec:
       volumes:
         - name: originals

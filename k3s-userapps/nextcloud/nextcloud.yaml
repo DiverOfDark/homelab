@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: nextcloud
+      app.kubernetes.io/pod: nextcloud
   template:
     metadata:
       labels:
-        pod: nextcloud
+        app.kubernetes.io/pod: nextcloud
     spec:
       volumes:
         - name: nextcloud

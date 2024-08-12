@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: paperless
+      app.kubernetes.io/pod: paperless
   template:
     metadata:
       labels:
-        pod: paperless
+        app.kubernetes.io/pod: paperless
     spec:
       volumes:
         - name: paperless

@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: actualbudget
+      app.kubernetes.io/pod: actualbudget
   template:
     metadata:
       labels:
-        pod: actualbudget
+        app.kubernetes.io/pod: actualbudget
     spec:
       volumes:
         - name: actualbudget
