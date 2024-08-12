@@ -15,6 +15,7 @@ data:
     startUrl: https://status.kirillorlov.pro
     base: https://status.kirillorlov.pro
     theme: dark
+    fiveColumns: true
     disableCollapse: true
     useEqualHeights: true
     statusStyle: dot
@@ -39,7 +40,7 @@ data:
             - abbr: GH
               href: https://github.com/
   services.yaml: |
-    - Home:
+    - Infra:
         - FritzBox:
             href: http://192.168.178.1/
             icon: avmfritzbox.svg
