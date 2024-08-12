@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: jackett
+      app.kubernetes.io/pod: jackett
   template:
     metadata:
       labels:
-        pod: jackett
+        app.kubernetes.io/pod: jackett
     spec:
       volumes:
         - name: jackett

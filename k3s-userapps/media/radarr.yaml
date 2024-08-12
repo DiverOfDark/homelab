@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: radarr
+      app.kubernetes.io/pod: radarr
   template:
     metadata:
       labels:
-        pod: radarr
+        app.kubernetes.io/pod: radarr
     spec:
       volumes:
         - name: radarr

@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: plex
+      app.kubernetes.io/pod: plex
   template:
     metadata:
       labels:
-        pod: plex
+        app.kubernetes.io/pod: plex
     spec:
       affinity:
         nodeAffinity:

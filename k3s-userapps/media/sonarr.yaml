@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: sonarr
+      app.kubernetes.io/pod: sonarr
   template:
     metadata:
       labels:
-        pod: sonarr
+        app.kubernetes.io/pod: sonarr
     spec:
       volumes:
         - name: sonarr

@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: overseerr
+      app.kubernetes.io/pod: overseerr
   template:
     metadata:
       labels:
-        pod: overseerr
+        app.kubernetes.io/pod: overseerr
     spec:
       volumes:
         - name: overseerr
