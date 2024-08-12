@@ -7,7 +7,7 @@ metadata:
     gethomepage.dev/href: "https://money.kirillorlov.pro"
     gethomepage.dev/group: Apps
     gethomepage.dev/name: ActualBudget
-    gethomepage.dev/icon: actualbudget.png
+    gethomepage.dev/icon: "https://actualbudget.com/favicon-96x96.png"
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=actualbudget"
   name: actualbudget
   namespace: actualbudget

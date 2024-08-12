@@ -82,6 +82,7 @@ metadata:
     gethomepage.dev/href: "https://bonsai.kirillorlov.pro"
     gethomepage.dev/group: Apps
     gethomepage.dev/name: Bonsai
+    gethomepage.dev/icon: "https://raw.githubusercontent.com/impworks/bonsai/master/src/Bonsai/wwwroot/assets/img/logo.svg"
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=bonsai"
   name: bonsai
   namespace: bonsai
