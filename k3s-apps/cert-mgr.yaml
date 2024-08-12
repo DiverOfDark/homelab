@@ -22,6 +22,9 @@ spec:
       valuesObject:
         installCRDs: true
         namespace: cert-manager
+        prometheus:
+          servicemonitor:
+            enabled: true
   syncPolicy:
     automated:
       prune: true
