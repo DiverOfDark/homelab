@@ -81,7 +81,7 @@ spec:
                   protocol: TCP
                   targetPort: dns
               selector:
-                app.kubernetes.io/app: pihole
+                app: pihole
               type: LoadBalancer
             
           - apiVersion: v1
@@ -100,7 +100,7 @@ spec:
                   protocol: UDP
                   targetPort: dns-udp
               selector:
-                app.kubernetes.io/app: pihole
+                app: pihole
               type: LoadBalancer      
         
           - apiVersion: external-secrets.io/v1beta1
