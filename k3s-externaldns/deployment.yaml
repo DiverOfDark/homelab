@@ -9,11 +9,11 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: external-dns
+      app.kubernetes.io/app: external-dns
   template:
     metadata:
       labels:
-        app: external-dns
+        app.kubernetes.io/app: external-dns
     spec:
       serviceAccountName: external-dns
       containers:

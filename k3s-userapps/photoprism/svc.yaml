@@ -11,5 +11,5 @@ spec:
     protocol: TCP
     targetPort: 2342
   selector:
-    pod: photoprism
+    app.kubernetes.io/pod: photoprism
   type: ClusterIP

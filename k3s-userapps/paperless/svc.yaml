@@ -11,5 +11,5 @@ spec:
     protocol: TCP
     targetPort: 8000
   selector:
-    pod: paperless
+    app.kubernetes.io/pod: paperless
   type: ClusterIP

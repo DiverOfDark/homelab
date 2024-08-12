@@ -81,7 +81,7 @@ spec:
                   protocol: TCP
                   targetPort: dns
               selector:
-                app: pihole
+                app.kubernetes.io/app: pihole
               type: LoadBalancer
             
           - apiVersion: v1
@@ -100,7 +100,7 @@ spec:
                   protocol: UDP
                   targetPort: dns-udp
               selector:
-                app: pihole
+                app.kubernetes.io/app: pihole
               type: LoadBalancer      
         
           - apiVersion: external-secrets.io/v1beta1
@@ -219,11 +219,11 @@ spec:
               revisionHistoryLimit: 1
               selector:
                 matchLabels:
-                  pod: orbital-sync
+                  app.kubernetes.io/pod: orbital-sync
               template:
                 metadata:
                   labels:
-                    pod: orbital-sync
+                    app.kubernetes.io/pod: orbital-sync
                 spec:
                   dnsPolicy: None
                   dnsConfig:

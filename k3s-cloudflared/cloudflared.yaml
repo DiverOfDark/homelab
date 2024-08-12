@@ -20,11 +20,11 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      pod: cloudflared
+      app.kubernetes.io/pod: cloudflared
   template:
     metadata:
       labels:
-        pod: cloudflared
+        app.kubernetes.io/pod: cloudflared
     spec:
       containers:
         - command:

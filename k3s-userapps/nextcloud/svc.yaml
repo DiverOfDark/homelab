@@ -11,7 +11,7 @@ spec:
     protocol: TCP
     targetPort: 80
   selector:
-    pod: nextcloud
+    app.kubernetes.io/pod: nextcloud
   type: ClusterIP
 ---
 apiVersion: v1
@@ -27,6 +27,6 @@ spec:
     protocol: TCP
     targetPort: 3306
   selector:
-    pod: mysql
+    app.kubernetes.io/pod: mysql
   type: ClusterIP
 ---

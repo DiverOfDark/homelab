@@ -11,5 +11,5 @@ spec:
     protocol: TCP
     targetPort: 5006
   selector:
-    pod: actualbudget
+    app.kubernetes.io/pod: actualbudget
   type: ClusterIP

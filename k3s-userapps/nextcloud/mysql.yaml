@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: mysql
+      app.kubernetes.io/pod: mysql
   template:
     metadata:
       labels:
-        pod: mysql
+        app.kubernetes.io/pod: mysql
     spec:
       volumes:
         - name: nextcloud-db

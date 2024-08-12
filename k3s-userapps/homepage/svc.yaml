@@ -11,5 +11,5 @@ spec:
     protocol: TCP
     targetPort: 1313
   selector:
-    pod: homepage
+    app.kubernetes.io/pod: homepage
   type: ClusterIP

@@ -9,11 +9,11 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      pod: rss-telegram-bot
+      app.kubernetes.io/pod: rss-telegram-bot
   template:
     metadata:
       labels:
-        pod: rss-telegram-bot
+        app.kubernetes.io/pod: rss-telegram-bot
     spec:
       volumes:
         - name: config-volume
