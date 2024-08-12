@@ -25,7 +25,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://traefik.kirillorlov.pro"
+    gethomepage.dev/href: "https://traefik.kirillorlov.pro/dashboard/"
     gethomepage.dev/group: Cluster Management
     gethomepage.dev/name: Traefik
     gethomepage.dev/description: Your friendly K8s loadbalancer
