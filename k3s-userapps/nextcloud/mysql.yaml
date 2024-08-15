@@ -20,7 +20,7 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud-db
       containers:
-        - image: 'mariadb:10.5'
+        - image: 'mariadb:11.5'
           imagePullPolicy: IfNotPresent
           name: mysql
           ports:
