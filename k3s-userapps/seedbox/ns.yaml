@@ -47,7 +47,6 @@ metadata:
 spec:
   basicAuth:
     secret: seedbox
-    namespace: seedbox
 ---
 # Prefixing with /foo
 apiVersion: traefik.io/v1alpha1
