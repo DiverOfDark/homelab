@@ -12,6 +12,11 @@ spec:
     path: k3s-userapps/paperless
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .metadata.annotations."gethomepage.dev/widget.key"
+      kind: Ingress
   syncPolicy:
     automated:
       prune: true
