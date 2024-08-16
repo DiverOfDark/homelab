@@ -149,7 +149,7 @@ metadata:
     gethomepage.dev/widget.url: http://plex.media.svc.cluster.local
     gethomepage.dev/widget.key: "$PLEX_API_TOKEN$"
     kirillorlov.pro/annotationsFromSecretName: plex-secret
-  name: plex-secret
+  name: plex
   namespace: media
 spec:
   rules:
