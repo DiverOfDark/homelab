@@ -12,6 +12,13 @@ spec:
     path: k3s-cloudflared
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .metadata.annotations."gethomepage.dev/widget.accountid"
+        - .metadata.annotations."gethomepage.dev/widget.key"
+        - .metadata.annotations."gethomepage.dev/widget.tunnelid"
+      kind: Ingress
   syncPolicy:
     automated:
       prune: true
