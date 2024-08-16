@@ -13,7 +13,7 @@ metadata:
     gethomepage.dev/widget.url: http://photoprism.photoprism.svc.cluster.local
     gethomepage.dev/widget.username: admin
     gethomepage.dev/widget.password: "$WIDGET_KEY$"
-    kirillorlov.pro/widget.annotationsFromSecretName: photoprism-secret
+    kirillorlov.pro/annotationsFromSecretName: photoprism-secret
   name: photoprism
   namespace: photoprism
 spec:
