@@ -113,7 +113,7 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=overseerr"
     gethomepage.dev/widget.type: overseerr
     gethomepage.dev/widget.url: http://overseerr.media.svc.cluster.local
-    gethomepage.dev/widget.key: "$OVERSEER_TOKEN$"
+    gethomepage.dev/widget.key: "$OVERSEERR_TOKEN$"
     kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: overseerr
   namespace: media
