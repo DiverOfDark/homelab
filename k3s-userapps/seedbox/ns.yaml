@@ -72,7 +72,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: addrutorrent@kubernetescrd,basic-auth@kubernetescrd,host-rewrite@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: seedbox-addrutorrent@kubernetescrd,seedbox-basic-auth@kubernetescrd,seedbox-host-rewrite@kubernetescrd
     cert-manager.io/cluster-issuer: acme-issuer
 #    gethomepage.dev/enabled: "true"
 #    gethomepage.dev/href: "https://overseerr.kirillorlov.pro"
@@ -87,6 +87,7 @@ metadata:
   name: seedbox
   namespace: seedbox
 spec:
+  class
   rules:
   - host: seedbox.kirillorlov.pro
     http:

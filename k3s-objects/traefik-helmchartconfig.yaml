@@ -1,0 +1,25 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      kind: DaemonSet
+    experimental:
+      plugins:
+        enabled: true
+    logs:
+      access:
+        enabled: true
+      general:
+        level: INFO
+    podDisruptionBudget:
+      enabled: true
+    providers:
+      kubernetesCRD:
+        allowExternalNameServices: true
+      kubernetesIngress:
+        allowExternalNameServices: true
+    
