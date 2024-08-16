@@ -58,27 +58,40 @@ spec:
   addPrefix:
     prefix: /rutorrent
 ---
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: ingressroute
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: addrutorrent@kubernetescrd,basic-auth@kubernetescrd
+    cert-manager.io/cluster-issuer: acme-issuer
+#    gethomepage.dev/enabled: "true"
+#    gethomepage.dev/href: "https://overseerr.kirillorlov.pro"
+#    gethomepage.dev/group: Media
+#    gethomepage.dev/name: Overserr
+#    gethomepage.dev/icon: overseerr.png
+#    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=overseerr"
+#    gethomepage.dev/widget.type: overseerr
+#    gethomepage.dev/widget.url: http://overseerr.media.svc.cluster.local
+#    gethomepage.dev/widget.key: "$OVERSEERR_TOKEN$"
+#    kirillorlov.pro/annotationsFromSecretName: plex-secret
+  name: seedbox
   namespace: seedbox
 spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`torrent.kirillorlov.pro`)
-      kind: Rule
-      services:
-        - name: external-service
-          port: 80
-      middlewares:
-        - name: basic-auth
-        - name: addrutorrent
+  rules:
+  - host: seedbox.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: external-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
   tls:
-    secretName: torrent-tls-secret
-    domains:
-      - main: torrent.kirillorlov.pro
+  - hosts:
+    - seedbox.kirillorlov.pro
+    secretName: seedbox-tls
 ---
 apiVersion: v1
 kind: Service
