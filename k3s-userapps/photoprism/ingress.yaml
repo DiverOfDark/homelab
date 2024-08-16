@@ -9,6 +9,11 @@ metadata:
     gethomepage.dev/name: Photoprism
     gethomepage.dev/icon: photoprism.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=photoprism"
+    gethomepage.dev/widget.type: photoprism
+    gethomepage.dev/widget.url: http://photoprism.photoprism.svc.cluster.local
+    gethomepage.dev/widget.username: admin
+    gethomepage.dev/widget.password: "$WIDGET_KEY$"
+    kirillorlov.pro/widget.annotationsFromSecretName: photoprism-secret
   name: photoprism
   namespace: photoprism
 spec:

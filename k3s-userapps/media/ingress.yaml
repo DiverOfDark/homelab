@@ -9,6 +9,8 @@ metadata:
     gethomepage.dev/name: Jackett
     gethomepage.dev/icon: jackett.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jackett"
+    gethomepage.dev/widget.type: "jackett"
+    gethomepage.dev/widget.url: "http://jackett.media.svc.cluster.local"
   name: jackett
   namespace: media
 spec:
@@ -39,6 +41,11 @@ metadata:
     gethomepage.dev/name: Radarr
     gethomepage.dev/icon: radarr.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=radarr"
+    gethomepage.dev/widget.type: radarr
+    gethomepage.dev/widget.url: http://radarr.media.svc.cluster.local
+    gethomepage.dev/widget.key: "$RADARR_API_KEY$"
+    gethomepage.dev/widget.enableQueue: true # optional, defaults to false
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: radarr
   namespace: media
 spec:
@@ -68,7 +75,12 @@ metadata:
     gethomepage.dev/group: Media
     gethomepage.dev/name: Sonarr
     gethomepage.dev/icon: sonarr.png
+    gethomepage.dev/widget.type: sonarr
+    gethomepage.dev/widget.url: http://sonarr.media.svc.cluster.local
+    gethomepage.dev/widget.enableQueue: true # optional, defaults to false
+    gethomepage.dev/widget.key: "$SONARR_API_KEY$"
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: sonarr
   namespace: media
 spec:
@@ -99,6 +111,10 @@ metadata:
     gethomepage.dev/name: Overserr
     gethomepage.dev/icon: overseerr.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=overseerr"
+    gethomepage.dev/widget.type: overseerr
+    gethomepage.dev/widget.url: http://overseerr.media.svc.cluster.local
+    gethomepage.dev/widget.key: "$OVERSEER_TOKEN$"
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: overseerr
   namespace: media
 spec:
@@ -129,7 +145,11 @@ metadata:
     gethomepage.dev/name: Plex
     gethomepage.dev/icon: plex.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=plex"
-  name: plex
+    gethomepage.dev/widget.type: plex
+    gethomepage.dev/widget.url: http://plex.media.svc.cluster.local
+    gethomepage.dev/widget.key: "$PLEX_API_TOKEN$"
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
+  name: plex-secret
   namespace: media
 spec:
   rules:

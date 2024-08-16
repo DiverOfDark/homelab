@@ -9,6 +9,10 @@ metadata:
     gethomepage.dev/name: Paperless
     gethomepage.dev/icon: paperless.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=paperless"
+    gethomepage.dev/widget.type: paperlessngx
+    gethomepage.dev/widget.url: http://paperless.paperless.svc.cluster.local
+    gethomepage.dev/widget.key: "$PAPERLESS_API_KEY$"
+    kirillorlov.pro/annotationsFromSecretName: paperless-secret
   name: paperless
   namespace: paperless
 spec:

@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://photo.kirillorlov.pro"
+    gethomepage.dev/group: Infra
+    gethomepage.dev/name: Cloudflare
+    gethomepage.dev/icon: cloudflare.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=cloudflared"
+    gethomepage.dev/widget.type: cloudflared
+    gethomepage.dev/widget.accountid: "$account-id$"
+    gethomepage.dev/widget.tunnelid: "$tunnel-id$"
+    gethomepage.dev/widget.key: "$api-token$"
+    kirillorlov.pro/widget.annotationsFromSecretName: cloudflare-api-token-secret
+  name: cloudflared
+  namespace: cloudflared
+spec:
+  rules:
+  - host: cloudflared.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: cloudflared-metrics
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - cloudflared.kirillorlov.pro
+    secretName: photo-server-tls

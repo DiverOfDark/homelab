@@ -9,6 +9,10 @@ metadata:
     gethomepage.dev/name: Nextcloud
     gethomepage.dev/icon: nextcloud.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=nextcloud"
+    gethomepage.dev/widget.type: nextcloud
+    gethomepage.dev/widget.url: http://nextcloud.nextcloud.svc.cluster.local
+    gethomepage.dev/widget.key: "$WIDGET_KEY$"
+    kirillorlov.pro/annotationsFromSecretName: nextcloud-secret
   name: nextcloud
   namespace: nextcloud
 spec:
