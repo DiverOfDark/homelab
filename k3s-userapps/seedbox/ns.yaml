@@ -58,11 +58,21 @@ spec:
   addPrefix:
     prefix: /rutorrent
 ---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: host-rewrite
+  namespace: seedbox
+spec:
+  headers:
+    customRequestHeaders:
+      Host: transporter.myseedbox.site
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: addrutorrent@kubernetescrd,basic-auth@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: addrutorrent@kubernetescrd,basic-auth@kubernetescrd,host-rewrite@kubernetescrd
     cert-manager.io/cluster-issuer: acme-issuer
 #    gethomepage.dev/enabled: "true"
 #    gethomepage.dev/href: "https://overseerr.kirillorlov.pro"
