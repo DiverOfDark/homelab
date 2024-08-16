@@ -44,7 +44,7 @@ metadata:
     gethomepage.dev/widget.type: radarr
     gethomepage.dev/widget.url: http://radarr.media.svc.cluster.local
     gethomepage.dev/widget.key: "$RADARR_API_KEY$"
-    gethomepage.dev/widget.enableQueue: true # optional, defaults to false
+    gethomepage.dev/widget.enableQueue: "true" # optional, defaults to false
     kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: radarr
   namespace: media
@@ -77,7 +77,7 @@ metadata:
     gethomepage.dev/icon: sonarr.png
     gethomepage.dev/widget.type: sonarr
     gethomepage.dev/widget.url: http://sonarr.media.svc.cluster.local
-    gethomepage.dev/widget.enableQueue: true # optional, defaults to false
+    gethomepage.dev/widget.enableQueue: "true" # optional, defaults to false
     gethomepage.dev/widget.key: "$SONARR_API_KEY$"
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
     kirillorlov.pro/annotationsFromSecretName: plex-secret
