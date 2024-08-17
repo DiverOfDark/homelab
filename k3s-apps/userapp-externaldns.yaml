@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: k3s-userapp/externaldns
+    path: k3s-userapps/externaldns
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
