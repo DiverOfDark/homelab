@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: externaldns
+  name: cloudflared
   namespace: argocd
 spec:
   destination:
@@ -9,9 +9,16 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: k3s-externaldns
+    path: k3s-userapps/cloudflared
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .metadata.annotations."gethomepage.dev/widget.accountid"
+        - .metadata.annotations."gethomepage.dev/widget.key"
+        - .metadata.annotations."gethomepage.dev/widget.tunnelid"
+      kind: Ingress
   syncPolicy:
     automated:
       prune: true
