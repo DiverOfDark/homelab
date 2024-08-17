@@ -21,6 +21,7 @@ spec:
   mutateExistingOnPolicyUpdate: true
   rules:
   - name: label-existing-namespaces
+    skipBackgroundRequests: true
     match:
       any:
       - resources:
