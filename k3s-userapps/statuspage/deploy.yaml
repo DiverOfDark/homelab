@@ -65,3 +65,32 @@ spec:
             name: homepage
         - name: logs
           emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage-operator
+  namespace: statuspage
+  labels:
+    app.kubernetes.io/name: homepage-operator
+spec:
+  revisionHistoryLimit: 1
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: homepage-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: homepage
+    spec:
+      serviceAccountName: homepage
+      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
+      containers:
+        - name: homepage
+          image: "ghcr.io/diverofdark/kubernetes-annotation-from-secret-applier:master"
+          imagePullPolicy: Always
