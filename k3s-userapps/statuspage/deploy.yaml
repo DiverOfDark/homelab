@@ -84,7 +84,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: homepage
+        app.kubernetes.io/name: homepage-operator
     spec:
       serviceAccountName: homepage
       automountServiceAccountToken: true
