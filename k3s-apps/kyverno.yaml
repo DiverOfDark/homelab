@@ -28,6 +28,7 @@ spec:
                       - watch
                       - create
                       - update
+                      - delete
         backgroundController:
           rbac:
             clusterRole:
