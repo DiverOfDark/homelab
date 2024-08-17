@@ -12,6 +12,37 @@ spec:
     chart: kyverno
     repoURL: https://kyverno.github.io/kyverno/
     targetRevision: 3.2.6
+    helm:
+      valuesObject:
+        admissionController:
+          rbac:
+            coreClusterRole:
+              extraResources:
+                - apiGroups:
+                    - '*'
+                  resources:
+                      - '*'
+                  verbs:
+                      - get
+                      - list
+                      - watch
+                      - create
+                      - update
+        backgroundController:
+          rbac:
+            clusterRole:
+              extraResources:
+                - apiGroups:
+                    - '*'
+                  resources:
+                    - '*'
+                  verbs:
+                    - get
+                    - list
+                    - watch
+                    - create
+                    - update
+                    - delete
   syncPolicy:
     automated:
       prune: true
