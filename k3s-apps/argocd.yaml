@@ -37,6 +37,10 @@ spec:
                   group: cert-manager.io
                   kind: ClusterIssuer
                   name: acme-issuer
+              metrics:
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
         
             redis-ha:
               enabled: false
@@ -62,14 +66,40 @@ spec:
         
             controller:
               replicas: 2
+              metrics;
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
         
             repoServer:
               autoscaling:
                 enabled: false
                 minReplicas: 2
+              metrics:
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
         
             applicationSet:
               replicas: 2
+              metrics:
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
+          
+            
+            notifications:
+              metrics:
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
+          
+            redis:
+              metrics:
+                enabled: "true"
+                serviceMonitor:
+                  enabled: "true"
+
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
