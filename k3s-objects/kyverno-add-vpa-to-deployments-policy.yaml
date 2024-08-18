@@ -19,10 +19,11 @@ spec:
           - DaemonSet
           - StatefulSet
     exclude:
-      any:
+      all:
         - resources:
-          labels:
-            kyverno.io/vpa: "excluded"
+            selector:
+              matchLabels:
+                kyverno.io/vpa: "excluded"
     generate:
       synchronize: true
       apiVersion: autoscaling.k8s.io/v1
