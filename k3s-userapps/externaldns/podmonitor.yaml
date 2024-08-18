@@ -6,6 +6,6 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/app: external-dns
+      app.kubernetes.io/app-group: external-dns
   podMetricsEndpoints:
   - port: "http"
