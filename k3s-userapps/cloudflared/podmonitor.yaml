@@ -8,4 +8,4 @@ spec:
     matchLabels:
       app.kubernetes.io/pod: cloudflared
   podMetricsEndpoints:
-  - port: web
+  - port: 2000
