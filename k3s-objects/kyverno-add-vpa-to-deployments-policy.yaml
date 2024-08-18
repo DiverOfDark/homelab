@@ -38,4 +38,4 @@ spec:
             kind: Deployment
             name: "{{request.object.metadata.name}}"
           updatePolicy:
-            updateMode: "Initial"
+            updateMode: "Auto"

@@ -100,14 +100,6 @@ spec:
                   resources:
                     requests:
                       storage: 10Gi
-            additionalScrapeConfigs:
-                - job_name: mysql
-                  static_configs:
-                    - targets:
-                      - 192.168.179.1:9104
-                      - 192.168.178.10:9104
-                      - 192.168.178.11:9104
-                      - 192.168.178.12:9104
           ingress:
             enabled: true
             hosts:

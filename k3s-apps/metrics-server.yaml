@@ -1,0 +1,37 @@
+﻿apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+spec:
+#  ignoreDifferences:
+#    - group: '*'
+#      jqPathExpressions:
+#        - .spec.conversion.webhook.clientConfig.caBundle
+#      kind: CustomResourceDefinition
+  destination:
+    namespace: metrics-server
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: metrics-server
+    repoURL: https://kubernetes-sigs.github.io/metrics-server/
+    targetRevision: 3.12.1
+    helm:
+      valuesObject:
+        metrics:
+          enabled: true
+        serviceMonitor:
+          enabled: true
+        replicas: 2
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
