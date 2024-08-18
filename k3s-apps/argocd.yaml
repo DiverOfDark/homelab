@@ -47,6 +47,7 @@ spec:
               haproxy:
                 hardAntiAffinity: false
         
+        
             configs:
               params:
                 server.insecure: true
@@ -95,6 +96,9 @@ spec:
                   enabled: "true"
           
             redis:
+              exporter:
+                enabled: "true"
+            
               metrics:
                 enabled: "true"
                 serviceMonitor:
