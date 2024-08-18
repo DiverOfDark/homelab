@@ -9,6 +9,7 @@ spec:
     interval: 60s
     path: /metrics
     scrapeTimeout: 30s
+    port: 80
     targetPort: 80
   jobLabel: cloudflared
   namespaceSelector:
