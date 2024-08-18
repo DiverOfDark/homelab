@@ -15,20 +15,3 @@ spec:
   selector:
     app.kubernetes.io/pod: cloudflared
   type: ClusterIP
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: cloudflared-metrics
-  namespace: cloudflared
-spec:
-  endpoints:
-    - interval: 30s
-      path: /metrics
-      port: http-metrics
-  namespaceSelector:
-    matchNames:
-      - cloudflared
-  selector:
-    matchLabels:
-      app.kubernetes.io/pod: cloudflared
