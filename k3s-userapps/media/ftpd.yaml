@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-ftp
+  namespace: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/app: my-ftp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/app: my-ftp
+    spec:
+      volumes:
+        - name: plex
+          persistentVolumeClaim:
+            claimName: storage-prometheus-grafana-0
+      containers:
+      - name: sftp-container
+        image: atmoz/sftp
+        ports:
+        - containerPort: 22
+          protocol: TCP
+          name: "sftp"
+        volumeMounts:
+        - mountPath: "/home/user/plex"
+          name: plex
+        env:
+        - name: SFTP_USERS
+          value: "user:user::::ftp-file-storage"
