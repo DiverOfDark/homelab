@@ -16,6 +16,13 @@ spec:
       - resources:
           kinds:
           - Deployment
+          - DaemonSet
+          - StatefulSet
+    exclude:
+      any:
+        - resources:
+          labels:
+            kyverno.io/vpa: "excluded"
     generate:
       synchronize: true
       apiVersion: autoscaling.k8s.io/v1

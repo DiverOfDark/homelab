@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: plex
   namespace: media
+  labels:
+    kyverno.io/vpa: "excluded"
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
