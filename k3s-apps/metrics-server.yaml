@@ -4,13 +4,8 @@ metadata:
   name: metrics-server
   namespace: argocd
 spec:
-#  ignoreDifferences:
-#    - group: '*'
-#      jqPathExpressions:
-#        - .spec.conversion.webhook.clientConfig.caBundle
-#      kind: CustomResourceDefinition
   destination:
-    namespace: metrics-server
+    namespace: kube-system
     server: https://kubernetes.default.svc
   project: default
   source:
