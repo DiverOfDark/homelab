@@ -1,20 +1,11 @@
 apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+kind: PodMonitor
 metadata:
   name: cloudflared-metrics
   namespace: cloudflared
 spec:
-  endpoints:
-  - honorLabels: false
-    interval: 60s
-    path: /metrics
-    scrapeTimeout: 30s
-    port: 80
-    targetPort: 80
-  jobLabel: cloudflared
-  namespaceSelector:
-    matchNames:
-      - cloudflared
   selector:
     matchLabels:
       app.kubernetes.io/pod: cloudflared
+  podMetricsEndpoints:
+  - port: web
