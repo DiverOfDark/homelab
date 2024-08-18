@@ -85,10 +85,16 @@ spec:
           prometheusSpec:
             podMonitorNamespaceSelector: {}
             podMonitorSelector: {}
+            podMonitorSelectorNilUsesHelmValues: false
             ruleNamespaceSelector: {}
             ruleSelector: {}
+            ruleSelectorNilUsesHelmValues: false
             serviceMonitorNamespaceSelector: {}
             serviceMonitorSelector: {}
+            serviceMonitorSelectorNilUsesHelmValues: false
+            scrapeConfigNamespaceSelector: {}
+            scrapeConfigSelector: {}
+            scrapeConfigSelectorNilUsesHelmValues: false
             storageSpec:
               volumeClaimTemplate:
                 spec:
