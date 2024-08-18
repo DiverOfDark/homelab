@@ -14,7 +14,15 @@ spec:
     targetRevision: 3.2.6
     helm:
       valuesObject:
+        cleanupController:
+          serviceMonitor:
+            enabled: true
+        reportsController:
+          serviceMonitor:
+            enabled: true
         admissionController:
+          serviceMonitor:
+            enabled: true
           rbac:
             coreClusterRole:
               extraResources:
@@ -30,6 +38,8 @@ spec:
                       - update
                       - delete
         backgroundController:
+          serviceMonitor:
+            enabled: true
           rbac:
             clusterRole:
               extraResources:
