@@ -92,6 +92,9 @@ spec:
             serviceMonitorNamespaceSelector: {}
             serviceMonitorSelector: {}
             serviceMonitorSelectorNilUsesHelmValues: false
+            probeNamespaceSelector: {}
+            probeSelector: {}
+            probeSelectorNilUsesHelmValues: false
             scrapeConfigNamespaceSelector: {}
             scrapeConfigSelector: {}
             scrapeConfigSelectorNilUsesHelmValues: false
