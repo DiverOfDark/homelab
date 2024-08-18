@@ -11,6 +11,9 @@ spec:
     scrapeTimeout: 30s
     targetPort: 80
   jobLabel: cloudflared
+  namespaceSelector:
+    matchNames:
+      - cloudflared
   selector:
     matchLabels:
       app.kubernetes.io/pod: cloudflared
