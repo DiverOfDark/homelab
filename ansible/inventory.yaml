@@ -23,9 +23,9 @@ working_hosts:
     prepare_system: false
     prepare_rclone: false
     prepare_swap: false
-    prepare_k3s: true
-    prepare_k3s_binary: false
-    prepare_k3s_cluster_init: true
+    prepare_k3s: false
+    prepare_k3s_binary: true
+    prepare_k3s_cluster_init: false
     prepare_keepalived: false
 
     swap_vars:
@@ -74,7 +74,7 @@ working_hosts:
 
     virtual_ip_address: 192.168.179.1
 
-    k3s_version: v1.30.2+k3s1
+    k3s_version: v1.30.3+k3s1
     token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       31643632323137326332653139366336326232616338613863653962353734373539326431643338
@@ -84,8 +84,8 @@ working_hosts:
       3265
     api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 
-    extra_server_args: "--disable servicelb --tls-san=\"{{ virtual_ip_address }}\" --kube-controller-manager-arg leader-elect-lease-duration=10m --kube-controller-manager-arg leader-elect-renew-deadline=8m"
-    extra_agent_args: "--disable servicelb"
+    extra_server_args: "--disable servicelb --disable metrics-server --tls-san=\"{{ virtual_ip_address }}\" --kube-controller-manager-arg leader-elect-lease-duration=10m --kube-controller-manager-arg leader-elect-renew-deadline=8m"
+    extra_agent_args: "--disable servicelb --disable metrics-server"
 
     secrets:
       - name: golden-secret
