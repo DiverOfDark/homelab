@@ -92,14 +92,9 @@ Running:
 
 # ToDo how to:
 
-- Setup proper requests / limits for userapps
 - Setup proper liveness / startup / readyness checks for userapps
 - Ensure all tags are not current - so that renovate would work
 - HA for ALL apps
-- Custom metrics for all installed apps - check what doesn't and whether they support
 - RSSTT - switch to statefulset 
-- Default resource limit for all pods = 50cpu / 16mib
 - All ingresses - check http(s) 
   - or even better - write a policy for Kyverno for that
-- Add all ingresses to status page
-- Configure prometheus long-term storage size (currently not fits into 10gb limit)
