@@ -62,6 +62,7 @@ TBD:
   - External Secret Operator
   - Reloader
   - MariaDB-operator
+  - VerticalPodAutoscaler
 
 # Apps
 
