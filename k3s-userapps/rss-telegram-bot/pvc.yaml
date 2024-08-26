@@ -7,7 +7,7 @@ metadata:
   namespace: rss-telegram-bot
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 500Mi
