@@ -23,7 +23,7 @@ spec:
   source:
     chart: vertical-pod-autoscaler
     repoURL: https://cowboysysop.github.io/charts/
-    targetRevision: 9.8.3
+    targetRevision: 9.9.0
     helm:
       valuesObject:
         admissionController:
