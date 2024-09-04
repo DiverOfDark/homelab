@@ -44,6 +44,8 @@ spec:
     repoURL: https://helm.linkerd.io/stable
     targetRevision: 1.16.11
     helm:
+      valueFiles:
+       - values-ha.yaml
       valuesObject:
         podMonitor:
           enabled: true
