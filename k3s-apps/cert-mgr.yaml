@@ -64,7 +64,7 @@ metadata:
   name: selfroot-ca-issuer
   namespace: cert-manager
 spec:
-  secretName: linkerd-identity-issuer
+  secretName: selfroot-ca-issuer-secret
   duration: 48h
   renewBefore: 25h
   issuerRef:
