@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jaeger
+  namespace: argocd
+spec:
+  destination:
+    namespace: jaeger
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: jaeger
+    repoURL: https://jaegertracing.github.io/helm-charts
+    targetRevision: 3.2.0
+    helm:
+      values: |
+         provisionDataStore:
+            cassandra: false
+         allInOne:
+            enabled: true
+            ingress:
+              enabled: true
+        
+              hosts:
+                - jaeger.kirillorlov.pro
+              labels:
+                app: jaeger
+              tls:
+                # Secrets must be manually created in the namespace.
+                - secretName: jaeger-tls
+                  hosts:
+                    - jaeger.kirillorlov.pro
+              annotations:
+                    cert-manager.io/cluster-issuer: acme-issuer
+                    gethomepage.dev/enabled: "true"
+                    gethomepage.dev/href: "https://jaeger.kirillorlov.pro"
+                    gethomepage.dev/group: Cluster Management
+                    gethomepage.dev/name: Jaeger
+                    gethomepage.dev/icon: jaeger.png
+                    gethomepage.dev/pod-selector: "app.kubernetes.io/name=jaeger"
+         storage:
+            type: memory
+         agent:
+            enabled: false
+         collector:
+            enabled: false
+         query:
+            enabled: false
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
