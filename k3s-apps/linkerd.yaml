@@ -67,13 +67,13 @@ spec:
   duration: 48h
   renewBefore: 25h
   issuerRef:
-    name: selfsigned-issuer
+    name: selfroot-ca-issuer
     kind: ClusterIssuer
     group: cert-manager.io
-  commonName: identity.linkerd.svc.cluster.local
+  commonName: identity.linkerd.cluster.local
   isCA: true
   dnsNames:
-  - identity.linkerd.svc.cluster.local
+  - identity.linkerd.cluster.local
   privateKey:
     algorithm: ECDSA
   usages:
@@ -81,21 +81,3 @@ spec:
   - crl sign
   - server auth
   - client auth
----
-apiVersion: trust.cert-manager.io/v1alpha1
-kind: Bundle
-metadata:
-  name: linkerd-identity-trust-roots
-spec:
-  sources:
-    #- useDefaultCAs: true
-    - secret:
-        name: "linkerd-identity-issuer"
-        key: "ca.crt"
-  target:
-    configMap:
-      key: "ca-bundle.crt"
-
-    namespaceSelector:
-      matchLabels:
-        linkerd.io/control-plane-component: identity
