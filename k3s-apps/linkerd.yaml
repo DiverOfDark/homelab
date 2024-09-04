@@ -45,6 +45,8 @@ spec:
     targetRevision: 1.16.11
     helm:
       valuesObject:
+        podMonitor:
+          enabled: true
         identity:
           externalCA: true
           issuer:
