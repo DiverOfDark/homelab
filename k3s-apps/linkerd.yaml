@@ -1,0 +1,101 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: linkerd-crds
+  namespace: argocd
+spec:
+  destination:
+    namespace: linkerd
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: linkerd-crds
+    repoURL: https://helm.linkerd.io/stable
+    targetRevision: 1.8.0
+    helm:
+      valuesObject: {}
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: linkerd
+  namespace: argocd
+spec:
+  destination:
+    namespace: linkerd
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: linkerd-control-plane
+    repoURL: https://helm.linkerd.io/stable
+    targetRevision: 1.16.11
+    helm:
+      valuesObject:
+        identity:
+          issuer:
+            scheme: kubernetes.io/tls
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: linkerd-root-ca
+  namespace: linkerd
+spec:
+  isCA: true
+  commonName: linkerd-root-ca
+  secretName: linkerd-trust-anchor
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: linkerd-trust-anchor
+  namespace: linkerd
+spec:
+  ca:
+    secretName: linkerd-trust-anchor
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: linkerd-identity-issuer
+  namespace: linkerd
+spec:
+  secretName: linkerd-identity-issuer
+  duration: 48h
+  renewBefore: 25h
+  issuerRef:
+    name: acme-issuer
+    kind: ClusterIssuer
+  commonName: identity.linkerd.kirillorlov.pro
+  dnsNames:
+  - identity.linkerd.kirillorlov.pro
+  isCA: true
+  privateKey:
+    algorithm: ECDSA
+  usages:
+  - cert sign
+  - crl sign
+  - server auth
+  - client auth
+---

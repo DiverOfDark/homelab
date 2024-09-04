@@ -13,14 +13,13 @@ spec:
     repoURL: https://jaegertracing.github.io/helm-charts
     targetRevision: 3.2.0
     helm:
-      values: |
+      valuesObject:
          provisionDataStore:
             cassandra: false
          allInOne:
             enabled: true
             ingress:
               enabled: true
-        
               hosts:
                 - jaeger.kirillorlov.pro
               labels:
