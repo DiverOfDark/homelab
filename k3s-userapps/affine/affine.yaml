@@ -35,7 +35,29 @@ spec:
               claimName: affine
       containers:
         - image: 'ghcr.io/toeverything/affine-graphql:stable'
+          command:
+            - sh
+            - '-c'
+            - node ./scripts/self-host-predeploy && node ./dist/index.js
           name: affine
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
           ports:
             - containerPort: 3010
               protocol: TCP
@@ -53,6 +75,8 @@ spec:
           env:
             - name: NODE_OPTIONS
               value: "--import=./scripts/register.js"
+            - name: AFFINE_SERVER_EXTERNAL_URL
+              value: https://affine.kirillorlov.pro/
             - name: AFFINE_CONFIG_PATH
               value: /root/.affine/config
             - name: REDIS_SERVER_HOST
