@@ -42,7 +42,7 @@ spec:
               name: "http"
             - containerPort: 5555
               protocol: TCP
-              name: "http"
+              name: "other"
           volumeMounts:
             - mountPath: /root/.affine/config
               name: postgres-pvc

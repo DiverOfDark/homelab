@@ -25,4 +25,4 @@ spec:
   tls:
   - hosts:
     - affine.kirillorlov.pro
-    secretName: homepage-tls
+    secretName: affine-tls
