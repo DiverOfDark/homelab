@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://affine.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Affine
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=affine"
+  name: affine
+  namespace: affine
+spec:
+  rules:
+  - host: affine.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: affine
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - affine.kirillorlov.pro
+    secretName: homepage-tls
