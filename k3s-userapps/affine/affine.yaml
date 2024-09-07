@@ -45,10 +45,10 @@ spec:
               name: "other"
           volumeMounts:
             - mountPath: /root/.affine/config
-              name: postgres-pvc
+              name: affine-pvc
               subPath: config
             - mountPath: /root/.affine/storage
-              name: postgres-pvc
+              name: affine-pvc
               subPath: storage
           env:
             - name: NODE_OPTIONS
