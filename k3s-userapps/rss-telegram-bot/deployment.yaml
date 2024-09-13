@@ -28,7 +28,7 @@ spec:
                 name: rss-telegram-bot-secret
           env:
             - name: DATABASE_URL
-              value: sqlite:///app/config/db.sqlite3
+              value: sqlite://app/config/db.sqlite3
           volumeMounts:
             - mountPath: /app/config
               name: config-volume
