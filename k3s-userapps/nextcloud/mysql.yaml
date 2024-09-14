@@ -42,3 +42,28 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: nextcloud-db
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: mariadb
+  namespace: nextcloud
+spec:
+  username: nextcloud
+  database: nextcloud
+
+  connection:
+    secretName: connection-mariadb
+    secretTemplate:
+      key: dsn
+    healthCheck:
+      interval: 10s
+      retryInterval: 3s
+    params:
+      parseTime: "true"
+
+  storage:
+    size: 5Gi
+
+  service:
+    type: ClusterIP
