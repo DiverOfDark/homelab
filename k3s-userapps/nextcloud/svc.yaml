@@ -14,19 +14,3 @@ spec:
     app.kubernetes.io/pod: nextcloud
   type: ClusterIP
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql
-  namespace: nextcloud
-spec:
-  internalTrafficPolicy: Cluster
-  ports:
-  - name: sql
-    port: 3306
-    protocol: TCP
-    targetPort: 3306
-  selector:
-    app.kubernetes.io/pod: mysql
-  type: ClusterIP
----

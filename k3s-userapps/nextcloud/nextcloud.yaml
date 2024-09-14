@@ -24,14 +24,6 @@ spec:
           imagePullPolicy: IfNotPresent
           name: nextcloud
           env:
-            - name: MYSQL_PASSWORD
-              value: nonrootpass
-            - name: MYSQL_DATABASE
-              value: nextcloud
-            - name: MYSQL_USER
-              value: nextcloud
-            - name: MYSQL_HOST
-              value: mysql
             - name: OVERWRITEHOST
               value: cloud.kirillorlov.pro
             - name: OVERWRITEPROTOCOL
