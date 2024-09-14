@@ -10,6 +10,8 @@ kind: Application
 metadata:
   name: linkerd-crds
   namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     namespace: linkerd
@@ -34,6 +36,8 @@ kind: Application
 metadata:
   name: linkerd
   namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     namespace: linkerd

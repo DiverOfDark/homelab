@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: k3s-objects
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     namespace: argocd
