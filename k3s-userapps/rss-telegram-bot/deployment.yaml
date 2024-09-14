@@ -20,15 +20,14 @@ spec:
           persistentVolumeClaim:
             claimName: sqlite-pvc
       containers:
-        - image: 'rongronggg9/rss-to-telegram:2.9.0'
+        - image: 'rongronggg9/rss-to-telegram:2.8.0'
           imagePullPolicy: IfNotPresent
           name: rss-telegram-bot
           envFrom:
             - secretRef:
                 name: rss-telegram-bot-secret
-          env:
-            - name: DATABASE_URL
-              value: sqlite://app/config/db.sqlite3
+            - secretRef:
+                name: rss-telegram-bot-db-secret
           volumeMounts:
             - mountPath: /app/config
               name: config-volume
