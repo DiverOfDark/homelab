@@ -12,3 +12,29 @@ spec:
     requests:
       storage: 500Mi
   storageClassName: longhorn
+---
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: rsstt-db
+  namespace: rss-telegram-bot
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "16"
+  numberOfInstances: 1
+  maintenanceWindows:
+  volume:
+    size: "512Mi"
+
+  users:
+    rsstt: [ ]
+  databases:
+    rsstt: rsstt
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
