@@ -15,10 +15,6 @@ spec:
       labels:
         app.kubernetes.io/pod: rss-telegram-bot
     spec:
-      volumes:
-        - name: config-volume
-          persistentVolumeClaim:
-            claimName: sqlite-pvc
       containers:
         - image: 'rongronggg9/rss-to-telegram:2.8.0'
           imagePullPolicy: IfNotPresent
@@ -28,6 +24,3 @@ spec:
                 name: rss-telegram-bot-secret
             - secretRef:
                 name: rss-telegram-bot-db-secret
-          volumeMounts:
-            - mountPath: /app/config
-              name: config-volume
