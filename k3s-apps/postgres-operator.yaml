@@ -13,7 +13,11 @@ spec:
     repoURL: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
     targetRevision: 1.13.0
     helm:
-      valuesObject: {}
+      valuesObject:
+        configKubernetes:
+          enable_finalizers: true
+          enable_owner_references: true
+          enable_readiness_probe: true
   syncPolicy:
     automated:
       prune: true
@@ -38,10 +42,6 @@ spec:
     targetRevision: 1.13.0
     helm:
       valuesObject:
-        configKubernetes:
-          enable_finalizers: true
-          enable_owner_references: true
-          enable_readiness_probe: true
         ingress:
           enabled: true
           annotations:
