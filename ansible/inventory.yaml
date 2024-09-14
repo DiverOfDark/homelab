@@ -20,10 +20,10 @@ working_hosts:
 #          server: 100.64.0.4
       #agent:
   vars:
-    prepare_system: false
+    prepare_system: true
     prepare_rclone: false
     prepare_swap: false
-    prepare_k3s: true
+    prepare_k3s: false
     prepare_k3s_binary: false
     prepare_k3s_cluster_init: false
     prepare_keepalived: false

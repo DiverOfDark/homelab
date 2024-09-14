@@ -15,6 +15,9 @@ packages:
   - nfs-common
   - iotop
   - ncdu
+  - dnsmasq
+  - net-tools
+  - mc
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
 
