@@ -72,6 +72,9 @@ spec:
             - mountPath: /root/.affine/storage
               name: affine-pvc
               subPath: storage
+          envFrom:
+            - secretRef:
+                name: affine-db-secret
           env:
             - name: NODE_OPTIONS
               value: "--import=./scripts/register.js"
@@ -81,8 +84,6 @@ spec:
               value: /root/.affine/config
             - name: REDIS_SERVER_HOST
               value: redis.affine.svc.cluster.local
-            - name: DATABASE_URL
-              value: postgres://affine:affine@postgres.affine.svc.cluster.local:5432/affine
             - name: NODE_ENV
               value: production
             - name: TELEMETRY_ENABLE
