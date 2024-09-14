@@ -38,6 +38,10 @@ spec:
     targetRevision: 1.13.0
     helm:
       valuesObject:
+        configKubernetes:
+          enable_finalizers: true
+          enable_owner_references: true
+          enable_readiness_probe: true
         ingress:
           enabled: true
           annotations:
