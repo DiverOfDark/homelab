@@ -5,21 +5,17 @@ working_hosts:
         alfheimr:
           k3s_master: true
           ansible_host: 192.168.178.10
-          server: 100.64.0.1
         midgard:
           k3s_master: true
           ansible_host: 192.168.178.11
-          server: 100.64.0.2
         niflheimr:
           k3s_master: true
           ansible_host: 192.168.178.12
-          server: 100.64.0.3
-#        worker1:
-#          k3s_master: false
-#          ansible_host: 192.168.178.19
-#          server: 100.64.0.4
       #agent:
   vars:
+    ansible_user: root
+    virtual_ip_address: 192.168.179.1
+
     prepare_system: true
     prepare_rclone: false
     prepare_swap: false
@@ -69,10 +65,6 @@ working_hosts:
       3265656336663037340a373531666132323636646463333365316430343565633637336534396138
       62613630643532623464373562666663363439386166333261303637616366333561326134633038
       3131386162323266376333336261663065333436666362623564
-
-    ansible_user: root
-
-    virtual_ip_address: 192.168.179.1
 
     k3s_version: v1.30.3+k3s1
     token: !vault |
