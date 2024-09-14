@@ -23,7 +23,6 @@ spec:
   postgresql:
     version: "16"
   numberOfInstances: 1
-  maintenanceWindows:
   volume:
     size: "512Mi"
 
