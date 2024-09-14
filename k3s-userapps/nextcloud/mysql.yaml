@@ -67,3 +67,23 @@ spec:
 
   service:
     type: ClusterIP
+
+  livenessProbe:
+    exec:
+      command:
+        - bash
+        - -c
+        - mariadb -u root -p"${MARIADB_ROOT_PASSWORD}" -e "SELECT 1;"
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 30
+
+  readinessProbe:
+    exec:
+      command:
+        - bash
+        - -c
+        - mariadb -u root -p"${MARIADB_ROOT_PASSWORD}" -e "SELECT 1;"
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 30
