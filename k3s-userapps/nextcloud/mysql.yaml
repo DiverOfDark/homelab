@@ -51,6 +51,15 @@ metadata:
 spec:
   username: nextcloud
   database: nextcloud
+  connection:
+    healthCheck:
+      interval: 10s
+      retryInterval: 3s
+    params:
+      parseTime: 'true'
+    secretName: connection-mariadb
+    secretTemplate:
+      key: dsn
 
   storage:
     size: 5Gi
@@ -77,17 +86,3 @@ spec:
     initialDelaySeconds: 60
     periodSeconds: 15
     timeoutSeconds: 30
----
-apiVersion: k8s.mariadb.com/v1alpha1
-kind: Database
-metadata:
-  name: nextcloud
-  namespace: nextcloud
-spec:
-  mariaDbRef:
-    name: mariadb
-  characterSet: utf8
-  collate: utf8_general_ci
-  cleanupPolicy: Delete
-  requeueInterval: 30s
-  retryInterval: 5s
