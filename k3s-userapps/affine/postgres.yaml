@@ -68,3 +68,27 @@ spec:
   selector:
     app.kubernetes.io/pod: postgres
   type: ClusterIP
+---
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: affine-db
+  namespace: affine
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "16"
+  numberOfInstances: 1
+  volume:
+    size: "5Gi"
+  users:
+    affine: [ ]
+  databases:
+    affine: affine
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
