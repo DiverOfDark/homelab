@@ -39,4 +39,4 @@ spec:
                 command:
                   - "sh"
                   - "-c"
-                  - "apt-get update && apt-get install -y openrc && start-stop-daemon --start --background --pidfile /cron.pid --exec /cron.sh"
+                  - "apt-get update && apt-get install -y openrc ffmpeg && start-stop-daemon --start --background --pidfile /cron.pid --exec /cron.sh"
