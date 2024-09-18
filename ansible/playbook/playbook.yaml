@@ -13,6 +13,8 @@
   gather_facts: true
   become: true
   roles:
+     - role: system
+       tags: ['system']
      - role: swap
        tags: ['swap']
      - role: seedbox-mount

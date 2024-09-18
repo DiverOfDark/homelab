@@ -1,0 +1,65 @@
+- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install packages
+  apt:
+    pkg: "{{ packages }}"
+    state: present
+
+- name: Upgrade the OS (apt-get dist-upgrade)
+  apt:
+    upgrade: full
+
+- name: Remove unused packages (apt-get autoremove)
+  apt:
+    autoremove: yes
+
+- name: Update diverofdark user groups (enable sudo)
+  user:
+    name: diverofdark
+    groups: "sudo"
+    append: true
+
+- name: Add Neofetch command to system-wide bashrc
+  lineinfile:
+    path: /etc/bash.bashrc
+    create: yes
+    line: 'neofetch'
+    state: present
+
+- name: Enable IPv4 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: true
+
+- name: Enable IPv6 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    state: present
+    reload: true
+  when: ansible_all_ipv6_addresses
+
+- name: Check for Apparmor existence
+  ansible.builtin.stat:
+    path: /sys/module/apparmor/parameters/enabled
+  register: apparmor_enabled
+
+- name: Check if Apparmor is enabled
+  when: apparmor_enabled.stat.exists == true
+  ansible.builtin.command: cat /sys/module/apparmor/parameters/enabled
+  register: apparmor_status
+  changed_when: false
+
+- name: Install Apparmor Parser [Debian]
+  when:
+    - ansible_distribution == 'Debian'
+    - apparmor_status is defined
+    - apparmor_status.stdout == "Y"
+  ansible.builtin.package:
+    name: apparmor
+    state: present

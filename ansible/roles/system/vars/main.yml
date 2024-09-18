@@ -1,0 +1,18 @@
+packages:
+  - htop
+  - git
+  - nala
+  - neofetch
+  - sudo
+  - avahi-daemon
+  - policycoreutils
+  - curl
+  - open-iscsi
+  - dirmngr
+  - software-properties-common
+  - rsync
+  - nfs-common
+  - iotop
+  - ncdu
+  - net-tools
+  - mc

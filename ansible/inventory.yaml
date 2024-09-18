@@ -18,14 +18,9 @@ working_hosts:
 
     virtual_ip_address: 192.168.179.1
 
-    prepare_system: true
-    prepare_rclone: false
-    prepare_swap: false
     prepare_k3s: false
     prepare_k3s_binary: false
     prepare_k3s_cluster_init: false
-    prepare_keepalived: false
-
 
     mariadb_root_password: !vault |
       $ANSIBLE_VAULT;1.1;AES256

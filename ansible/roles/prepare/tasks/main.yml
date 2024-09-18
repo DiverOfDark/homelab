@@ -1,8 +1,4 @@
 ---
-- name: Configure System
-  include_tasks: system.yml
-  when: prepare_system
-
 - name: Prepare for K3S
   include_tasks: k3s-config.yml
   when: prepare_k3s
