@@ -1,6 +1,0 @@
----
-api_port: 6443  # noqa var-naming[no-role-prefix]
-
-galera:
-  cluster_name: "k3s_cluster"
-  addresses: "127.0.0.1"

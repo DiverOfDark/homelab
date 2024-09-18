@@ -1,14 +1,5 @@
 ---
-- name: Serial tasks
-  hosts: working_hosts
-  gather_facts: false
-  become: true
-  serial: 1
-  roles:
-     - role: prepare
-       tags: ['prepare']
-
-- name: Parallel tasks
+- name: System setups
   hosts: working_hosts
   gather_facts: true
   become: true
@@ -24,5 +15,11 @@
      - role: dnsmasq
        tags: ['dnsmasq']
 
-    #- role: k3s_server
-    #- role: k3s_upgrade
+- name: Kubernets cluster - node by node
+  hosts: working_hosts
+  gather_facts: false
+  become: true
+  serial: 1
+  roles:
+     - role: k3s
+       tags: ['k3s']
