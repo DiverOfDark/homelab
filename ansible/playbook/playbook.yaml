@@ -1,12 +1,20 @@
 ---
-- name: Prepare hosts
+- name: Serial tasks
   hosts: working_hosts
-  gather_facts: true
+  gather_facts: false
   become: true
-  serial: 2
+  serial: 1
   roles:
      - role: prepare
        tags: ['prepare']
+
+- name: Parallel tasks
+  hosts: working_hosts
+  gather_facts: false
+  become: true
+  roles:
+     - role: swap
+       tags: ['swap']
      - role: seedbox-mount
        tags: ['seedbox-mount']
 

@@ -9,10 +9,6 @@
   include_tasks: system.yml
   when: prepare_system
 
-- name: Configure Swap
-  include_tasks: swap.yml
-  when: prepare_swap
-
 - name: Configure Keepalived
   include_tasks: keepalived.yml
   when:

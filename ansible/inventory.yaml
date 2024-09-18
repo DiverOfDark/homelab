@@ -14,6 +14,8 @@ working_hosts:
       #agent:
   vars:
     ansible_user: root
+    ansible_python_interpreter: auto_silent
+
     virtual_ip_address: 192.168.179.1
 
     prepare_system: true
@@ -24,9 +26,6 @@ working_hosts:
     prepare_k3s_cluster_init: false
     prepare_keepalived: false
 
-    swap_vars:
-      size: 8G
-      swappiness: 60
 
     mariadb_root_password: !vault |
       $ANSIBLE_VAULT;1.1;AES256
