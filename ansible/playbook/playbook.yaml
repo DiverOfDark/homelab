@@ -5,6 +5,10 @@
   become: true
   serial: 2
   roles:
-    - role: prepare
+     - role: prepare
+       tags: ['prepare']
+     - role: seedbox-mount
+       tags: ['seedbox-mount']
+
     #- role: k3s_server
     #- role: k3s_upgrade

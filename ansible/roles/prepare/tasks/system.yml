@@ -11,6 +11,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Restart dnsmasq
 
 - name: Install packages
   apt:

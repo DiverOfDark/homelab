@@ -13,10 +13,6 @@
   include_tasks: swap.yml
   when: prepare_swap
 
-- name: Configure rclone seedbox mount
-  include_tasks: rclone-seedbox.yml
-  when: prepare_rclone
-
 - name: Configure Keepalived
   include_tasks: keepalived.yml
   when:

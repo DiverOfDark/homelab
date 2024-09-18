@@ -1,8 +1,13 @@
+- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
 - name: Install packages
   apt:
     pkg:
      - rclone
-     - fuse
+     - fuse3
     state: present
 
 - name: Copy rclone config
@@ -12,6 +17,8 @@
     owner: root
     group: root
     mode: "0644"
+  notify:
+    - Restart rclone
 
 - name: Copy rclone service
   ansible.builtin.template:
@@ -20,6 +27,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Restart rclone
 
 - name: Copy rclone service
   ansible.builtin.template:
@@ -28,6 +36,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Restart rclone
 
 - name: Make seedbox mount dir
   ansible.builtin.file:
@@ -40,19 +49,3 @@
     path: "/mnt/cifs"
     mode: "0777"
     state: directory
-
-- name: Just force systemd to reread configs (2.4 and above)
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-
-- name: Ensure rclone running
-  ansible.builtin.systemd_service:
-    name: rclone
-    enabled: true
-    state: started
-
-- name: Ensure rclone running
-  ansible.builtin.systemd_service:
-    name: rclone-cifs
-    enabled: true
-    state: started
