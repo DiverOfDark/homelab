@@ -4,15 +4,6 @@
     update_cache: yes
     cache_valid_time: 3600
 
-- name: Copy dnsmasq config
-  ansible.builtin.template:
-    src: "dnsmasq.conf"
-    dest: "/etc/dnsmasq.conf"
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart dnsmasq
-
 - name: Install packages
   apt:
     pkg: "{{ packages }}"

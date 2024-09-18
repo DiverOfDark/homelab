@@ -11,18 +11,13 @@ packages:
   - dirmngr
   - software-properties-common
   - rsync
-  - keepalived
   - nfs-common
   - iotop
   - ncdu
-  - dnsmasq
   - net-tools
   - mc
 
 api_port: 6443  # noqa var-naming[no-role-prefix]
-
-virtual_ip_address: 192.168.179.1
-keepalived_token: somelongrandomstring
 
 galera:
   cluster_name: "k3s_cluster"

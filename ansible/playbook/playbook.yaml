@@ -10,13 +10,17 @@
 
 - name: Parallel tasks
   hosts: working_hosts
-  gather_facts: false
+  gather_facts: true
   become: true
   roles:
      - role: swap
        tags: ['swap']
      - role: seedbox-mount
        tags: ['seedbox-mount']
+     - role: keepalived
+       tags: ['keepalived']
+     - role: dnsmasq
+       tags: ['dnsmasq']
 
     #- role: k3s_server
     #- role: k3s_upgrade

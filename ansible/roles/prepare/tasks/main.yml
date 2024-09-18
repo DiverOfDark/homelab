@@ -1,19 +1,7 @@
 ---
-- name: Enforce minimum Ansible version
-  ansible.builtin.assert:
-    that:
-      - ansible_version.full is version('2.14', '>=')
-    msg: "Minimum ansible-core version required is 2.14"
-
 - name: Configure System
   include_tasks: system.yml
   when: prepare_system
-
-- name: Configure Keepalived
-  include_tasks: keepalived.yml
-  when:
-   - prepare_keepalived
-   - k3s_master == true
 
 - name: Prepare for K3S
   include_tasks: k3s-config.yml

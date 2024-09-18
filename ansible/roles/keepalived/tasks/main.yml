@@ -1,4 +1,14 @@
----
+- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install packages
+  apt:
+    pkg:
+      - keepalived
+    state: present
+
 - name: Copy Keepalived config
   ansible.builtin.template:
     src: "keepalived.conf.j2"
@@ -6,6 +16,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Restart keepalived
 
 - name: Enable service Keepalived and ensure it is not masked
   ansible.builtin.systemd_service:
