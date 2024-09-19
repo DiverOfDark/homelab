@@ -1,5 +1,6 @@
 packages:
   - htop
+  - btop
   - git
   - nala
   - neofetch
