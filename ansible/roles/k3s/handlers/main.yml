@@ -1,0 +1,10 @@
+- name: Restart k3s
+  block:
+    - name: Restart k3s service
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+
+    - name: Wait for 5 minutes for service to start
+      pause:
+        minutes: 5

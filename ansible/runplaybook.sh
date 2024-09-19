@@ -1,6 +1,8 @@
 #!/bin/bash
 source .venv/bin/activate
 
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook/playbook.yaml -i inventory.yaml --syntax-check
+
 # Check if a tag was provided
 if [ -n "$1" ]; then
     TAGS="--tags $1"
