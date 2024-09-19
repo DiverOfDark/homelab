@@ -4,9 +4,26 @@
     "config:recommended"
   ],
   "argocd": {
-    "fileMatch": ["\\.yaml$"]
+    "fileMatch": [
+      "\\.yaml$"
+    ]
   },
   "kubernetes": {
-    "fileMatch": ["\\.yaml$"]
-  }
+    "fileMatch": [
+      "\\.yaml$"
+    ]
+  },
+  "automerge": true,
+  "automergeType": "branch",
+  "labels": [
+    "automerge"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true
+    }
+  ]
 }
