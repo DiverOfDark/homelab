@@ -19,7 +19,15 @@
   notify: Restart keepalived
 
 - name: Enable service Keepalived and ensure it is not masked
+  when: k3s_master == true
   ansible.builtin.systemd_service:
     name: keepalived
     enabled: true
     state: started
+
+- name: Enable service Keepalived and ensure it is not masked
+  when: k3s_master == false
+  ansible.builtin.systemd_service:
+    name: keepalived
+    enabled: false
+    state: stopped

@@ -12,6 +12,7 @@ Virtual Network IP
     - Alfheimr
     - Midgard
     - Niflheimr
+    - Jotunheimr
 - 192.168.179.11 - 192.168.179.255 - Virtual IPs (MetalLB)
 
 HW
@@ -20,14 +21,19 @@ HW
   - IP: 192.168.178.10
   - Roles: 
     - Keepalived
-    - K3S Master 1
+    - Worker
 - ThinkCentre M710q (Midgard)     
   - 192.168.179.11
   - Roles:
-    - K3S Master 2
+    - K3S Master 1
     - Keepalived
 - Firebat AM02 (Niflheimr)
   - 192.168.179.12
+  - Roles:
+    - K3S Master 2
+    - Keepalived
+- SOYO M2PLUS (Jotunheimr)
+  - 192.168.179.13
   - Roles:
     - K3S Master 3
     - Keepalived
@@ -40,6 +46,7 @@ Server Rack:
  - Alfheimr
  - Midgard
  - Niflheimr
+ - Jotunheimr
 
 TBD:
  - NAS

@@ -1,17 +1,2 @@
   - name: Restart rclone
-    block:
-      - name: Just force systemd to reread configs (2.4 and above)
-        ansible.builtin.systemd_service:
-          daemon_reload: true
-
-      - name: Ensure rclone running
-        ansible.builtin.systemd_service:
-          name: rclone
-          enabled: true
-          state: restarted
-
-      - name: Ensure rclone running
-        ansible.builtin.systemd_service:
-          name: rclone-cifs
-          enabled: true
-          state: restarted
+    include_tasks: restart-rclone.yml
