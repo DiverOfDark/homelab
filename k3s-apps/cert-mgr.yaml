@@ -23,6 +23,10 @@ spec:
       releaseName: cert-manager
       valuesObject:
         replicaCount: 2
+        cainjector:
+          replicaCount: 2
+        webhook:
+          replicaCount: 2
         installCRDs: true
         namespace: cert-manager
         prometheus:
