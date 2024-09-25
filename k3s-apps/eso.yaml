@@ -14,9 +14,13 @@ spec:
     chart: external-secrets
     repoURL: https://charts.external-secrets.io
     targetRevision: 0.10.3
-    helm: # https://github.com/longhorn/longhorn/blob/v1.6.2/chart/values.yaml
+    helm:
       values: |
+          certController:
+            replicaCount: 2
+          replicaCount: 2
           webhook:
+            replicaCount: 2
             certManager:
               enabled: true
               cert:
