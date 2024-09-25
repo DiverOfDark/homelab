@@ -16,10 +16,19 @@ spec:
     targetRevision: 0.31.0
     helm:
       values: |
+        certController:
+          ha:
+            enabled: true
+            replicas: 2
         metrics:
           enabled: true
         ha:
           enabled: true
+          replicas: 2
+        webhook:
+          ha:
+            enabled: true
+            replicas: 2
   syncPolicy:
     automated:
       prune: true
