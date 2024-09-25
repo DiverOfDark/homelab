@@ -4,6 +4,7 @@ metadata:
   name: external-dns
   namespace: external-dns
 spec:
+  replicas: 2
   revisionHistoryLimit: 1
   strategy:
     type: Recreate
