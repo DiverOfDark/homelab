@@ -18,6 +18,7 @@ spec:
               affinity.nodeAffinity.type: soft
         
             server:
+              replicas: 2
               ingress:
                 enabled: true
                 tls: true
