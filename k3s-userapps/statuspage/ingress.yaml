@@ -7,6 +7,13 @@ metadata:
     app.kubernetes.io/name: homepage
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: status-sticky
+    traefik.ingress.kubernetes.io/service.sticky.cookie.secure: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.samesite: "none"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.httponly: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.maxage: 42
+
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://status.kirillorlov.pro"
     gethomepage.dev/group: Infra
