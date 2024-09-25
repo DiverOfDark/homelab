@@ -22,6 +22,7 @@ spec:
     helm:
       releaseName: cert-manager
       valuesObject:
+        replicaCount: 2
         installCRDs: true
         namespace: cert-manager
         prometheus:
@@ -53,7 +54,8 @@ spec:
     targetRevision: v0.12.0
     helm:
       releaseName: trust-manager
-      valuesObject: {}
+      valuesObject:
+        replicaCount: 2
   syncPolicy:
     automated:
       prune: true
