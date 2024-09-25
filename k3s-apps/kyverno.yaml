@@ -17,12 +17,15 @@ spec:
     helm:
       valuesObject:
         cleanupController:
+          replicas: 2
           serviceMonitor:
             enabled: true
         reportsController:
+          replicas: 2
           serviceMonitor:
             enabled: true
         admissionController:
+          replicas: 2
           serviceMonitor:
             enabled: true
           rbac:
@@ -40,6 +43,7 @@ spec:
                       - update
                       - delete
         backgroundController:
+          replicas: 2
           serviceMonitor:
             enabled: true
           rbac:
