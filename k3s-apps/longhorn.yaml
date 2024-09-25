@@ -41,6 +41,30 @@ spec:
           defaultSettings:
             backupTarget: cifs://archer.fritz.box/LonghornBackups/
             backupTargetCredentialSecret: longhorn-s3-secret
+          longhornManager:
+            tolerations:
+              - key: weakling
+                operator: Exists
+                effect: NoExecute 
+              - key: weakling
+                operator: Exists
+                effect: NoSchedule  
+          longhornDriver:
+            tolerations:
+              - key: weakling
+                operator: Exists
+                effect: NoExecute 
+              - key: weakling
+                operator: Exists
+                effect: NoSchedule  
+          longhornUI:
+            tolerations:
+              - key: weakling
+                operator: Exists
+                effect: NoExecute 
+              - key: weakling
+                operator: Exists
+                effect: NoSchedule  
 
   destination:
     server: https://kubernetes.default.svc
