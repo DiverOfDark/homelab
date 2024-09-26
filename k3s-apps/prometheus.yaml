@@ -24,6 +24,16 @@ spec:
     chart: kube-prometheus-stack
     helm:
       values: |
+        prometheus-node-exporter:
+          tolerations: 
+            - key: "weakling"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+            - key: "weakling"
+              operator: "Equal"
+              value: "true"
+              effect: "NoExecute"
         kubeEtcd:
           enabled: false
         alertmanager:
