@@ -39,8 +39,10 @@ spec:
             serviceMonitor:
               enabled: true
           defaultSettings:
-            backupTarget: cifs://archer.fritz.box/LonghornBackups/
-            backupTargetCredentialSecret: longhorn-s3-secret
+            #backupTarget: cifs://archer.fritz.box/LonghornBackups/
+            backupTarget: s3://diverofdark-longhorn-backup@us-west-1/
+            #backupTargetCredentialSecret: longhorn-s3-secret
+            backupTargetCredentialSecret: backblaze-b2
           longhornManager:
             tolerations:
               - key: weakling
