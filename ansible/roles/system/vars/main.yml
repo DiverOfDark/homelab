@@ -17,3 +17,5 @@ packages:
   - ncdu
   - net-tools
   - mc
+  - ntp
+  - docker.io

@@ -17,3 +17,7 @@ no-resolv
 log-queries
 # Log location (optional, default is syslog)
 log-facility=/var/log/dnsmasq.log
+
+{% for host in hostvars %}
+address=/{{ kube_hostname }}/{{ hostvars[host]['ansible_host'] }}
+{% endfor %}
