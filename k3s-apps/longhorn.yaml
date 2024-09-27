@@ -17,7 +17,7 @@ spec:
       repoURL: https://charts.longhorn.io/
       targetRevision: 1.7.1 # Replace with the Longhorn version you'd like to install or upgrade to
       helm: # https://github.com/longhorn/longhorn/blob/v1.6.2/chart/values.yaml
-        values: |
+        valuesObject:
           preUpgradeChecker:
             jobEnabled: false
           ingress:

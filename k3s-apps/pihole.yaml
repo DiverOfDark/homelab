@@ -54,7 +54,7 @@ spec:
           enabled: true
           storageClass: longhorn
           accessModes:
-            - ReadWriteMany
+            - ReadWriteOnce
         admin:
           existingSecret: pihole-secret
         monitoring:
@@ -200,7 +200,7 @@ spec:
           enabled: true
           storageClass: longhorn
           accessModes:
-            - ReadWriteMany
+            - ReadWriteOnce
         admin:
           existingSecret: pihole-secret
         monitoring:

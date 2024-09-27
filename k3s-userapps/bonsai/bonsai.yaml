@@ -140,6 +140,7 @@ metadata:
   namespace: bonsai
 spec:
   schedule: "*/30 * * * *"  # This runs the job every 30 minutes
+
   jobTemplate:
     spec:
       template:

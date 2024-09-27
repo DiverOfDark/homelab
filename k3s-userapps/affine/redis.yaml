@@ -7,7 +7,7 @@ metadata:
   namespace: affine
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 500Mi
