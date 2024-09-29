@@ -28,5 +28,7 @@
   roles:
      - role: k3s
        tags: ['k3s']
+     - role: etcd
+       tags: ['etcd']
   handlers:
      - import_tasks: ../roles/k3s/handlers/main.yml

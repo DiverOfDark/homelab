@@ -29,6 +29,13 @@
     line: 'neofetch'
     state: present
 
+- name: Up fs.inotify.max_user_instances
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_instances
+    value: "256"
+    state: present
+    reload: true
+
 - name: Enable IPv4 forwarding
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward

@@ -17,3 +17,11 @@
     group: root
     mode: "0644"
   notify: Restart dnsmasq
+
+- name: Copy resolv config
+  ansible.builtin.template:
+    src: "resolv.conf.j2"
+    dest: "/etc/resolv.conf"
+    owner: root
+    group: root
+    mode: "0644"

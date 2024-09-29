@@ -1,4 +1,7 @@
 # Specify upstream DNS server
+strict-order
+no-negcache
+
 server=192.168.179.254
 server=192.168.178.1
 #server=192.168.179.252
@@ -19,5 +22,7 @@ log-queries
 log-facility=/var/log/dnsmasq.log
 
 {% for host in hostvars %}
+{% if hostvars[host]['k3s_master'] is defined and hostvars[host]['k3s_master'] == True %}
 address=/{{ kube_hostname }}/{{ hostvars[host]['ansible_host'] }}
+{% endif %}
 {% endfor %}
