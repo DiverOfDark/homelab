@@ -63,6 +63,8 @@ spec:
                     requests:
                       storage: 5Gi
         grafana:
+          plugins:
+            - grafana-lokiexplore-app
           ingress:
             enabled: true
             hosts:

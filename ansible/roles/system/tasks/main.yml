@@ -32,7 +32,21 @@
 - name: Up fs.inotify.max_user_instances
   ansible.posix.sysctl:
     name: fs.inotify.max_user_instances
-    value: "256"
+    value: "2099999999"
+    state: present
+    reload: true
+
+- name: Up fs.inotify.max_user_watches
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_watches
+    value: "2099999999"
+    state: present
+    reload: true
+
+- name: Up fs.inotify.max_queued_events
+  ansible.posix.sysctl:
+    name: fs.inotify.max_queued_events
+    value: "2099999999"
     state: present
     reload: true
 

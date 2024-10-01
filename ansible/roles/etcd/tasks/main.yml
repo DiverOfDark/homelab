@@ -1,0 +1,37 @@
+- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+  when:
+    - k3s_master == true
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install packages
+  when:
+    - k3s_master == true
+  apt:
+    pkg:
+      - etcd-server
+      - etcd-client
+    state: present
+
+- name: Copy etcd default
+  when:
+    - k3s_master == true
+  ansible.builtin.template:
+    src: "default"
+    dest: "/etc/default/etcd"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart etcd
+
+- name: Copy etcd config
+  when:
+    - k3s_master == true
+  ansible.builtin.template:
+    src: "etcd.yaml.j2"
+    dest: "/etc/etcd.yaml"
+    owner: etcd
+    group: etcd
+    mode: "0644"
+  notify: Restart etcd

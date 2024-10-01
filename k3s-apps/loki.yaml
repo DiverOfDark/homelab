@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prometheus
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: loki
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 6.16.0
+    helm:
+      valuesObject:
+        loki:
+          auth_enabled: false
+          limits_config:
+            reject_old_samples: false
+          schemaConfig:
+            configs:
+              - from: 2024-04-01
+                store: tsdb
+                object_store: s3
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+          tracing:
+            enabled: true
+
+        gateway:
+          enabled: false
+
+        ingress:
+          annotations:
+            cert-manager.io/cluster-issuer: "acme-issuer"
+          enabled: true
+          hosts:
+            - loki.kirillorlov.pro
+          tls:
+            - secretName: alloy-tls
+              hosts:
+                - alloy.kirillorlov.pro
+        deploymentMode: SingleBinary
+
+        test:
+          enabled: false
+        lokiCanary:
+          enabled: false
+        minio:
+          enabled: true
+
+        singleBinary:
+          replicas: 3
+        read:
+          replicas: 0
+        backend:
+          replicas: 0
+        write:
+          replicas: 0
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
