@@ -1,47 +1,14 @@
-- name: Check whether "/swapfile" exists
-  register: idCheckSwap
-  stat:
-    path: /swapfile
-
-- name: Create swapfile
-  block:
-  - name: Allocate the swap file
-    shell: fallocate -l {{ swap_vars.size }} /swapfile
-    when: idCheckSwap.stat.exists == false
-  - name: Change permission of the swap file
-    file:
-      path: /swapfile
-      mode: '0600'
-      owner: root
-      group: root
-  - name: Create a swap area on the swap file
-    shell: mkswap /swapfile
-    when: idCheckSwap.stat.exists == false
-
-- name: Check if swap is already enabled
-  command: swapon --show=NAME
-  register: swapon_check
-  changed_when: false
-
-- name: Activate the swap file if not already active
-  command: swapon /swapfile
-  when: "'/swapfile' not in swapon_check.stdout_lines"
-
-- name: Ensure swap file is in /etc/fstab
-  lineinfile:
-    path: /etc/fstab
-    line: "/swapfile swap swap defaults 0 0"
+- name: Install packages
+  apt:
+    pkg:
+      - systemd-zram-generator
     state: present
 
-- name: Set swappiness level
-  sysctl:
-    name: vm.swappiness
-    value: "{{ swap_vars.swappiness }}"
-    sysctl_set: yes
-    state: present
-
-- name: Append configuration in /etc/sysctl.conf
-  lineinfile:
-    path: /etc/sysctl.conf
-    line: "vm.swappiness={{ swap_vars.swappiness }}"
-    state: present
+- name: ZRam generator configuration
+  ansible.builtin.template:
+    src: "zram-generator.conf"
+    dest: "/etc/systemd/zram-generator.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart zram-generator
