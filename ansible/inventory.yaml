@@ -32,8 +32,8 @@ working_hosts:
     api_endpoint: "{{ virtual_ip_address }}"
     api_port: 6443
 
-    extra_server_args: "--docker --datastore-endpoint https://k8s.kirillorlov.pro:2379 --datastore-cafile /var/lib/etcd/default/tls/server-ca.crt --datastore-certfile /var/lib/etcd/default/tls/client.crt --datastore-keyfile /var/lib/etcd/default/tls/client.key --disable servicelb --disable metrics-server --tls-san=\"{{ virtual_ip_address }}\" --tls-san=\"{{ kube_hostname }}\""
-    extra_agent_args: "--docker --disable servicelb --disable metrics-server"
+    extra_server_args: "--datastore-endpoint https://k8s.kirillorlov.pro:2379 --datastore-cafile /var/lib/etcd/default/tls/server-ca.crt --datastore-certfile /var/lib/etcd/default/tls/client.crt --datastore-keyfile /var/lib/etcd/default/tls/client.key --disable servicelb --disable metrics-server --tls-san=\"{{ virtual_ip_address }}\" --tls-san=\"{{ kube_hostname }}\""
+    extra_agent_args: "--disable servicelb --disable metrics-server"
 
     keepalived_token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
