@@ -35,6 +35,21 @@
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
       changed_when: true
 
+- name: Create a kubelet config directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: '0755'
+
+- name: Setup kubelet config
+  notify: Restart k3s
+  ansible.builtin.template:
+    src: "kubelet-config.yaml"
+    dest: "/etc/rancher/k3s/kubelet-config.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Add K3s autocomplete to user bashrc
   ansible.builtin.lineinfile:
     path: "~{{ ansible_user }}/.bashrc"

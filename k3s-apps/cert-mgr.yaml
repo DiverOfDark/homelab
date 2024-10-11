@@ -22,6 +22,7 @@ spec:
     helm:
       releaseName: cert-manager
       valuesObject:
+        clusterResourceNamespace: cert-manager
         replicaCount: 2
         cainjector:
           replicaCount: 2

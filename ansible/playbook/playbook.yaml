@@ -26,9 +26,9 @@
   become: true
   serial: 1
   roles:
-     - role: k3s
-       tags: ['k3s']
      - role: etcd
        tags: ['etcd']
+     - role: k3s
+       tags: ['k3s']
   handlers:
      - import_tasks: ../roles/k3s/handlers/main.yml

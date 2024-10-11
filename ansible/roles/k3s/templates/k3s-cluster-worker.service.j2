@@ -25,4 +25,4 @@ Restart=always
 RestartSec=5s
 ExecStartPre=-/sbin/modprobe br_netfilter
 ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/local/bin/k3s agent --data-dir /var/lib/rancher/k3s --server https://{{ kube_hostname }}:{{ api_port }} --token {{ token }}
+ExecStart=/usr/local/bin/k3s agent --data-dir /var/lib/rancher/k3s --kubelet-arg=config=/etc/rancher/k3s/kubelet-config.yaml --server https://{{ kube_hostname }}:{{ api_port }} --token {{ token }}

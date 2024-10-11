@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: meta-app
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     namespace: argocd
@@ -15,8 +13,6 @@ spec:
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
-    automated:
-      prune: true
     syncOptions:
     - PruneLast=true
     - ServerSideApply=true

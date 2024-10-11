@@ -19,3 +19,4 @@ packages:
   - mc
   - ntp
   - docker.io
+  - socat
