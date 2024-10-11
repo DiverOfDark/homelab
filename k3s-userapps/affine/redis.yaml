@@ -11,7 +11,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: apps/v1
 kind: Deployment

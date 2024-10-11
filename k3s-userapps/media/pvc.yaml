@@ -11,7 +11,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -26,7 +26,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -41,7 +41,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -56,7 +56,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -71,7 +71,7 @@ spec:
   resources:
     requests:
       storage: 500Mi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -86,4 +86,4 @@ spec:
   resources:
     requests:
       storage: 100Gi
-  storageClassName: longhorn
+  storageClassName: "ceph-block"
