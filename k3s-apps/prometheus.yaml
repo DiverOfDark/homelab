@@ -90,7 +90,7 @@ spec:
           persistence:
             enabled: true
             type: sts
-            storageClassName: "longhorn"
+            storageClassName: "ceph-block"
             accessModes: ["ReadWriteOnce"]
             size: 5Gi
             finalizers:
