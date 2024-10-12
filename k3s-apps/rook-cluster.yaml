@@ -25,6 +25,23 @@ spec:
             dashboard:
               enabled: true
               ssl: false
+            resources:
+              cleanup:
+                requests:
+                  cpu: 50m
+              mgr:
+                requests:
+                  cpu: 250m
+              mgr-sidecar:
+                requests:
+                  cpu: 50m
+              mon:
+                requests:
+                  cpu: 500m
+              osd:
+                requests:
+                  cpu: 500m
+                  memory: 2Gi
             storage:
               useAllNodes: false
               useAllDevices: false
