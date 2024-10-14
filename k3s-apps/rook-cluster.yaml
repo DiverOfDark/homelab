@@ -64,7 +64,6 @@ spec:
                 gethomepage.dev/group: Cluster Management
                 gethomepage.dev/name: Ceph
                 gethomepage.dev/icon: ceph.png
-                gethomepage.dev/pod-selector: "app.kubernetes.io/name=ceph"
               host:
                 name: ceph.kirillorlov.pro
               tls:
