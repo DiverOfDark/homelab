@@ -46,12 +46,9 @@ spec:
               useAllNodes: false
               useAllDevices: false
               nodes:
-                - name: "alfheimr"
-                  devices:
-                    - name: "sda3"
                 - name: "niflheimr"
                   devices:
-                    - name: "sda3"
+                    - name: "nvme0n1p3"
                 - name: "midgard"
                   devices:
                     - name: "nvme0n1p3"
