@@ -20,3 +20,4 @@ packages:
   - ntp
   - docker.io
   - socat
+  - sysstat

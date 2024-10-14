@@ -30,4 +30,4 @@ spec:
           volumeMounts:
             - mountPath: /src
               name: nextcloud
-              subPath: data/diverofdark/files/website
+              subPath: data/i@kirillorlov.pro/files/website
