@@ -29,6 +29,14 @@
     line: 'neofetch'
     state: present
 
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: /etc/sysctl.conf
+    dest: /etc/sysctl.d/99-sysctl.conf
+    owner: root
+    group: root
+    state: link
+
 - name: Up fs.inotify.max_user_instances
   ansible.posix.sysctl:
     name: fs.inotify.max_user_instances
