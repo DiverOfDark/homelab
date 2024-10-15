@@ -21,6 +21,7 @@ spec:
             enabled: false
             createPrometheusRules: true
           cephClusterSpec:
+            removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
             dashboard:
               enabled: true
