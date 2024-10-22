@@ -83,7 +83,7 @@ spec:
               gethomepage.dev/pod-selector: "app.kubernetes.io/name=grafana"
               gethomepage.dev/widget.type: grafana
               gethomepage.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
-              gethomepage.dev/widget.username: admin
+              gethomepage.dev/widget.username: diverofdark
               gethomepage.dev/widget.password: "$admin-password$"
               kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
         
