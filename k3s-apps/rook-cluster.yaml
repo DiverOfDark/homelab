@@ -217,7 +217,7 @@ spec:
                 - hosts:
                     - ceph-s3.kirillorlov.pro
                   secretName: ceph-objectstore-tls
-                ingressClassName: trafeik
+                ingressClassName: traefik
 
   destination:
     server: https://kubernetes.default.svc

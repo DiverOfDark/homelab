@@ -31,6 +31,17 @@ spec:
                   period: 24h
           tracing:
             enabled: true
+          storage:
+            bucketNames:
+              chunks: "${LOKI_BUCKET_BUCKETNAME}"
+              ruler: "${LOKI_BUCKET_BUCKETNAME}"
+              admin: "${LOKI_BUCKET_BUCKETNAME}"
+            s3:
+              endpoint: "${LOKI_BUCKET_ENDPOINT}"
+              accessKeyId: "${LOKI_BUCKET_ACCESSKEYID}"
+              secretAccessKey: "${LOKI_BUCKET_SECRETACCESSKEY}"
+              s3ForcePathStyle: true
+              insecure: true
 
         gateway:
           enabled: false
@@ -52,9 +63,32 @@ spec:
         lokiCanary:
           enabled: false
         minio:
-          enabled: true
+          enabled: false
 
         singleBinary:
+          extraArgs:
+            - '-config.expand-env=true'
+          extraEnv:
+            - name: LOKI_BUCKET_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket-admin
+                  key: BUCKET_HOST
+            - name: LOKI_BUCKET_BUCKETNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: loki-bucket-admin
+                  key: BUCKET_NAME
+            - name: LOKI_BUCKET_ACCESSKEYID
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket-admin
+                  key: AWS_ACCESS_KEY_ID
+            - name: LOKI_BUCKET_SECRETACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-bucket-admin
+                  key: AWS_SECRET_ACCESS_KEY
           replicas: 3
         read:
           replicas: 0
@@ -62,6 +96,19 @@ spec:
           replicas: 0
         write:
           replicas: 0
+
+        extraObjects:
+          - apiVersion: objectbucket.io/v1alpha1
+            kind: ObjectBucketClaim
+            metadata:
+              name: loki-bucket-admin
+            spec:
+              bucketName: loki-bucket-admin
+              generateBucketName: loki-bucket-admin
+              storageClassName: ceph-bucket
+              additionalConfig:
+                bucketMaxObjects: "3000"
+                bucketMaxSize: "20G"
 
   syncPolicy:
     automated:
