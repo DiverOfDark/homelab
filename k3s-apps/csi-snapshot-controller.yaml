@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-snapshot-controller
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: csi-snapshot-controller
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: snapshot-controller
+    repoURL: https://piraeus.io/helm-charts/
+    targetRevision: 3.0.6
+    helm:
+      values: |
+        controller:
+          replicaCount: 2
+          revisionHistoryLimit: 1
+          serviceMonitor:
+            create: true
+        webhook:
+          replicaCount: 2
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true

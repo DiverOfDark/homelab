@@ -151,20 +151,20 @@ spec:
                   # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
                   # in hyperconverged settings where the volume is mounted on the same node as the osds.
                   csi.storage.k8s.io/fstype: ext4
-#          cephFileSystemVolumeSnapshotClass:
-#            enabled: true
-#            name: ceph-filesystem
-#            isDefault: true
-#            deletionPolicy: Delete
-#            annotations: { }
-#            labels: { }
-#            # see https://rook.io/docs/rook/v1.10/Storage-Configuration/Ceph-CSI/ceph-csi-snapshot/#cephfs-snapshots for available configuration
-#            parameters: { }
+          cephFileSystemVolumeSnapshotClass:
+            enabled: true
+            name: ceph-filesystem
+            isDefault: true
+            deletionPolicy: Delete
+            annotations: { }
+            labels: { }
+            # see https://rook.io/docs/rook/v1.10/Storage-Configuration/Ceph-CSI/ceph-csi-snapshot/#cephfs-snapshots for available configuration
+            parameters: { }
 
           # -- Settings for the block pool snapshot class
           # @default -- See [RBD Snapshots](../Storage-Configuration/Ceph-CSI/ceph-csi-snapshot.md#rbd-snapshots)
           cephBlockPoolsVolumeSnapshotClass:
-            enabled: false
+            enabled: true
             name: ceph-block
             isDefault: false
             deletionPolicy: Delete
@@ -173,55 +173,51 @@ spec:
             # see https://rook.io/docs/rook/v1.10/Storage-Configuration/Ceph-CSI/ceph-csi-snapshot/#rbd-snapshots for available configuration
             parameters: { }
 
-          cephObjectStores: []
-#            - name: ceph-objectstore
-#              # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Object-Storage/ceph-object-store-crd.md#object-store-settings for available configuration
-#              spec:
-#                metadataPool:
-#                  failureDomain: host
-#                  replicated:
-#                    size: 2
-#                dataPool:
-#                  failureDomain: host
-#                  erasureCoded:
-#                    dataChunks: 2
-#                    codingChunks: 1
-#                preservePoolsOnDelete: true
-#                gateway:
-#                  port: 80
-#                  resources:
-#                    limits:
-#                      memory: "2Gi"
-#                    requests:
-#                      cpu: "1000m"
-#                      memory: "1Gi"
-#                  # securePort: 443
-#                  # sslCertificateRef:
-#                  instances: 1
-#                  priorityClassName: system-cluster-critical
-#              storageClass:
-#                enabled: true
-#                name: ceph-bucket
-#                reclaimPolicy: Delete
-#                volumeBindingMode: "Immediate"
-#                annotations: { }
-#                labels: { }
-#                # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-claim.md#storageclass for available configuration
-#                parameters:
-#                  # note: objectStoreNamespace and objectStoreName are configured by the chart
-#                  region: us-east-1
-#              ingress:
-#                # Enable an ingress for the ceph-objectstore
-#                enabled: true
-#                annotations: {}
-#                host:
-#                  name: ceph-s3.kirillorlov.pro
-#                  path: /
-#                tls:
-#                - hosts:
-#                    - ceph-s3.kirillorlov.pro
-#                  secretName: ceph-objectstore-tls
-#                ingressClassName: trafeik
+          cephObjectStores:
+            - name: ceph-objectstore
+              # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Object-Storage/ceph-object-store-crd.md#object-store-settings for available configuration
+              spec:
+                metadataPool:
+                  failureDomain: host
+                  replicated:
+                    size: 2
+                dataPool:
+                  failureDomain: host
+                  erasureCoded:
+                    dataChunks: 2
+                    codingChunks: 1
+                preservePoolsOnDelete: true
+                gateway:
+                  port: 80
+                  resources:
+                    limits:
+                      memory: "2Gi"
+                    requests:
+                      cpu: "100m"
+                      memory: "512Mi"
+                  instances: 1
+                  priorityClassName: system-cluster-critical
+              storageClass:
+                enabled: true
+                name: ceph-bucket
+                reclaimPolicy: Delete
+                volumeBindingMode: "Immediate"
+                annotations: { }
+                labels: { }
+                parameters:
+                  region: us-east-1
+              ingress:
+                enabled: true
+                annotations:
+                  cert-manager.io/cluster-issuer: acme-issuer
+                host:
+                  name: ceph-s3.kirillorlov.pro
+                  path: /
+                tls:
+                - hosts:
+                    - ceph-s3.kirillorlov.pro
+                  secretName: ceph-objectstore-tls
+                ingressClassName: trafeik
 
   destination:
     server: https://kubernetes.default.svc
