@@ -13,7 +13,7 @@ spec:
   source:
     chart: pihole
     repoURL: https://mojo2600.github.io/pihole-kubernetes/
-    targetRevision: v2.26.1
+    targetRevision: 2.26.2
     helm:
       releaseName: pihole
       values: |
@@ -159,7 +159,7 @@ spec:
   source:
     chart: pihole
     repoURL: https://mojo2600.github.io/pihole-kubernetes/
-    targetRevision: v2.26.1
+    targetRevision: 2.26.2
     helm:
       releaseName: pihole-dr
       values: |
