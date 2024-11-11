@@ -20,7 +20,7 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud
       containers:
-        - image: 'nextcloud:30.0.1'
+        - image: 'nextcloud:30.0.2'
           imagePullPolicy: IfNotPresent
           name: nextcloud
           env:
