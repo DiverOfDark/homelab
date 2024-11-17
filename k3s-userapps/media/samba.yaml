@@ -5,6 +5,7 @@ metadata:
   namespace: media
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: smb-server
@@ -23,11 +24,16 @@ spec:
           image: dperson/samba
           env:
             - name: PERMISSIONS
-              value: ""
+              value: "true"
             - name: NMBD
               value: "true"
+            - name: RECYCLE
+              value: "false"
+            - name: USER
+              value: "root;root"
             - name: SHARE
-              value: "share;/smbshare/;yes;no;yes;all;none"
+              value: "share;/smbshare/;yes;no;yes;all;root;root;Samba Share"
+              #      "<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]"
           volumeMounts:
             - mountPath: /smbshare
               name: video
