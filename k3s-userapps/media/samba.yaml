@@ -24,6 +24,8 @@ spec:
           env:
             - name: PERMISSIONS
               value: ""
+            - name: NMBD
+              value: "true"
             - name: SHARE
               value: "share;/smbshare/;yes;no;yes;all;none"
           volumeMounts:
