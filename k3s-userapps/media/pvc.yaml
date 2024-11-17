@@ -85,5 +85,5 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 350Gi
+      storage: 450Gi
   storageClassName: "ceph-filesystem"
