@@ -33,6 +33,8 @@ spec:
                   period: 24h
           tracing:
             enabled: true
+          chunksCache:
+            enabled: false
           storage:
             bucketNames:
               chunks: "${LOKI_BUCKET_BUCKETNAME}"
