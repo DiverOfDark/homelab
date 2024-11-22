@@ -33,10 +33,6 @@ spec:
                   period: 24h
           tracing:
             enabled: true
-          chunksCache:
-            enabled: false
-          resultsCache:
-            enabled: false
           storage:
             bucketNames:
               chunks: "${LOKI_BUCKET_BUCKETNAME}"
@@ -69,6 +65,10 @@ spec:
         lokiCanary:
           enabled: false
         minio:
+          enabled: false
+        chunksCache:
+          enabled: false
+        resultsCache:
           enabled: false
 
         singleBinary:
