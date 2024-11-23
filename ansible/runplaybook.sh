@@ -1,7 +1,7 @@
 #!/bin/bash
 source .venv/bin/activate
 
-ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook/playbook.yaml -i inventory.yaml --syntax-check
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook.yaml -i inventory.yaml --syntax-check
 
 # Check if a tag was provided
 if [ -n "$1" ]; then
@@ -18,4 +18,4 @@ else
     MODE=""
 fi
 
-ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook/playbook.yaml -i inventory.yaml -J $TAGS $MODE
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook.yaml -i inventory.yaml -J $TAGS $MODE

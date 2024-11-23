@@ -16,9 +16,9 @@
        tags: ['dnsmasq']
 
   handlers:
-     - import_tasks: ../roles/dnsmasq/handlers/main.yml
-     - import_tasks: ../roles/keepalived/handlers/main.yml
-     - import_tasks: ../roles/seedbox-mount/handlers/main.yml
+     - import_tasks: ./roles/dnsmasq/handlers/main.yml
+     - import_tasks: ./roles/keepalived/handlers/main.yml
+     - import_tasks: ./roles/seedbox-mount/handlers/main.yml
 
 - name: Kubernets cluster - node by node
   hosts: working_hosts
@@ -31,4 +31,4 @@
      - role: k3s
        tags: ['k3s']
   handlers:
-     - import_tasks: ../roles/k3s/handlers/main.yml
+     - import_tasks: ./roles/k3s/handlers/main.yml
