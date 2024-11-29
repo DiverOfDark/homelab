@@ -7,6 +7,11 @@ metadata:
       - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .metadata.annotations."gethomepage.dev/widget.key"
+      kind: Ingress
   sources:
     - chart: argo-helm/argo-cd
       repoURL: ghcr.io/argoproj
