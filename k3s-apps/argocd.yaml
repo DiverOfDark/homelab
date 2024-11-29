@@ -31,6 +31,12 @@ spec:
                   gethomepage.dev/name: ArgoCD
                   gethomepage.dev/icon: argocd.png
                   gethomepage.dev/pod-selector: "app.kubernetes.io/instance=argocd"
+                  gethomepage.dev/widget.type: argocd
+                  gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
+                  gethomepage.dev/widget.key: "$token$"
+                  kirillorlov.pro/annotationsFromSecretName: argocd-readonly-token
+
+
               autoscaling:
                 enabled: false
                 minReplicas: 2
