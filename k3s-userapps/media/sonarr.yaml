@@ -5,6 +5,8 @@ metadata:
   namespace: media
 spec:
   progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
   replicas: 1
   revisionHistoryLimit: 1
   selector:
