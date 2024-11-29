@@ -12,10 +12,12 @@ spec:
       repoURL: ghcr.io/argoproj
       targetRevision: 7.7.6
       helm:
-        values: |
+        valuesObject:
             global:
               domain: argo.kirillorlov.pro
-              affinity.nodeAffinity.type: soft
+              affinity:
+                nodeAffinity:
+                  type: soft
         
             server:
               replicas: 2
@@ -53,18 +55,26 @@ spec:
         
             configs:
               params:
-                server.insecure: true
+                server:
+                  insecure: true
               cm:
-                exec.enabled: true
-                resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
-                  jqPathExpressions:
-                    - '.spec.volumeName'
-                    - '.metadata.finalizers'
-                    - '.metadata.annotations'
-                    - '.metadata.labels."recurring-job-group.longhorn.io/default"'
-                resource.customizations.ignoreDifferences.admissionregistration.k8s.io_MutatingWebhookConfiguration: |
-                  jqPathExpressions:
-                    - '.webhooks[]?.clientConfig.caBundle'        
+                exec:
+                  enabled: true
+                accounts:
+                  readonly: apiKey
+                rbac:
+                  policy.csv: "g, readonly, role:readonly"
+                resource:
+                  customizations:
+                    ignoreDifferences:
+                      - PersistentVolumeClaim: |
+                          jqPathExpressions:
+                            - '.spec.volumeName'
+                            - '.metadata.finalizers'
+                            - '.metadata.annotations'
+                      - admissionregistration.k8s.io_MutatingWebhookConfiguration: |
+                          jqPathExpressions:
+                            - '.webhooks[]?.clientConfig.caBundle'
             dex:
               enabled: false
         
