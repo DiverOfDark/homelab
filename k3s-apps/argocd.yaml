@@ -15,9 +15,7 @@ spec:
         valuesObject:
             global:
               domain: argo.kirillorlov.pro
-              affinity:
-                nodeAffinity:
-                  type: soft
+              affinity.nodeAffinity.type: soft
         
             server:
               replicas: 2
@@ -55,8 +53,7 @@ spec:
         
             configs:
               params:
-                server:
-                  insecure: true
+                server.insecure: true
               rbac:
                 policy.csv: "g, readonly, role:readonly"
               cm:
