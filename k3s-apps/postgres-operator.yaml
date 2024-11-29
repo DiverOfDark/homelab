@@ -6,6 +6,11 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  ignoreDifferences:
+    - group: '*'
+      kind: CustomResourceDefinition
+      jqPathExpressions:
+        - '.spec.versions[].schema.openAPIV3Schema.properties[]?.properties.maintenanceWindows'
   destination:
     namespace: postgres-operator
     server: https://kubernetes.default.svc
