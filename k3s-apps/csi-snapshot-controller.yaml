@@ -6,6 +6,17 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .data."ca.crt"
+        - .data."tls.crt"
+        - .data."tls.key"
+      kind: Secret
+    - group: '*'
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - '.webhooks[]?.clientConfig.caBundle'
   destination:
     namespace: csi-snapshot-controller
     server: https://kubernetes.default.svc
