@@ -57,24 +57,20 @@ spec:
               params:
                 server:
                   insecure: true
+              rbac:
+                policy.csv: "g, readonly, role:readonly"
               cm:
-                exec:
-                  enabled: true
-                accounts:
-                  readonly: apiKey
-                rbac:
-                  policy.csv: "g, readonly, role:readonly"
-                resource:
-                  customizations:
-                    ignoreDifferences:
-                      - PersistentVolumeClaim: |
-                          jqPathExpressions:
-                            - '.spec.volumeName'
-                            - '.metadata.finalizers'
-                            - '.metadata.annotations'
-                      - admissionregistration.k8s.io_MutatingWebhookConfiguration: |
-                          jqPathExpressions:
-                            - '.webhooks[]?.clientConfig.caBundle'
+                exec.enabled: true
+                accounts.readonly: apiKey
+                resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
+                  jqPathExpressions:
+                    - '.spec.volumeName'
+                    - '.metadata.finalizers'
+                    - '.metadata.annotations'
+                    - '.metadata.labels."recurring-job-group.longhorn.io/default"'
+                resource.customizations.ignoreDifferences.admissionregistration.k8s.io_MutatingWebhookConfiguration: |
+                  jqPathExpressions:
+                    - '.webhooks[]?.clientConfig.caBundle'
             dex:
               enabled: false
         
