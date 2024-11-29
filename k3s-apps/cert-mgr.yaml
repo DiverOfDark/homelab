@@ -78,6 +78,7 @@ spec:
   secretName: selfroot-ca-issuer-secret
   duration: 48h
   renewBefore: 25h
+  revisionHistoryLimit: 1
   issuerRef:
     name: selfsigned-issuer
     kind: ClusterIssuer
