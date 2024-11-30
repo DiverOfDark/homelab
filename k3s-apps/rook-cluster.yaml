@@ -28,6 +28,9 @@ spec:
             dashboard:
               enabled: true
               ssl: false
+            labels:
+              all:
+                app.kubernetes.io/app-group: rook-ceph
             resources:
               cleanup:
                 requests:
@@ -67,6 +70,7 @@ spec:
                 gethomepage.dev/group: Cluster Management
                 gethomepage.dev/name: Ceph
                 gethomepage.dev/icon: ceph.png
+                gethomepage.dev/pod-selector: "app.kubernetes.io/app-group=rook-ceph"
               host:
                 name: ceph.kirillorlov.pro
               tls:
