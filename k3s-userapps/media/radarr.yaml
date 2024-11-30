@@ -28,7 +28,7 @@ spec:
           hostPath:
             path: "/mnt/seedbox"
       containers:
-        - image: 'lscr.io/linuxserver/radarr:nightly-version-5.9.0.8962'
+        - image: 'linuxserver/radarr:5.15.1'
           imagePullPolicy: IfNotPresent
           name: radarr
           env:
