@@ -30,7 +30,7 @@ spec:
             - mountPath: /data
               name: paperless
               subPath: redis
-        - image: 'ghcr.io/paperless-ngx/paperless-ngx:2.11.2'
+        - image: 'ghcr.io/paperless-ngx/paperless-ngx:2.13.5'
           name: paperless
           ports:
             - containerPort: 8000
