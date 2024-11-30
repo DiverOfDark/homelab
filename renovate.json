@@ -16,6 +16,8 @@
       "\\.yml$"
     ]
   },
+  "prHourlyLimit": 10,
+  "prConcurrentLimit": 50,
   "automerge": true,
   "automergeType": "pr",
   "labels": [
