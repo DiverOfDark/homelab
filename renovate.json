@@ -6,12 +6,14 @@
   ],
   "argocd": {
     "fileMatch": [
-      "\\.yaml$"
+      "\\.yaml$",
+      "\\.yml$"
     ]
   },
   "kubernetes": {
     "fileMatch": [
-      "\\.yaml$"
+      "\\.yaml$",
+      "\\.yml$"
     ]
   },
   "automerge": true,
