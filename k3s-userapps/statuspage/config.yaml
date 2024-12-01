@@ -58,9 +58,6 @@ data:
         - Knomi:
             href: http://knomi.fritz.box/
             description: Knomi display
-            widget:
-              type: mjpeg
-              stream: http://voron2.local/webcam/stream
         - Knomi V2:
             href: http://knomi2.fritz.box/
             description: Knomi V2 display
