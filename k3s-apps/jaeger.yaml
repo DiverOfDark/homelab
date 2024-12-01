@@ -13,7 +13,7 @@ spec:
   source:
     chart: jaeger
     repoURL: https://jaegertracing.github.io/helm-charts
-    targetRevision: 3.3.2
+    targetRevision: 3.3.3
     helm:
       valuesObject:
          provisionDataStore:
