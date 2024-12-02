@@ -133,7 +133,7 @@ spec:
           existingSecret: velero-credentials
           storage:
             enabled: true
-            storageClassName: ceph-block
+            storageClassName: ceph-file
         uiConfig:
           nextPublicVeleroApiUrl: https://velero.kirillorlov.pro
           nextPublicVeleroApiWs: wss://velero.kirillorlov.pro
