@@ -106,8 +106,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: velero
   syncPolicy:
-    automated:
-      prune: true
+    automated: {}
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
