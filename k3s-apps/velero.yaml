@@ -1,3 +1,54 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: "velero-secret"
+  namespace: velero
+spec:
+  secretStoreRef:
+    name: default-secret-store
+    kind: ClusterSecretStore  # or ClusterSecretStore
+  refreshInterval: "10s"
+  target:
+    name: velero-credentials
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        cloud: |
+          [default]
+          aws_access_key_id="{{ .archer_s3_access_key }}"
+          aws_secret_access_key="{{ .archer_s3_secret_key }}"
+        SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
+        AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
+        RESTIC_PASSWORD: "static-passw0rd" # TODO default one - to be changed later - https://github.com/vmware-tanzu/velero/blob/main/pkg/repository/keys/keys.go#L57
+        SECURITY_PATH_DATABASE: "./data"
+        DEFAULT_ADMIN_USERNAME: "admin"
+        DEFAULT_ADMIN_PASSWORD: "admin"
+  data:
+    - secretKey: archer_s3_access_key
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: archer-s3-access-key
+    - secretKey: archer_s3_secret_key
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: archer-s3-secret-key
+    - secretKey: velero_ui_security_token_key
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: velero-ui-security-token-key
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,57 +62,6 @@ spec:
     targetRevision: 7.2.1
     helm:
       valuesObject:
-        extraObjects:
-          - apiVersion: external-secrets.io/v1beta1
-            kind: ExternalSecret
-            metadata:
-              name: "velero-secret"
-              namespace: velero
-            spec:
-              secretStoreRef:
-                name: default-secret-store
-                kind: ClusterSecretStore  # or ClusterSecretStore
-              refreshInterval: "10s"
-              target:
-                name: velero-credentials
-                creationPolicy: 'Owner'
-                deletionPolicy: "Retain"
-                template:
-                  type: Opaque
-                  data:
-                    cloud: |
-                      [default]
-                      aws_access_key_id="{{ .archer_s3_access_key }}"
-                      aws_secret_access_key="{{ .archer_s3_secret_key }}"
-                    SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
-                    AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
-                    AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
-                    RESTIC_PASSWORD: "static-passw0rd" # TODO default one - to be changed later - https://github.com/vmware-tanzu/velero/blob/main/pkg/repository/keys/keys.go#L57
-                    SECURITY_PATH_DATABASE: "./data"
-                    DEFAULT_ADMIN_USERNAME: "admin"
-                    DEFAULT_ADMIN_PASSWORD: "admin"
-              data:
-                - secretKey: archer_s3_access_key
-                  remoteRef:
-                    key: golden-secret
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: archer-s3-access-key
-                - secretKey: archer_s3_secret_key
-                  remoteRef:
-                    key: golden-secret
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: archer-s3-secret-key
-                - secretKey: velero_ui_security_token_key
-                  remoteRef:
-                    key: golden-secret
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: velero-ui-security-token-key
         credentials:
           useSecret: true
           existingSecret: velero-credentials
