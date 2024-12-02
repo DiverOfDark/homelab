@@ -102,11 +102,18 @@ spec:
               ttl: "240h" ## choose ttl, after which the backups will be removed.
               snapshotVolumes: true
               defaultVolumesToFsBackup: true
+              metadata:
+                labels: # reset labels to not show backups in ArgoCD
+                  app.kubernetes.io/instance: ""
+                  app.kubernetes.io/managed-by: ""
+                  app.kubernetes.io/name: ""
+                  argocd.argoproj.io/instance: ""
   destination:
     server: https://kubernetes.default.svc
     namespace: velero
   syncPolicy:
-    automated: {}
+    automated:
+      prune: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
