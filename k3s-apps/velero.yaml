@@ -1,0 +1,165 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    chart: velero
+    targetRevision: 7.2.1
+    helm:
+      valuesObject:
+        extraObjects:
+          - apiVersion: external-secrets.io/v1beta1
+            kind: ExternalSecret
+            metadata:
+              name: "velero-secret"
+              namespace: velero
+            spec:
+              secretStoreRef:
+                name: default-secret-store
+                kind: ClusterSecretStore  # or ClusterSecretStore
+              refreshInterval: "10s"
+              target:
+                name: velero-credentials
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    cloud: |
+                      [default]
+                      aws_access_key_id="{{ .archer_s3_access_key }}"
+                      aws_secret_access_key="{{ .archer_s3_secret_key }}"
+                    SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
+                    AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
+                    AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
+                    RESTIC_PASSWORD: "static-passw0rd" # TODO default one - to be changed later - https://github.com/vmware-tanzu/velero/blob/main/pkg/repository/keys/keys.go#L57
+                    SECURITY_PATH_DATABASE: "./data"
+                    DEFAULT_ADMIN_USERNAME: "admin"
+                    DEFAULT_ADMIN_PASSWORD: "admin"
+              data:
+                - secretKey: archer_s3_access_key
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: archer-s3-access-key
+                - secretKey: archer_s3_secret_key
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: archer-s3-secret-key
+                - secretKey: velero_ui_security_token_key
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: velero-ui-security-token-key
+        credentials:
+          useSecret: true
+          existingSecret: velero-credentials
+
+        configuration:
+        #  provider: restic
+          backupStorageLocation:
+          - name: default
+            provider: aws
+            bucket: ceph-backups
+            config:
+              region: default
+              s3ForcePathStyle: true
+              s3Url: http://archer.fritz.box:9000/
+          volumeSnapshotLocation:
+          - name: default
+            provider: aws
+            bucket: ceph-backups
+            config:
+              region: default
+              s3ForcePathStyle: true
+              s3Url: http://archer.fritz.box:9000/
+          uploaderType: restic
+          features: EnableCSI
+        deployNodeAgent: true
+        initContainers:
+          - name: velero-plugin-for-aws
+            image: velero/velero-plugin-for-aws:v1.4.0
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+        schedules:
+          archer:
+            disabled: false
+            schedule: "0 0 * * *" ## choose time, when scheduled backups will be make.
+            template:
+              ttl: "240h" ## choose ttl, after which the backups will be removed.
+              snapshotVolumes: true
+              defaultVolumesToFsBackup: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veleroui
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://seriohub.github.io/velero-helm/
+    chart: vui
+    targetRevision: 0.1.15
+    helm:
+      valuesObject:
+        global:
+          veleroNamespace: velero
+          clusterName: homelab
+        apiConfig:
+          existingSecret: velero-credentials
+          storage:
+            enabled: true
+            storageClassName: ceph-block
+        uiConfig:
+          nextPublicVeleroApiUrl: https://velero.kirillorlov.pro
+          nextPublicVeleroApiWs: wss://velero.kirillorlov.pro
+        uiNp:
+          enabled: false
+        uiIngress:
+          enabled: true
+          ingressClassName: traefik
+          host: velero.kirillorlov.pro
+          metadata:
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+          spec:
+            tls:
+              - hosts:
+                  - velero.kirillorlov.pro
+                secretName: velero-tls
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+---
