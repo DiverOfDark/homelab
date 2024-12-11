@@ -1,0 +1,12 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: spoolman
+  namespace: spoolman
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: spoolman
+  podMetricsEndpoints:
+  - port: "http"
