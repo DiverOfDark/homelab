@@ -18,6 +18,7 @@ spec:
     automated:
       prune: true
     syncOptions:
+    - CreateNamespace=true
     - PruneLast=true
     - ServerSideApply=true
     - RespectIgnoreDifferences=true
