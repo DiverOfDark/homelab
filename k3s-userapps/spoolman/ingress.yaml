@@ -8,6 +8,9 @@ metadata:
     gethomepage.dev/group: "3D Printer"
     gethomepage.dev/name: Spoolman
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=spoolman"
+    gethomepage.dev/widget.type: spoolman
+    gethomepage.dev/widget.url: https://spoolman.kirillorlov.pro
+    gethomepage.dev/widget.spoolIds: [ 1, 2, 3, 4 ]
   name: spoolman
   namespace: spoolman
 spec:
