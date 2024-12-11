@@ -15,7 +15,7 @@ spec:
   sources:
     - chart: argo-helm/argo-cd
       repoURL: ghcr.io/argoproj
-      targetRevision: 7.7.8
+      targetRevision: 7.7.9
       helm:
         valuesObject:
             global:
