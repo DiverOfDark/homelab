@@ -40,7 +40,7 @@ spec:
             failureThreshold: 1
             httpGet:
               path: /
-              port: 2000
+              port: 8000
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
