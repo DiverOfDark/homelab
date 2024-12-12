@@ -16,6 +16,15 @@
   apt:
     autoremove: yes
 
+- name: Limit journald log size
+  ansible.builtin.template:
+    src: "journald.conf"
+    dest: "/etc/systemd/journald.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart journald
+
 - name: Update diverofdark user groups (enable sudo)
   user:
     name: diverofdark
