@@ -17,6 +17,8 @@ spec:
       labels:
         app.kubernetes.io/pod: semaphoreui
     spec:
+      securityContext:
+        runAsUser: 0
       volumes:
         - name: semaphoreui
           persistentVolumeClaim:
