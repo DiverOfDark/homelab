@@ -8,6 +8,7 @@ metadata:
     gethomepage.dev/group: "Infra"
     gethomepage.dev/name: Semaphore UI
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=semaphoreui"
+    gethomepage.dev/icon: "https://semaphoreui.com/img/favicon.png?_2501"
   name: semaphoreui
   namespace: semaphoreui
 spec:
