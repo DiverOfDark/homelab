@@ -1,0 +1,14 @@
+/var/log/dnsmasq.log {
+    daily
+    rotate 1
+    missingok
+    notifempty
+    compress
+    delaycompress
+    postrotate
+        # Signal dnsmasq to reopen logs
+        if pidof dnsmasq > /dev/null; then
+            kill -USR1 $(pidof dnsmasq)
+        fi
+    endscript
+}

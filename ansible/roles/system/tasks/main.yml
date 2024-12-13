@@ -25,6 +25,14 @@
     mode: "0644"
   notify: Restart journald
 
+- name: Add cron cleanup task
+  ansible.builtin.template:
+    src: "cleanup.sh"
+    dest: "/etc/cron.daily/cleanup.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Update diverofdark user groups (enable sudo)
   user:
     name: diverofdark

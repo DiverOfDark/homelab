@@ -25,3 +25,11 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Copy logrotate config
+  ansible.builtin.template:
+    src: "logrotate.conf.j2"
+    dest: "/etc/logrotate.d/dnsmasq-log"
+    owner: root
+    group: root
+    mode: "0644"
