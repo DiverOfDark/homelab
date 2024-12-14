@@ -50,6 +50,15 @@
     group: root
     mode: "0644"
 
+- name: Setup registry config
+  notify: Restart k3s
+  ansible.builtin.template:
+    src: "registries.yaml"
+    dest: "/etc/rancher/k3s/registries.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Add K3s autocomplete to user bashrc
   ansible.builtin.lineinfile:
     path: "~{{ ansible_user }}/.bashrc"
