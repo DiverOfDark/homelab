@@ -23,6 +23,10 @@ spec:
         - name: smb-server
           image: dperson/samba
           env:
+            - name: GLOBAL
+              value: "unix extensions = no"
+            - name: GENERIC
+              value: "share;wide links = yes"
             - name: PERMISSIONS
               value: "true"
             - name: RECYCLE
