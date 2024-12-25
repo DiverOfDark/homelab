@@ -1,19 +1,26 @@
+printer_hosts:
+  hosts:
+    voron2:
+      ansible_host: 192.168.178.20
+  vars:
+    ansible_user: root
+    ansible_python_interpreter: auto_silent
+
+
 working_hosts:
-  children:
-    server:
-      hosts:
-        alfheimr:
-          k3s_master: false
-          ansible_host: 192.168.178.10
-        midgard:
-          k3s_master: true
-          ansible_host: 192.168.178.11
-        niflheimr:
-          k3s_master: true
-          ansible_host: 192.168.178.12
-        jotunheimr:
-          k3s_master: true
-          ansible_host: 192.168.178.13
+  hosts:
+    alfheimr:
+      k3s_master: false
+      ansible_host: 192.168.178.10
+    midgard:
+      k3s_master: true
+      ansible_host: 192.168.178.11
+    niflheimr:
+      k3s_master: true
+      ansible_host: 192.168.178.12
+    jotunheimr:
+      k3s_master: true
+      ansible_host: 192.168.178.13
   vars:
     ansible_user: root
     ansible_python_interpreter: auto_silent

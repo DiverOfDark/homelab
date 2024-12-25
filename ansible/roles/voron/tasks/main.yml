@@ -1,0 +1,57 @@
+- name: Check if Voron is currently printing
+  check_mode: no
+  uri:
+    url: "http://voron2:7125/printer/objects/query?print_stats"
+    method: GET
+    return_content: yes
+  register: printer_status
+
+- name: Set default fact if Voron is not printing
+  set_fact:
+    voron_printing: "false"
+
+- name: Set fact if Voron is printing
+  when: printer_status.json is defined and 
+        printer_status.json.result is defined and 
+        printer_status.json.result.status is defined and
+        printer_status.json.result.status.print_stats is defined and
+        printer_status.json.result.status.print_stats.state is defined
+  set_fact:
+    voron_printing: "{{ printer_status.json.result.status.print_stats.state == 'printing' }}"
+
+- name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+  when: not voron_printing
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install packages
+  when: not voron_printing
+  apt:
+    pkg: "{{ voron_packages }}"
+    state: present
+
+- name: Upgrade the OS (apt-get dist-upgrade)
+  when: not voron_printing
+  apt:
+    upgrade: full
+
+- name: Remove unused packages (apt-get autoremove)
+  when: not voron_printing
+  apt:
+    autoremove: yes
+
+- name: Update diverofdark user groups (enable sudo)
+  when: not voron_printing
+  user:
+    name: diverofdark
+    groups: "sudo"
+    append: true
+
+- name: Add Neofetch command to system-wide bashrc
+  when: not voron_printing
+  lineinfile:
+    path: /etc/bash.bashrc
+    create: yes
+    line: 'neofetch'
+    state: present

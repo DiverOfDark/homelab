@@ -3,6 +3,7 @@
   ansible.builtin.command: k3s --version
   register: k3s_version_output
   changed_when: false
+  check_mode: no
   ignore_errors: true
 
 - name: Set k3s installed version
@@ -70,7 +71,7 @@
     - name: Copy K3s service file [HA-first]
       when:
         - k3s_master == true
-        - inventory_hostname == groups['server'][0]
+        - inventory_hostname == groups['working_hosts'][0]
       notify: Restart k3s
       ansible.builtin.template:
         src: "k3s-cluster-init.service.j2"
@@ -82,7 +83,7 @@
     - name: Copy K3s service file [HA-others]
       when:
         - k3s_master == true
-        - inventory_hostname != groups['server'][0]
+        - inventory_hostname != groups['working_hosts'][0]
       notify: Restart k3s
       ansible.builtin.template:
         src: "k3s-cluster-join.service.j2"

@@ -18,4 +18,4 @@ else
     MODE=""
 fi
 
-ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook.yaml -i inventory.yaml -J $TAGS $MODE
+ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook.yaml -i inventory.yaml --ask-vault-password $TAGS $MODE

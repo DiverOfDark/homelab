@@ -1,4 +1,4 @@
-packages:
+voron_packages:
   - htop
   - btop
   - git
@@ -6,18 +6,13 @@ packages:
   - neofetch
   - sudo
   - avahi-daemon
-  - policycoreutils
   - curl
-  - open-iscsi
-  - dirmngr
-  - software-properties-common
   - rsync
-  - nfs-common
   - iotop
   - ncdu
   - net-tools
   - mc
   - chrony
-  - docker.io
+  - docker-ce
   - socat
   - sysstat

@@ -1,4 +1,12 @@
 ---
+- name: Voron setup
+  hosts: printer_hosts
+  gather_facts: true
+  become: true
+  roles:
+     - role: voron
+       tags: ['voron']
+
 - name: System setups
   hosts: working_hosts
   gather_facts: true
