@@ -28,7 +28,7 @@
      - import_tasks: ./roles/keepalived/handlers/main.yml
      - import_tasks: ./roles/seedbox-mount/handlers/main.yml
 
-- name: Kubernets cluster - node by node
+- name: Kubernetes cluster - node by node
   hosts: working_hosts
   gather_facts: false
   become: true

@@ -3,4 +3,4 @@
     name: systemd-journald
     daemon-reload: yes
     enabled: true
-    state: started
+    state: restarted

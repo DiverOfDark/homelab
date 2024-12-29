@@ -16,3 +16,34 @@ voron_packages:
   - docker-ce
   - socat
   - sysstat
+
+voron_scripts:
+  - can_scan.sh
+  - flash.sh
+  - flash_sb2040.sh
+
+firmware_configs:
+  - mmb.config
+  - octo.config
+  - sb2040.config
+
+klipper_configs:
+  - .theme/favicon-32x32.png
+  - .theme/sidebar-background.gif
+  - .theme/sidebar-logo.png
+  - subsystems/knomi.cfg
+  - subsystems/kinematics.cfg
+  - KlipperScreen.conf
+  - moonraker.conf
+  - printer.cfg
+
+klipper_configs_template:
+  - telegram.conf
+
+klipper_symlinks:
+  - from: /home/diverofdark/moonraker-timelapse/klipper_macro/timelapse.cfg
+    to: /home/diverofdark/printer_data/config/subsystems/timelapse.cfg
+  - from: /home/diverofdark/mainsail-config/client.cfg
+    to: /home/diverofdark/printer_data/config/subsystems/mainsail.cfg
+  - from: /home/diverofdark/klipper-led_effect/examples/Voron_Stealthburner/stealthburner_led_effects_3_leds.cfg
+    to: /home/diverofdark/printer_data/config/subsystems/leds.cfg
