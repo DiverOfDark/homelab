@@ -33,6 +33,7 @@ klipper_configs:
   - .theme/sidebar-logo.png
   - subsystems/knomi.cfg
   - subsystems/kinematics.cfg
+  - subsystems/leds.cfg
   - KlipperScreen.conf
   - moonraker.conf
   - printer.cfg
@@ -45,5 +46,3 @@ klipper_symlinks:
     to: /home/diverofdark/printer_data/config/subsystems/timelapse.cfg
   - from: /home/diverofdark/mainsail-config/client.cfg
     to: /home/diverofdark/printer_data/config/subsystems/mainsail.cfg
-  - from: /home/diverofdark/klipper-led_effect/examples/Voron_Stealthburner/stealthburner_led_effects_3_leds.cfg
-    to: /home/diverofdark/printer_data/config/subsystems/leds.cfg
