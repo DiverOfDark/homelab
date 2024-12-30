@@ -34,7 +34,20 @@ klipper_configs:
   - subsystems/knomi.cfg
   - subsystems/kinematics.cfg
   - subsystems/leds.cfg
+  - subsystems/stealthburner.cfg
+  - mmu/mmu_vars.cfg
+  - mmu/addons/blobifier.cfg
+  - mmu/addons/blobifier_hw.cfg
+  - mmu/addons/dc_espooler.cfg
+  - mmu/addons/dc_espooler_hw.cfg
+  - mmu/addons/mmu_erec_cutter.cfg
+  - mmu/addons/mmu_erec_cutter_hw.cfg
+  - mmu/base/mmu.cfg
+  - mmu/base/mmu_hardware.cfg
+  - mmu/base/mmu_macro_vars.cfg
+  - mmu/base/mmu_parameters.cfg
   - KlipperScreen.conf
+  - mmu_klipperscreen.conf
   - moonraker.conf
   - printer.cfg
 
@@ -46,3 +59,19 @@ klipper_symlinks:
     to: /home/diverofdark/printer_data/config/subsystems/timelapse.cfg
   - from: /home/diverofdark/mainsail-config/client.cfg
     to: /home/diverofdark/printer_data/config/subsystems/mainsail.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_cut_tip.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_cut_tip.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_form_tip.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_form_tip.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_leds.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_leds.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_sequence.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_sequence.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_software.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_software.cfg
+  - from: /home/diverofdark/Happy-Hare/config/base/mmu_state.cfg
+    to: /home/diverofdark/printer_data/config/mmu/base/mmu_state.cfg
+  - from: /home/diverofdark/Happy-Hare/config/optional/client_macros.cfg
+    to: /home/diverofdark/printer_data/config/mmu/optional/client_macros.cfg
+  - from: /home/diverofdark/Happy-Hare/config/optional/mmu_menu.cfg
+    to: /home/diverofdark/printer_data/config/mmu/optional/mmu_menu.cfg
