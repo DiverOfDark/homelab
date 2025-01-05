@@ -19,12 +19,6 @@ terraform {
   }
 }
 
-variable "kube_config_path" {
-  description = "Path to the kubeconfig file"
-  type        = string
-  default     = "~/.kube/config"
-}
-
 variable "cloudflare_email" {
   description = "Cloudflare email"
   type        = string
@@ -51,7 +45,6 @@ provider "cloudflare" {
 }
 
 provider "kubernetes" {
-  config_path = var.kube_config_path
 }
 
 resource "cloudflare_account" "account" {
