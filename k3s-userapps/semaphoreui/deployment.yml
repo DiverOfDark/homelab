@@ -7,7 +7,7 @@ spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 1
-  serviceAccountName: terraform
+  serviceAccount: terraform
   strategy:
     type: Recreate
   selector:
