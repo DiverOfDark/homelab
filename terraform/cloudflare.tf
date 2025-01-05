@@ -39,22 +39,23 @@ variable "tunnel_secret" {
   type        = string
 }
 
+variable "kube_config" {
+  default = null
+  description = "Path to kubeconfig file"
+}
+
 provider "cloudflare" {
   email   = var.cloudflare_email
   api_key = var.cloudflare_api_key
 }
 
 provider "kubernetes" {
+  config_path = var.kube_config
 }
 
 resource "cloudflare_account" "account" {
   name = "kirillorlov.pro"
   type = "standard"
-}
-
-import {
-  to = cloudflare_account_member.main_account
-  id = "${cloudflare_account.account.id}/d2eded2783d5376eef654d3d17a6d1ea"
 }
 
 resource "cloudflare_account_member" "main_account" {
@@ -120,6 +121,59 @@ resource "cloudflare_record" "www" {
 }
 
 #todo setup email routing
+resource "cloudflare_email_routing_settings" "email_routing" {
+  enabled = true
+  zone_id = cloudflare_zone.zone.id
+}
+
+resource "cloudflare_email_routing_rule" "i_at_kirillorlov_pro" {
+  zone_id = cloudflare_zone.zone.id
+  name    = "i@kirillorlov.pro"
+  enabled = true
+
+  matcher {
+    type  = "literal"
+    field = "to"
+    value = "i@kirillorlov.pro"
+  }
+
+  action {
+    type  = "forward"
+    value = ["diverofdark@gmail.com"]
+  }
+}
+
+resource "cloudflare_email_routing_rule" "me_at_kirillorlov_pro" {
+  zone_id = cloudflare_zone.zone.id
+  name    = "me@kirillorlov.pro"
+  enabled = true
+
+  matcher {
+    type  = "literal"
+    field = "to"
+    value = "me@kirillorlov.pro"
+  }
+
+  action {
+    type  = "forward"
+    value = ["diverofdark@gmail.com"]
+  }
+}
+
+resource "cloudflare_email_routing_catch_all" "send_all_to_gmail" {
+  zone_id = cloudflare_zone.zone.id
+  name    = "catch all"
+  enabled = true
+
+  matcher {
+    type = "all"
+  }
+
+  action {
+    type  = "forward"
+    value = ["diverofdark@gmail.com"]
+  }
+}
 
 resource "cloudflare_record" "dmarc" {
   zone_id = cloudflare_zone.zone.id
