@@ -14,8 +14,8 @@ terraform {
   backend "kubernetes" {
     namespace         = "semaphoreui"
     secret_suffix     = "state"
-    config_path       = var.kube_config_path
-    in_cluster_config = var.in_cluster_config
+    config_path       = "~/.kube/config"
+    in_cluster_config = true
   }
 }
 
@@ -23,12 +23,6 @@ variable "kube_config_path" {
   description = "Path to the kubeconfig file"
   type        = string
   default     = "~/.kube/config"
-}
-
-variable "in_cluster_config" {
-  description = "Use in-cluster configuration"
-  type        = bool
-  default     = false
 }
 
 variable "cloudflare_email" {
