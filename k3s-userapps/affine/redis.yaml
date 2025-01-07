@@ -34,7 +34,7 @@ spec:
             persistentVolumeClaim:
               claimName: redis
       containers:
-        - image: 'docker.io/library/redis:7.4.1'
+        - image: 'docker.io/library/redis:7.4.2'
           name: redis
           ports:
             - containerPort: 6379
