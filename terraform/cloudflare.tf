@@ -215,6 +215,28 @@ resource "cloudflare_zero_trust_access_identity_provider" "onetime" {
   name       = "One-Time PIN"
 }
 
+resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {
+  account_id                = cloudflare_account.account.id
+  session_duration          = "24h"
+  name                      = "Warp device enrollment"
+  allowed_idps              = [cloudflare_zero_trust_access_identity_provider.github.id, cloudflare_zero_trust_access_identity_provider.onetime.id]
+  auto_redirect_to_identity = false
+  type                      = "warp"
+  app_launcher_visible      = false
+}
+
+resource "cloudflare_zero_trust_access_policy" "warp_enrollment_employees" {
+  application_id = cloudflare_zero_trust_access_application.warp_enrollment_app.id
+  account_id     = cloudflare_account.account.id
+  name           = "Allow company emails"
+  decision       = "allow"
+  precedence     = 1
+
+  include {
+    email_domain = ["kirillorlov.pro"]
+  }
+}
+
 resource "cloudflare_zero_trust_dns_location" "default_location" {
   account_id     = cloudflare_account.account.id
   client_default = true
