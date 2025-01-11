@@ -302,10 +302,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
       service = "http://nextcloud.nextcloud.svc.cluster.local"
     }
     ingress_rule {
-      hostname = "money.kirillorlov.pro"
-      service = "http://actualbudget.actualbudget.svc.cluster.local"
-    }
-    ingress_rule {
       hostname = "bonsai.kirillorlov.pro"
       service = "http://bonsai.bonsai.svc.cluster.local"
     }
