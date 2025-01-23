@@ -129,7 +129,7 @@ spec:
   source:
     repoURL: https://seriohub.github.io/velero-helm/
     chart: vui
-    targetRevision: 0.1.19
+    targetRevision: 0.1.20
     helm:
       valuesObject:
         global:
