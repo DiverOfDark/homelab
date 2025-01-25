@@ -50,7 +50,6 @@ spec:
               mountPath: /video
             - name: dri
               mountPath: /dev/dri
-          restartPolicy: OnFailure
       volumes:
         - name: emby
           persistentVolumeClaim:
