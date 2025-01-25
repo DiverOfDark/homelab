@@ -39,6 +39,9 @@ spec:
             claimName: video
         - name: transcode
           emptyDir: {}
+        - name: dri
+          hostPath:
+            path: /dev/dri
       containers:
         - image: 'plexinc/pms-docker:1.40.4.8679-424562606'
           imagePullPolicy: IfNotPresent
@@ -66,3 +69,5 @@ spec:
               name: transcode
             - mountPath: /data
               name: video
+            - name: dri
+              mountPath: /dev/dri

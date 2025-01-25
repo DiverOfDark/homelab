@@ -47,6 +47,12 @@ spec:
               mountPath: /video
             - name: dri
               mountPath: /dev/dri
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            fsGroup: 0
+            privileged: true
+            supplementalGroups: [ 105 ]
       volumes:
         - name: jellyfin
           persistentVolumeClaim:
