@@ -4,16 +4,16 @@ metadata:
   name: embyserver
   namespace: media
   labels:
-    app.kubernetes.io/pod: embyserver
+    app.kubernetes.io/pod: emby
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/pod: embyserver
+      app.kubernetes.io/pod: emby
   template:
     metadata:
       labels:
-        app.kubernetes.io/pod: embyserver
+        app.kubernetes.io/pod: emby
     spec:
       affinity:
         nodeAffinity:
