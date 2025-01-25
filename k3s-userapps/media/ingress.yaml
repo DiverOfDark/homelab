@@ -181,8 +181,8 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jellyfin"
     gethomepage.dev/widget.type: jellyfin
     gethomepage.dev/widget.url: http://jellyfin.media.svc.cluster.local
-    #gethomepage.dev/widget.key: "$PLEX_API_TOKEN$"
-    #kirillorlov.pro/annotationsFromSecretName: plex-secret
+    gethomepage.dev/widget.key: "$JELLYFIN_API_TOKEN$"
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: jellyfin
   namespace: media
 spec:
