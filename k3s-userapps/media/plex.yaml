@@ -27,7 +27,9 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - niflheimr # the only one powerful enough for transcoding
+                      - niflheimr
+                      - jotunheimr
+                      - midgard
       volumes:
         - name: plex
           persistentVolumeClaim:
