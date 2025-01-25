@@ -52,7 +52,6 @@ spec:
             runAsGroup: 0
             fsGroup: 0
             privileged: true
-            supplementalGroups: [ 105 ]
       volumes:
         - name: jellyfin
           persistentVolumeClaim:
