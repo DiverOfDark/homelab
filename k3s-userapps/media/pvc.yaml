@@ -78,7 +78,7 @@ kind: PersistentVolumeClaim
 metadata:
   finalizers:
     - kubernetes.io/pvc-protection
-  name: emby
+  name: jellyfin
   namespace: media
 spec:
   accessModes:

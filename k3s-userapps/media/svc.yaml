@@ -81,7 +81,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: emby
+  name: jellyfin
   namespace: media
 spec:
   internalTrafficPolicy: Cluster
@@ -91,6 +91,6 @@ spec:
     protocol: TCP
     targetPort: 8096
   selector:
-    app.kubernetes.io/pod: emby
+    app.kubernetes.io/pod: jellyfin
   type: ClusterIP
 ---

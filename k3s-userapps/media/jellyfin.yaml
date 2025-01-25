@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: embyserver
+  name: jellyfin
   namespace: media
   labels:
-    app.kubernetes.io/pod: emby
+    app.kubernetes.io/pod: jellyfin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/pod: emby
+      app.kubernetes.io/pod: jellyfin
   template:
     metadata:
       labels:
-        app.kubernetes.io/pod: emby
+        app.kubernetes.io/pod: jellyfin
     spec:
       affinity:
         nodeAffinity:
@@ -27,33 +27,30 @@ spec:
                       - jotunheimr
                       - midgard
       containers:
-        - name: embyserver
-          image: emby/embyserver:4.9.0.37
+        - name: jellyfin
+          image: jellyfin/jellyfin:10.10.5
           ports:
             - name: http
               containerPort: 8096
               hostPort: 8096 # Optional: Use with caution in production
-            - name: https
-              containerPort: 8920
-              hostPort: 8920 # Optional: Use with caution in production
           env:
-            - name: UID
-              value: "1000"
-            - name: GID
-              value: "100"
-            - name: GIDLIST
-              value: "100"
+            - name: JELLYFIN_PublishedServerUrl
+              value: "http://jellyfin.kirillorlov.pro"
           volumeMounts:
-            - name: emby
+            - name: jellyfin
               mountPath: /config
+              subPath: config
+            - name: jellyfin
+              mountPath: /cache
+              subPath: cache
             - name: video
               mountPath: /video
             - name: dri
               mountPath: /dev/dri
       volumes:
-        - name: emby
+        - name: jellyfin
           persistentVolumeClaim:
-            claimName: emby
+            claimName: jellyfin
         - name: video
           persistentVolumeClaim:
             claimName: video
