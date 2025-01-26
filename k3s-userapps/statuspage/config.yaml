@@ -40,7 +40,7 @@ data:
     - Infra:
         - FritzBox:
             href: http://192.168.178.1/
-            icon: avmfritzbox.svg
+            icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/avm-fritzbox.svg
             widget:
               type: fritzbox
               url: http://192.168.178.1/

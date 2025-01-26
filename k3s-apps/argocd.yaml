@@ -34,7 +34,7 @@ spec:
                   gethomepage.dev/href: "https://argo.kirillorlov.pro"
                   gethomepage.dev/group: Cluster Management
                   gethomepage.dev/name: ArgoCD
-                  gethomepage.dev/icon: argocd.png
+                  gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/argo-cd.png"
                   gethomepage.dev/pod-selector: "app.kubernetes.io/instance=argocd"
                   gethomepage.dev/widget.type: argocd
                   gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
