@@ -41,8 +41,9 @@ spec:
             - name: jellyfin
               mountPath: /config
               subPath: config
-            - name: cache
+            - name: video
               mountPath: /cache
+              subPath: cache
             - name: video
               mountPath: /video
             - name: dri
@@ -55,8 +56,6 @@ spec:
         - name: jellyfin
           persistentVolumeClaim:
             claimName: jellyfin
-        - name: cache
-          emptyDir: {}
         - name: video
           persistentVolumeClaim:
             claimName: video
