@@ -310,6 +310,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
       service = "http://homepage.statuspage.svc.cluster.local:3000"
     }
     ingress_rule {
+      hostname = "vaultwarden.kirillorlov.pro"
+      service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
+    }
+    ingress_rule {
       # Respond with a `404` status code when the request does not match any of the previous hostnames.
       service  = "http_status:404"
     }
