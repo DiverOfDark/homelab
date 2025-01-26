@@ -46,7 +46,7 @@ data:
               url: http://192.168.178.1/
     - Media:
         - ruTorrent:
-            href: https://transporter.myseedbox.site/rutorrent/
+            href: https://diverofdark.amber.usbx.me/rutorrent/
             icon: rutorrent.png
     - 3D Printer:
         - Voron:
