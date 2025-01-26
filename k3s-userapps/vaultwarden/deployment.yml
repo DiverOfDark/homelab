@@ -27,7 +27,7 @@ spec:
           name: vaultwarden
           env:
             - name: SIGNUPS_ALLOWED
-              value: "true"
+              value: "false"
             - name: DOMAIN
               value: "https://vaultwarden.kirillorlov.pro"
           livenessProbe:
