@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/pod: jellyfin
 spec:
   replicas: 1
+  revisionHistoryLimit: 1
   strategy:
     type: Recreate
   selector:
