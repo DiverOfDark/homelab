@@ -51,6 +51,7 @@ data:
     - 3D Printer:
         - Voron:
             href: http://voron2.fritz.box/
+            icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/voron.svg"
             description: 3d Printer
             widget:
               type: moonraker
