@@ -43,7 +43,7 @@ working_hosts:
     virtual_ip_address: 192.168.179.1
     kube_hostname: k8s.kirillorlov.pro
 
-    k3s_version: v1.32.0+k3s1
+    k3s_version: v1.31.4+k3s1
     token: !vault |
       $ANSIBLE_VAULT;1.1;AES256
       31643632323137326332653139366336326232616338613863653962353734373539326431643338

@@ -36,9 +36,9 @@ spec:
                 template:
                   type: Opaque
                   data:
-                    client-id: "{{ .clientId }}"
-                    client-secret: "{{ .clientSecret }}"
-                    cookie-secret: "{{ .cookieSecret }}"
+                    client-id: '{{ "{{ .clientId }}" }}'
+                    client-secret: '{{ "{{ .clientSecret }}" }}'
+                    cookie-secret: '{{ "{{ .cookieSecret }}" }}'
               data:
                 - secretKey: clientId
                   remoteRef:
@@ -68,6 +68,9 @@ spec:
           enabled: true
           restricted_access: |-
             diverofdark@gmail.com
+
+        deploymentAnnotations:
+          reloader.stakater.com/auto: "true"
 
         metrics:
           serviceMonitor:
