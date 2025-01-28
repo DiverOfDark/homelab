@@ -1,0 +1,101 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: oauth2-proxy
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: oauth2-proxy
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: oauth2-proxy
+    repoURL: https://oauth2-proxy.github.io/manifests
+    targetRevision: 7.10.1
+    helm:
+      valuesObject:
+        extraObjects:
+          - apiVersion: external-secrets.io/v1beta1
+            kind: ExternalSecret
+            metadata:
+              name: "oauth2-proxy-secret"
+              namespace: oauth2-proxy
+            spec:
+              secretStoreRef:
+                name: default-secret-store
+                kind: ClusterSecretStore  # or ClusterSecretStore
+
+              refreshInterval: "10s"
+
+              target:
+                name: oauth2-secret
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    client-id: "{{ .client-id }}"
+                    client-secret: "{{ .client-secret }}"
+                    cookie-secret: "{{ .cookie-secret }}"
+              data:
+                - secretKey: client-id
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: google-client-id
+                - secretKey: client-secret
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: google-client-secret
+                - secretKey: cookie-secret
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: vaultwarden-cookie-secret
+        config:
+          existingSecret: oauth2-secret
+
+        authenticatedEmailsFile:
+          enabled: true
+          restricted_access: |-
+            diverofdark@gmail.com
+
+        metrics:
+          serviceMonitor:
+            enabled: true
+
+        ingress:
+          enabled: true
+          className: traefik
+          path: /
+          hosts:
+            - oauth.kirillorlov.pro
+          annotations:
+            cert-manager.io/cluster-issuer: "acme-issuer"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://oauth.kirillorlov.pro"
+            gethomepage.dev/group: Cluster Management
+            gethomepage.dev/name: OAuth2-proxy
+            gethomepage.dev/icon: https://oauth2-proxy.github.io/oauth2-proxy/img/logos/OAuth2_Proxy_icon.svg
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=oauth2-proxy"
+          tls:
+           - secretName: oauth-tls
+             hosts:
+               - oauth.kirillorlov.pro
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
