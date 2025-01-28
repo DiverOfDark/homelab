@@ -52,6 +52,7 @@ spec:
                 - pihole.kirillorlov.pro
         persistentVolumeClaim:
           enabled: true
+          size: "1Gi"
           storageClass: ceph-block
           accessModes:
             - ReadWriteOnce
@@ -198,6 +199,7 @@ spec:
                 - pihole-dr.kirillorlov.pro
         persistentVolumeClaim:
           enabled: true
+          size: "1Gi"
           storageClass: ceph-block
           accessModes:
             - ReadWriteOnce
