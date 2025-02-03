@@ -22,7 +22,7 @@ spec:
           persistentVolumeClaim:
             claimName: vaultwarden
       containers:
-        - image: 'ghcr.io/dani-garcia/vaultwarden:1.33.0'
+        - image: 'ghcr.io/dani-garcia/vaultwarden:1.33.1'
           imagePullPolicy: IfNotPresent
           name: vaultwarden
           env:
