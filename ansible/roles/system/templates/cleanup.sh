@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-crictl rmi --prune
-docker system prune -af
-apt clean
+/usr/local/bin/crictl rmi --prune
+/usr/bin/docker system prune -af
+/usr/bin/apt clean
