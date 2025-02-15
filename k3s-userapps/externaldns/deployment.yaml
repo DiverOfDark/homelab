@@ -31,6 +31,7 @@ spec:
         args:
         # - --source=service
         - --source=ingress
+        - --source=traefik-proxy
         - --registry=noop
         # - --policy=upsert-only
         - --provider=pihole
