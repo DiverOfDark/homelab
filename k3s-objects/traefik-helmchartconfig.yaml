@@ -7,9 +7,9 @@ spec:
   valuesContent: |-
     deployment:
       kind: DaemonSet
-    experimental:
-      plugins:
-        enabled: true
+    #    experimental:
+    #      plugins:
+    #        enabled: true
     logs:
       access:
         enabled: true
