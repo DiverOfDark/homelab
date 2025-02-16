@@ -137,6 +137,9 @@ spec:
   syncPolicy:
     automated:
       prune: true
+    managedNamespaceMetadata:
+      annotations:
+        reloader.stakater.com/auto: "true"
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
