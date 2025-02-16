@@ -61,7 +61,7 @@ spec:
                     decodingStrategy: None
                     metadataPolicy: None
                     property: vaultwarden-cookie-secret
-          - apiVersion: traefik.containo.us/v1alpha1
+          - apiVersion: traefik.io/v1alpha1
             kind: Middleware
             metadata:
               name: oauth-errors
@@ -74,7 +74,7 @@ spec:
                   name: oauth2-proxy
                   port: 80
                 query: "/oauth2/sign_in"
-          - apiVersion: traefik.containo.us/v1alpha1
+          - apiVersion: traefik.io/v1alpha1
             kind: Middleware
             metadata:
               name: oauth2-proxy
@@ -85,14 +85,21 @@ spec:
                 trustForwardHeader: true
                 authResponseHeaders:
                   - X-Auth-Request-User
+                  - X-Auth-Request-Email
                   - Set-Cookie
         config:
           existingSecret: oauth2-secret
-
+          configFile: |-
+            email_domains = [ "*" ]
+            upstreams = [ "file:///dev/null" ]
+            set_xauthrequest = true
+            set_authorization_header = true
+            
         authenticatedEmailsFile:
           enabled: true
           restricted_access: |-
             diverofdark@gmail.com
+            s.ofiro@gmail.com
 
         deploymentAnnotations:
           reloader.stakater.com/auto: "true"
