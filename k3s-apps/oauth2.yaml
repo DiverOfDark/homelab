@@ -39,6 +39,7 @@ spec:
                     client-id: '{{ "{{ .clientId }}" }}'
                     client-secret: '{{ "{{ .clientSecret }}" }}'
                     cookie-secret: '{{ "{{ .cookieSecret }}" }}'
+                    dex-secret: '{{ "{{ .dex }}" }}'
               data:
                 - secretKey: clientId
                   remoteRef:
@@ -61,6 +62,13 @@ spec:
                     decodingStrategy: None
                     metadataPolicy: None
                     property: vaultwarden-cookie-secret
+                - secretKey: dex
+                  remoteRef:
+                    key: golden-secret
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: user-password
           - apiVersion: traefik.io/v1alpha1
             kind: Middleware
             metadata:
