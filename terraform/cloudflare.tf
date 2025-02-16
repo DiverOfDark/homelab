@@ -3,7 +3,6 @@ terraform {
     cloudflare = {
       source  = "registry.terraform.io/cloudflare/cloudflare"
       version = "5.1.0"
-      #version = "5.0.0-alpha1"
     }
     kubernetes = {
       source  = "registry.terraform.io/hashicorp/kubernetes"
@@ -60,60 +59,62 @@ resource "cloudflare_account" "account" {
 
 resource "cloudflare_account_member" "main_account" {
   account_id    = cloudflare_account.account.id
-  email_address = "diverofdark@gmail.com"
-  role_ids = ["33666b9c79b9a5273fc7344ff42f953d"]
+  email = "diverofdark@gmail.com"
+  roles = ["33666b9c79b9a5273fc7344ff42f953d"]
   status        = "accepted"
 }
 
 resource "cloudflare_zone" "zone" {
-  account_id = cloudflare_account.account.id
-  zone       = "kirillorlov.pro"
+  account = {
+      id = cloudflare_account.account.id
+    }
+  name = "kirillorlov.pro"
   type       = "full"
 }
 
-resource "cloudflare_record" "bonsai" {
+resource "cloudflare_dns_record" "bonsai" {
   zone_id = cloudflare_zone.zone.id
   name    = "bonsai"
   type    = "CNAME"
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
 }
-resource "cloudflare_record" "cloud" {
+resource "cloudflare_dns_record" "cloud" {
   zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   name    = "cloud"
   proxied = true
   ttl     = 1
   type    = "CNAME"
 }
-resource "cloudflare_record" "main" {
+resource "cloudflare_dns_record" "main" {
   zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   name    = "kirillorlov.pro"
   proxied = true
   ttl     = 1
   type    = "CNAME"
 }
-resource "cloudflare_record" "money" {
+resource "cloudflare_dns_record" "money" {
   zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   name    = "money"
   proxied = true
   ttl     = 1
   type    = "CNAME"
 }
-resource "cloudflare_record" "status" {
+resource "cloudflare_dns_record" "status" {
   zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   name    = "status"
   proxied = true
   ttl     = 1
   type    = "CNAME"
 }
-resource "cloudflare_record" "www" {
+resource "cloudflare_dns_record" "www" {
   zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   name    = "www"
   proxied = true
   ttl     = 1
@@ -122,7 +123,6 @@ resource "cloudflare_record" "www" {
 
 #todo setup email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
-  enabled = true
   zone_id = cloudflare_zone.zone.id
 }
 
@@ -131,16 +131,16 @@ resource "cloudflare_email_routing_rule" "i_at_kirillorlov_pro" {
   name    = "i@kirillorlov.pro"
   enabled = true
 
-  matcher {
+  matchers =[ {
     type  = "literal"
     field = "to"
     value = "i@kirillorlov.pro"
-  }
+  }]
 
-  action {
+  actions =[ {
     type  = "forward"
     value = ["diverofdark@gmail.com"]
-  }
+  }]
 }
 
 resource "cloudflare_email_routing_rule" "me_at_kirillorlov_pro" {
@@ -148,16 +148,16 @@ resource "cloudflare_email_routing_rule" "me_at_kirillorlov_pro" {
   name    = "me@kirillorlov.pro"
   enabled = true
 
-  matcher {
+  matchers =[ {
     type  = "literal"
     field = "to"
     value = "me@kirillorlov.pro"
-  }
+  }]
 
-  action {
+  actions =[ {
     type  = "forward"
     value = ["diverofdark@gmail.com"]
-  }
+  }]
 }
 
 resource "cloudflare_email_routing_catch_all" "send_all_to_gmail" {
@@ -165,17 +165,17 @@ resource "cloudflare_email_routing_catch_all" "send_all_to_gmail" {
   name    = "catch all"
   enabled = true
 
-  matcher {
+  matchers =[ {
     type = "all"
-  }
+  }]
 
-  action {
+  actions =[ {
     type  = "forward"
     value = ["diverofdark@gmail.com"]
-  }
+  }]
 }
 
-resource "cloudflare_record" "dmarc" {
+resource "cloudflare_dns_record" "dmarc" {
   zone_id = cloudflare_zone.zone.id
   content = "v=DMARC1; p=none; rua=mailto:aae0da00a1dc4478bfd42740df319d8f@dmarc-reports.cloudflare.net,mailto:dmarc@kirillorlov.pro; aspf=r;"
   name    = "_dmarc"
@@ -183,7 +183,7 @@ resource "cloudflare_record" "dmarc" {
   ttl     = 1
   type    = "TXT"
 }
-resource "cloudflare_record" "txt" {
+resource "cloudflare_dns_record" "txt" {
   zone_id = cloudflare_zone.zone.id
   content = "jqsclpyyms"
   name    = "kirillorlov.pro"
@@ -191,7 +191,7 @@ resource "cloudflare_record" "txt" {
   ttl     = 1
   type    = "TXT"
 }
-resource "cloudflare_record" "spf" {
+resource "cloudflare_dns_record" "spf" {
   zone_id = cloudflare_zone.zone.id
   content = "v=spf1 a mx include:_spf.google.com include:_spf.mx.cloudflare.net  ~all"
   name    = "kirillorlov.pro"
@@ -204,7 +204,7 @@ resource "cloudflare_zero_trust_access_identity_provider" "github" {
   account_id = cloudflare_account.account.id
   name       = "GitHub"
   type       = "github"
-  config {
+  config = {
     client_id = "Ov23liDFOC6cLvQ2YZM2"
   }
 }
@@ -213,6 +213,7 @@ resource "cloudflare_zero_trust_access_identity_provider" "onetime" {
   account_id = cloudflare_account.account.id
   type       = "onetimepin"
   name       = "One-Time PIN"
+  config = {}
 }
 
 resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {
@@ -226,15 +227,15 @@ resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {
 }
 
 resource "cloudflare_zero_trust_access_policy" "warp_enrollment_employees" {
-  application_id = cloudflare_zero_trust_access_application.warp_enrollment_app.id
+  # application_id = cloudflare_zero_trust_access_application.warp_enrollment_app.id
   account_id     = cloudflare_account.account.id
   name           = "Allow company emails"
   decision       = "allow"
-  precedence     = 1
+  # precedence     = 1
 
-  include {
-    email_domain = ["kirillorlov.pro"]
-  }
+  include = [{
+    email_domain = { domain = "kirillorlov.pro" }
+  }]
 }
 
 resource "cloudflare_zero_trust_dns_location" "default_location" {
@@ -253,11 +254,11 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_home_network" {
   name        = "allow localnet"
   precedence  = 9
   traffic     = "net.dst.ip in {192.168.0.0/16}"
-  rule_settings {
+  rule_settings = {
     block_page_enabled                 = false
     insecure_disable_dnssec_validation = false
     ip_categories                      = false
-    notification_settings {
+    notification_settings = {
       enabled = false
     }
   }
@@ -266,62 +267,62 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_home_network" {
 resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes_account" {
   account_id = cloudflare_account.account.id
   name       = "k8s"
-  secret     = base64encode(var.tunnel_secret)
+  tunnel_secret = base64encode(var.tunnel_secret)
   config_src = "cloudflare"
 }
 
-resource "cloudflare_zero_trust_tunnel_virtual_network" "kubernetes_virtual_network" {
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "cloudflared_token" {
+  account_id = cloudflare_account.account.id
+  tunnel_id = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared_virtual_network" "kubernetes_virtual_network" {
   account_id         = cloudflare_account.account.id
   name               = "HomeNetwork"
   is_default_network = true
 }
 
-resource "cloudflare_zero_trust_tunnel_route" "example" {
+resource "cloudflare_zero_trust_tunnel_cloudflared_route" "example" {
   account_id         = cloudflare_account.account.id
   tunnel_id          = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
   network            = "192.168.0.0/16"
   comment            = "HomeNetwork route"
-  virtual_network_id = cloudflare_zero_trust_tunnel_virtual_network.kubernetes_virtual_network.id
+  virtual_network_id = cloudflare_zero_trust_tunnel_cloudflared_virtual_network.kubernetes_virtual_network.id
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_config" {
   account_id = cloudflare_account.account.id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
 
-  config {
-    ingress_rule {
+  config = {
+
+    ingress_rule = [
+    {
       hostname = "kirillorlov.pro"
       service  = "http://homepage.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
+    }, {
       hostname = "www.kirillorlov.pro"
       service  = "http://homepage.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
+    }, {
       hostname = "cloud.kirillorlov.pro"
       service = "http://nextcloud.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
+    }, {
       hostname = "bonsai.kirillorlov.pro"
       service = "http://bonsai.bonsai.svc.cluster.local"
-    }
-    ingress_rule {
+    }, {
       hostname = "status.kirillorlov.pro"
       service = "http://homepage.statuspage.svc.cluster.local:3000"
-    }
-    ingress_rule {
+    }, {
       hostname = "vaultwarden.kirillorlov.pro"
       service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
-    }
-    ingress_rule {
+    }, {
       hostname = "openwebui.kirillorlov.pro"
       service  = "http://open-webui.openwebui.svc.cluster.local:8080"
-    }
-    ingress_rule {
+    }, {
       # Respond with a `404` status code when the request does not match any of the previous hostnames.
       service  = "http_status:404"
-    }
-    warp_routing {
+    }]
+    warp_routing = {
       enabled = true
     }
   }
@@ -336,7 +337,7 @@ resource "kubernetes_secret" "cloudflared_config" {
     account-id = cloudflare_account.account.id
     api-token = var.cloudflare_api_token
     tunnel-id = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
-    tunnelToken = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.tunnel_token
+    tunnelToken = data.cloudflare_zero_trust_tunnel_cloudflared_token.cloudflared_token
   }
 }
 
