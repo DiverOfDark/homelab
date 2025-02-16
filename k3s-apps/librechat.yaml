@@ -1,0 +1,150 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: "openai-secret"
+  namespace: librechat
+spec:
+  secretStoreRef:
+    name: default-secret-store
+    kind: ClusterSecretStore  # or ClusterSecretStore
+
+  refreshInterval: "10s"
+
+  target:
+    name: librechat-credentials-env
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        OPENAI_API_KEY: '{{ .openai }}'
+        DALLE_API_KEY: '{{ .openai }}'
+        DALLE3_API_KEY: '{{ .openai }}'
+        DALLE2_API_KEY: '{{ .openai }}'
+        DALLE3_BASEURL: 'https://api.openai.com/v1'
+        DALLE2_BASEURL: 'https://api.openai.com/v1'
+        CREDS_KEY: '12345'
+        JWT_SECRET: '12345'
+        JWT_REFRESH_SECRET: '12345'
+        MEILI_MASTER_KEY: '12345'
+  data:
+    - secretKey: openai
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: openai-api-key
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: librechat
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: librechat
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: librechat
+    repoURL: https://charts.blue-atlas.de
+    targetRevision: 1.8.8
+    helm:
+      valuesObject:
+        global:
+          librechat:
+            existingSecretName: "librechat-credentials-env"
+            existingSecretApiKey: OPENAI_API_KEY
+
+        librechat:
+        # LibreChat allows Configuration in 2 Ways: Environment Variables and a Config file. For easier Deployment the needed values are predifined here but should be adjusted to your needs.
+          configEnv:
+            PLUGIN_MODELS: gpt-4,gpt-4-turbo-preview,gpt-4-0125-preview,gpt-4-1106-preview,gpt-4-0613,gpt-3.5-turbo,gpt-3.5-turbo-0125,gpt-3.5-turbo-1106,gpt-3.5-turbo-0613
+            DEBUG_PLUGINS: "true"
+            DEBUG_CONSOLE: "true"
+            DEBUG_LOGGING: "false"
+
+            ALLOW_EMAIL_LOGIN: "false"
+            ALLOW_SOCIAL_LOGIN: "true"
+            ALLOW_SOCIAL_REGISTRATION: "true"
+            DOMAIN_CLIENT: https://librechat.kirillorlov.pro
+            DOMAIN_SERVER: https://librechat.kirillorlov.pro
+            OPENID_BUTTON_LABEL: 'Log in with SSO'
+            OPENID_ISSUER: https://dex.kirillorlov.pro/.well-known/openid-configuration
+            OPENID_CLIENT_ID: librechat
+            OPENID_CLIENT_SECRET: IndOoa3J2
+            OPENID_SESSION_SECRET: "12345"
+            OPENID_CALLBACK_URL: /oauth/openid/callback
+            OPENID_SCOPE: "openid profile email"
+            OPENID_IMAGE_URL: https://www.authelia.com/images/branding/logo-cropped.png
+            OPENID_USE_END_SESSION_ENDPOINT: "true"
+          existingSecretName: "librechat-credentials-env"
+
+
+          configYamlContent: |
+            version: 1.0.3
+            cache: true
+            # fileStrategy: "firebase"  # If using Firebase CDN
+            endpoints:
+              assistants:
+                disableBuilder: true # Disable Assistants Builder Interface by setting to `true`
+                pollIntervalMs: 750  # Polling interval for checking assistant updates
+                timeoutMs: 180000  # Timeout for assistant operations
+                # Should only be one or the other, either `supportedIds` or `excludedIds`
+                supportedIds: ["asst_supportedAssistantId1", "asst_supportedAssistantId2"]
+                # excludedIds: ["asst_excludedAssistantId"]
+              
+
+        librechat-rag-api:
+          enabled: false
+          embeddingsProvider: openai
+
+          postgresql:
+            auth:
+              database: librechat-vectordb
+              username: postgres
+              existingSecret: {}
+
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://ai.kirillorlov.pro"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: librechat
+            gethomepage.dev/icon: librechat.png
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=librechat"
+          hosts:
+           - host: ai.kirillorlov.pro
+             paths:
+              - path: /
+                pathType: ImplementationSpecific
+          tls:
+            - secretName: librechat-tls
+              hosts:
+                - ai.kirillorlov.pro
+
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+
+  syncPolicy:
+    automated:
+      prune: true
+    managedNamespaceMetadata:
+      annotations:
+        reloader.stakater.com/auto: "true"
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true

@@ -103,10 +103,10 @@ spec:
               secretEnv: "OAUTH_SECRET"
               #secret: '{{`{{ .Env.OAUTH_SECRET }}`}}'  ## alternative option
               public: true
-            - id: openwebui
-              name: OpenWebUI
+            - id: librechat
+              name: LibreChat
               redirectURIs:
-                  - https://openwebui.kirillorlov.pro/oauth/oidc/callback
+                  - https://ai.kirillorlov.pro/oauth/openid/callback
               secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
