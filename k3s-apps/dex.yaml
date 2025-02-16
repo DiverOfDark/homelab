@@ -1,0 +1,143 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: "google-secret"
+  namespace: oauth2-proxy
+spec:
+  secretStoreRef:
+    name: default-secret-store
+    kind: ClusterSecretStore  # or ClusterSecretStore
+
+  refreshInterval: "10s"
+
+  target:
+    name: google-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        client-id: "{{ .clientId }}"
+        client-secret: "{{ .clientSecret }}"
+        user-password: "{{ .userPassword }}"
+  data:
+    - secretKey: clientId
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: google-client-id
+    - secretKey: clientSecret
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: google-client-secret
+    - secretKey: userPassword
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: user-password
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: oauth2-proxy
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: dex
+    repoURL: https://charts.dexidp.io
+    targetRevision: 0.21.0
+    helm:
+      valuesObject:
+        envVars:
+          - name: GOOGLE_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: google-secret
+                key: client-id
+          - name: GOOGLE_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: google-secret
+                key: client-secret
+          - name: OAUTH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: google-secret
+                key: user-password
+        config:
+          logger:
+            level: "Debug"
+          oauth2:
+            skipApprovalScreen: true
+          connectors:
+            - type: google
+              id: google
+              name: Google
+              config:
+
+                # Connector config values starting with a "$" will read from the environment.
+                clientID: "$GOOGLE_CLIENT_ID"
+                clientSecret: "$GOOGLE_CLIENT_SECRET"
+
+                # Dex's issuer URL + "/callback"
+                redirectURI: "https://dex.kirillorlov.pro/callback"
+                promptType: ""
+          staticClients:
+            - id: actualmoney
+              name: ActualBudget
+              redirectURIs:
+                - https://money.kirillorlov.pro/openid/callback
+              secretEnv: "OAUTH_SECRET"
+              #secret: '{{`{{ .Env.OAUTH_SECRET }}`}}'  ## alternative option
+              public: true
+            - id: openwebui
+              name: OpenWebUI
+              redirectURIs:
+                  - https://openwebui.kirillorlov.pro/oauth/oidc/callback
+              secretEnv: "OAUTH_SECRET"
+          issuer: https://dex.kirillorlov.pro
+          storage:
+            type: kubernetes
+            config:
+              inCluster: true
+        ingress:
+          enabled: true
+          className: traefik
+          hosts:
+            - host: dex.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          annotations:
+            cert-manager.io/cluster-issuer: "acme-issuer"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://dex.kirillorlov.pro"
+            gethomepage.dev/group: Cluster Management
+            gethomepage.dev/name: DEX
+            gethomepage.dev/icon: https://dexidp.io/favicons/favicon.png
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=dex"
+          tls:
+           - secretName: dex-tls
+             hosts:
+               - dex.kirillorlov.pro
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
