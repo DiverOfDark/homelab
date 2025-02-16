@@ -318,6 +318,14 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
       service  = "http://open-webui.openwebui.svc.cluster.local:8080"
     }
     ingress_rule {
+      hostname = "dex.kirillorlov.pro"
+      service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
+    }
+    ingress_rule {
+      hostname = "auth.kirillorlov.pro"
+      service  = "http://oauth2-proxy.oauth2-proxy.svc.cluster.local:80"
+    }
+    ingress_rule {
       # Respond with a `404` status code when the request does not match any of the previous hostnames.
       service  = "http_status:404"
     }
