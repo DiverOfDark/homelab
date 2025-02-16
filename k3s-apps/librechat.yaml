@@ -70,8 +70,8 @@ spec:
             ALLOW_EMAIL_LOGIN: "false"
             ALLOW_SOCIAL_LOGIN: "true"
             ALLOW_SOCIAL_REGISTRATION: "true"
-            DOMAIN_CLIENT: https://librechat.kirillorlov.pro
-            DOMAIN_SERVER: https://librechat.kirillorlov.pro
+            DOMAIN_CLIENT: https://ai.kirillorlov.pro
+            DOMAIN_SERVER: https://ai.kirillorlov.pro
             OPENID_BUTTON_LABEL: 'Log in with SSO'
             OPENID_ISSUER: https://dex.kirillorlov.pro/.well-known/openid-configuration
             OPENID_CLIENT_ID: librechat
