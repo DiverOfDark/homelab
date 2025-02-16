@@ -113,7 +113,7 @@ spec:
               generateBucketName: loki-bucket-admin
               storageClassName: ceph-bucket
               additionalConfig:
-                bucketMaxObjects: "3000"
+                bucketMaxObjects: "300000"
                 bucketMaxSize: "20G"
 
   syncPolicy:
