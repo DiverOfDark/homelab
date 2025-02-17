@@ -44,6 +44,48 @@ variable "kube_config" {
   description = "Path to kubeconfig file"
 }
 
+locals {
+  ingress_rules = [
+    {
+      short = "kirillorlov.pro"
+      hostname = "kirillorlov.pro"
+      service  = "http://homepage.nextcloud.svc.cluster.local"
+    }, {
+      short = "www"
+      hostname = "www.kirillorlov.pro"
+      service  = "http://homepage.nextcloud.svc.cluster.local"
+    }, {
+      short = "cloud"
+      hostname = "cloud.kirillorlov.pro"
+      service  = "http://nextcloud.nextcloud.svc.cluster.local"
+    }, {
+      short = "bonsai"
+      hostname = "bonsai.kirillorlov.pro"
+      service  = "http://bonsai.bonsai.svc.cluster.local"
+    }, {
+      short = "status"
+      hostname = "status.kirillorlov.pro"
+      service  = "http://homepage.statuspage.svc.cluster.local:3000"
+    }, {
+      short = "vaultwarden"
+      hostname = "vaultwarden.kirillorlov.pro"
+      service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
+    }, {
+      short = "dex"
+      hostname = "dex.kirillorlov.pro"
+      service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
+    }, {
+      short = "ai"
+      hostname = "ai.kirillorlov.pro"
+      service  = "http://librechat-librechat.librechat.svc.cluster.local:3080"
+    }, {
+      short = "money"
+      hostname = "money.kirillorlov.pro"
+      service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
+    }
+  ]
+}
+
 provider "cloudflare" {
   email   = var.cloudflare_email
   api_key = var.cloudflare_api_key
@@ -71,55 +113,16 @@ resource "cloudflare_zone" "zone" {
   type       = "full"
 }
 
-resource "cloudflare_record" "bonsai" {
-  zone_id = cloudflare_zone.zone.id
-  name    = "bonsai"
-  type    = "CNAME"
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  ttl     = 1
-  proxied = true
-}
-resource "cloudflare_record" "cloud" {
-  zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  name    = "cloud"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
-resource "cloudflare_record" "main" {
-  zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  name    = "kirillorlov.pro"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
-resource "cloudflare_record" "money" {
-  zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  name    = "money"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
-resource "cloudflare_record" "status" {
-  zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  name    = "status"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
-resource "cloudflare_record" "www" {
-  zone_id = cloudflare_zone.zone.id
-  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
-  name    = "www"
-  proxied = true
-  ttl     = 1
-  type    = "CNAME"
-}
+resource "cloudflare_record" "records" {
+  for_each = { for rules in local.ingress_rules: rules.short => rules }
+  name    = each.value.short
 
+  zone_id = cloudflare_zone.zone.id
+  type    = "CNAME"
+  content = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.cname
+  ttl     = 1
+  proxied = true
+}
 #todo setup email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
   enabled = true
@@ -218,7 +221,7 @@ resource "cloudflare_zero_trust_access_identity_provider" "onetime" {
 resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {
   account_id                = cloudflare_account.account.id
   session_duration          = "24h"
-  name                      = "Warp device enrollment"
+  name                      = "Warp Login App"
   allowed_idps              = [cloudflare_zero_trust_access_identity_provider.github.id, cloudflare_zero_trust_access_identity_provider.onetime.id]
   auto_redirect_to_identity = false
   type                      = "warp"
@@ -289,37 +292,12 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
 
   config {
-    ingress_rule {
-      hostname = "kirillorlov.pro"
-      service  = "http://homepage.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
-      hostname = "www.kirillorlov.pro"
-      service  = "http://homepage.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
-      hostname = "cloud.kirillorlov.pro"
-      service = "http://nextcloud.nextcloud.svc.cluster.local"
-    }
-    ingress_rule {
-      hostname = "bonsai.kirillorlov.pro"
-      service = "http://bonsai.bonsai.svc.cluster.local"
-    }
-    ingress_rule {
-      hostname = "status.kirillorlov.pro"
-      service = "http://homepage.statuspage.svc.cluster.local:3000"
-    }
-    ingress_rule {
-      hostname = "vaultwarden.kirillorlov.pro"
-      service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
-    }
-    ingress_rule {
-      hostname = "dex.kirillorlov.pro"
-      service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
-    }
-    ingress_rule {
-      hostname = "ai.kirillorlov.pro"
-      service = "http://librechat-librechat.librechat.svc.cluster.local:3080"
+    dynamic "ingress_rule" {
+      for_each = local.ingress_rules
+      content {
+        hostname = ingress_rule.value.hostname
+        service  = ingress_rule.value.service
+      }
     }
     ingress_rule {
       # Respond with a `404` status code when the request does not match any of the previous hostnames.
