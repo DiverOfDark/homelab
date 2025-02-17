@@ -50,4 +50,4 @@ spec:
   tls:
   - hosts:
     - money-api.kirillorlov.pro
-    secretName: actualbudget-tls
+    secretName: actualbudget-api-tls
