@@ -47,7 +47,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: actualbudget
-                  key: api-key
+                  key: apikey
           ports:
             - containerPort: 5007
               protocol: TCP
