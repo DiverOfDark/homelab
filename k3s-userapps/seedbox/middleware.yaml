@@ -25,4 +25,4 @@ metadata:
 spec:
   headers:
     customRequestHeaders:
-      Host: transporter.myseedbox.site
+      Host: diverofdark.amber.usbx.me
