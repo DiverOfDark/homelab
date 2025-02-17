@@ -16,20 +16,27 @@ spec:
   - host: money.kirillorlov.pro
     http:
       paths:
-      - backend:
-          service:
-            name: actualbudget
-            port:
-              name: http
-        path: /
-        pathType: Prefix
-      - backend:
-          service:
-            name: actualbudget
-            port:
-              name: api
-        path: /api-docs
-        pathType: Prefix
+        - path: /v1
+          pathType: Prefix
+          backend:
+            service:
+              name: actualbudget
+              port:
+                name: api
+        - path: /api-docs
+          pathType: Prefix
+          backend:
+            service:
+              name: actualbudget
+              port:
+                name: api
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: actualbudget
+              port:
+                name: http
   tls:
   - hosts:
     - money.kirillorlov.pro
