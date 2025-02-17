@@ -44,10 +44,6 @@ data:
             widget:
               type: fritzbox
               url: http://192.168.178.1/
-    - Media:
-        - ruTorrent:
-            href: https://diverofdark.amber.usbx.me/rutorrent/
-            icon: rutorrent.png
     - 3D Printer:
         - Voron:
             href: http://voron2.fritz.box/

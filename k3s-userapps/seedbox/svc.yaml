@@ -11,4 +11,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: seedbox
+    app.kubernetes.io/pod: caddy
