@@ -10,6 +10,10 @@ spec:
     port: 80
     protocol: TCP
     targetPort: 5006
+  - name: api
+    port: 5007
+    protocol: TCP
+    targetPort: 5007
   selector:
     app.kubernetes.io/pod: actualbudget
   type: ClusterIP

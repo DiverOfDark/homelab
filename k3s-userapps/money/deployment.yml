@@ -32,3 +32,25 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: actualbudget
+        - image: 'jhonderson/actual-http-api:v0.17.0'
+          imagePullPolicy: IfNotPresent
+          name: actualbudget-api
+          env:
+            - name: ACTUAL_SERVER_URL
+              value: "http://localhost:5006/"
+            - name: ACTUAL_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: actualbudget
+                  key: password
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: actualbudget
+                  key: api-key
+          ports:
+            - containerPort: 5007
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+              - mountPath: /data

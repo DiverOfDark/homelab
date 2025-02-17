@@ -20,8 +20,15 @@ spec:
           service:
             name: actualbudget
             port:
-              number: 80
+              number: http
         path: /
+        pathType: Prefix
+      - backend:
+            service:
+              name: actualbudget
+              port:
+                number: api
+        path: /api-docs
         pathType: Prefix
   tls:
   - hosts:
