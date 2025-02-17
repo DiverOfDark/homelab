@@ -52,5 +52,3 @@ spec:
             - containerPort: 5007
               protocol: TCP
               name: "http"
-          volumeMounts:
-              - mountPath: /data
