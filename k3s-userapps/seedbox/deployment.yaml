@@ -30,4 +30,4 @@ spec:
       volumes:
         - name: caddy
           secret:
-            name: seedbox
+            secretName: seedbox
