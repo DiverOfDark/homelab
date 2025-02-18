@@ -117,8 +117,8 @@ spec:
             gethomepage.dev/href: "https://ai.kirillorlov.pro"
             gethomepage.dev/group: Apps
             gethomepage.dev/name: librechat
-            gethomepage.dev/icon: librechat.png
-            gethomepage.dev/pod-selector: "app.kubernetes.io/name=librechat"
+            gethomepage.dev/icon: https://www.librechat.ai/favicon-32x32.png
+            gethomepage.dev/pod-selector: "app.kubernetes.io/instance=librechat"
           hosts:
            - host: ai.kirillorlov.pro
              paths:
