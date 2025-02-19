@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: actualbudget
+  name: actualbudget
+  namespace: actualbudget
+spec:
+  endpoints:
+    - path: /metrics
+      port: metrics
+      scheme: http
+  jobLabel: actualbudget
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: actualbudget-metrics
