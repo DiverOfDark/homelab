@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/pod: actualbudget
+        app.kubernetes.io/name: actualbudget
     spec:
       volumes:
         - name: actualbudget
@@ -51,6 +52,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/pod: actualbudget-api
+        app.kubernetes.io/name: actualbudget
     spec:
       containers:
         - image: 'jhonderson/actual-http-api:v0.17.0'
@@ -92,6 +94,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/pod: actualbudget-metrics
+        app.kubernetes.io/name: actualbudget
     spec:
       containers:
         - image: 'docker.io/sakowicz/actual-budget-prometheus-exporter:1.1.4'
