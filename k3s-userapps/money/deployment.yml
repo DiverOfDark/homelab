@@ -106,7 +106,7 @@ spec:
                   name: actualbudget
                   key: password
             - name: ACTUAL_BUDGET_ID_1
-              value: "Europe-a4f707b"
+              value: "42f56b6a-b776-440c-821e-53be422929c7"
           ports:
             - containerPort: 3001
               protocol: TCP

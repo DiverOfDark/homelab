@@ -40,11 +40,18 @@ spec:
   - host: money-api.kirillorlov.pro
     http:
       paths:
+        - path: /metrics
+          pathType: Prefix
+          backend:
+            service:
+              name: actualbudget-metrics
+              port:
+                name: metrics
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: actualbudget
+              name: actualbudget-api
               port:
                 name: api
   tls:

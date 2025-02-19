@@ -35,6 +35,8 @@ kind: Service
 metadata:
   name: actualbudget-metrics
   namespace: actualbudget
+  annotations:
+    app.kubernetes.io/pod: actualbudget-metrics
 spec:
   internalTrafficPolicy: Cluster
   ports:
