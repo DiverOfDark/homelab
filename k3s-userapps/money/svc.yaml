@@ -10,10 +10,39 @@ spec:
     port: 80
     protocol: TCP
     targetPort: 5006
-  - name: api
-    port: 5007
-    protocol: TCP
-    targetPort: 5007
   selector:
     app.kubernetes.io/pod: actualbudget
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: actualbudget-api
+  namespace: actualbudget
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: api
+    port: 80
+    protocol: TCP
+    targetPort: 5007
+  selector:
+    app.kubernetes.io/pod: actualbudget-api
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: actualbudget-metrics
+  namespace: actualbudget
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: metrics
+    port: 80
+    protocol: TCP
+    targetPort: 3001
+  selector:
+    app.kubernetes.io/pod: actualbudget-metrics
+  type: ClusterIP
+---
