@@ -35,7 +35,7 @@ kind: Service
 metadata:
   name: actualbudget-metrics
   namespace: actualbudget
-  annotations:
+  labels:
     app.kubernetes.io/pod: actualbudget-metrics
 spec:
   internalTrafficPolicy: Cluster
