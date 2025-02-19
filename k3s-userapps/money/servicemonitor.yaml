@@ -8,6 +8,7 @@ metadata:
 spec:
   endpoints:
     - path: /metrics
+      honorLabels: true
       port: metrics
       scheme: http
   jobLabel: actualbudget
