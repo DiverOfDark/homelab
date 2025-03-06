@@ -64,7 +64,7 @@ spec:
                       storage: 5Gi
         grafana:
           plugins:
-            - grafana-lokiexplore-app
+            - victoriametrics-logs-datasource
           ingress:
             enabled: true
             hosts:
