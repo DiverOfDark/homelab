@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victorialogs
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: victorialogs
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: victoria-logs-single
+    repoURL: https://victoriametrics.github.io/helm-charts/
+    targetRevision: 0.9.2
+    helm:
+      valuesObject:
+        vector:
+          enabled: true
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+        server:
+          replicaCount: 2
+          retentionPeriod: 7d
+          retentionDiskSpaceUsage: 10 # GB
+
+          persistentVolume:
+            enabled: true
+            storageClassName: ceph-block
+            size: 10Gi
+
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://vlogs.kirillorlov.pro"
+              gethomepage.dev/group: Infra
+              gethomepage.dev/name: Victoria Logs
+              gethomepage.dev/icon: https://docs.victoriametrics.com/icons/favicon.svg
+              gethomepage.dev/pod-selector: "app.kubernetes.io/instance=victorialogs"
+            hosts:
+              - name: vlogs.kirillorlov.pro
+                path:
+                  - /
+                port: http
+            tls:
+              - secretName: vmselect-ingress-tls
+                hosts:
+                  - vlogs.kirillorlov.pro
+            ingressClassName: "traefik"
+            pathType: Prefix
+          serviceMonitor:
+            enabled: true
+        dashboards:
+          enabled: true
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
