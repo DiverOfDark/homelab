@@ -23,10 +23,14 @@ spec:
         DALLE2_API_KEY: '{{ .openai }}'
         DALLE3_BASEURL: 'https://api.openai.com/v1'
         DALLE2_BASEURL: 'https://api.openai.com/v1'
-        CREDS_KEY: '12345'
-        JWT_SECRET: '12345'
-        JWT_REFRESH_SECRET: '12345'
-        MEILI_MASTER_KEY: '12345'
+        CREDS_KEY: '{{ .librechat_creds_key }}'
+        CREDS_IV: '{{ .librechat_creds_iv }}'
+        JWT_SECRET: '{{ .librechat_jwt_secret }}'
+        JWT_REFRESH_SECRET: '{{ .librechat_jwt_refresh_secret }}'
+        MEILI_MASTER_KEY: '{{ .librechat_meili_master_key }}'
+        postgres-password: 'postgres'
+        password: 'postgres'
+        replication-password: 'postgres'
   data:
     - secretKey: openai
       remoteRef:
@@ -35,6 +39,41 @@ spec:
         decodingStrategy: None
         metadataPolicy: None
         property: openai-api-key
+    - secretKey: librechat_creds_key
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: librechat-creds-key
+    - secretKey: librechat_creds_iv
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: librechat-creds-iv
+    - secretKey: librechat_jwt_secret
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: librechat-jwt-secret
+    - secretKey: librechat_jwt_refresh_secret
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: librechat-jwt-refresh-secret
+    - secretKey: librechat_meili_master_key
+      remoteRef:
+        key: golden-secret
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: librechat-meili-master-key
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -96,17 +135,23 @@ spec:
                 # Should only be one or the other, either `supportedIds` or `excludedIds`
                 supportedIds: ["asst_supportedAssistantId1", "asst_supportedAssistantId2"]
                 # excludedIds: ["asst_excludedAssistantId"]
-              
+
+          imageVolume:
+            enabled: true
+            size: 10G
+            accessModes: ReadWriteMany
+            storageClassName: ceph-filesystem
 
         librechat-rag-api:
-          enabled: false
+          enabled: true
           embeddingsProvider: openai
+          existingSecret: librechat-credentials-env
 
           postgresql:
+            enabled: true
             auth:
-              database: librechat-vectordb
-              username: postgres
-              existingSecret: {}
+              existingSecret: librechat-credentials-env
+              existingSecretKey: postgres-password
 
         ingress:
           enabled: true
