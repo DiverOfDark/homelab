@@ -97,7 +97,7 @@ spec:
         app.kubernetes.io/name: actualbudget
     spec:
       containers:
-        - image: 'docker.io/sakowicz/actual-budget-prometheus-exporter:1.1.4'
+        - image: 'docker.io/sakowicz/actual-budget-prometheus-exporter:1.1.5'
           imagePullPolicy: IfNotPresent
           name: actualbudget-metrics
           env:
