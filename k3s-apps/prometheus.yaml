@@ -23,7 +23,7 @@ spec:
   source:
     chart: kube-prometheus-stack
     helm:
-      values: |
+      valuesObject:
         prometheus-node-exporter:
           tolerations: 
             - key: "weakling"
@@ -65,6 +65,7 @@ spec:
         grafana:
           plugins:
             - victoriametrics-logs-datasource
+            - victoriametrics-metrics-datasource
           ingress:
             enabled: true
             hosts:
