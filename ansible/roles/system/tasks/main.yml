@@ -41,6 +41,15 @@
     group: root
     mode: "0755"
 
+
+- name: Add cron cleanup task
+  ansible.builtin.template:
+    src: "hosts"
+    dest: "/etc/hosts"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Update diverofdark user groups (enable sudo)
   user:
     name: diverofdark
