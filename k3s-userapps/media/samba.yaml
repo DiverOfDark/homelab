@@ -15,6 +15,15 @@ data:
             server min protocol = SMB2
             unix extensions = no
     
+            # Performance tuning
+            aio read size = 0
+            aio write size = 0
+            strict sync = yes
+            sync always = yes
+    
+            # Network settings
+            socket options = TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=65536 SO_SNDBUF=65536
+
             # disable printing services
             load printers = no
             printing = bsd
@@ -31,6 +40,10 @@ data:
             guest ok = yes
             force user = root
             force group = root
+    
+            # Additional settings
+            veto files = /.DS_Store/._*/Thumbs.db/
+            delete veto files = yes
 ---
 kind: Deployment
 apiVersion: apps/v1
