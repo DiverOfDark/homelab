@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoriametrics
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: victoriametrics
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: victoria-metrics-k8s-stack
+    repoURL: https://victoriametrics.github.io/helm-charts/
+    targetRevision: 0.38.3
+    helm:
+      valuesObject:
+        nameOverride: victoriametrics
+        grafana:
+          enabled: false
+
+        defaultDashboards:
+          enabled: true
+          grafanaOperator:
+            enabled: false
+            spec:
+              instanceSelector:
+                matchLabels:
+                  dashboards: grafana
+              allowCrossNamespaceImport: true
+
+        defaultDatasources:
+          grafanaOperator:
+            # -- Create datasources as CRDs (requires grafana-operator to be installed)
+            enabled: false
+
+        prometheus-node-exporter:
+          enabled: false
+
+        external:
+          # -- External Grafana host
+          grafana:
+            host: prometheus-grafana.prometheus.svc.cluster.local
+
+        vmsingle:
+          enabled: false
+
+        vmcluster:
+          enabled: true
+          spec:
+            retentionPeriod: 30d
+
+          ingress:
+            storage:
+              # -- Enable deployment of ingress for server component
+              enabled: true
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+                gethomepage.dev/enabled: "true"
+                gethomepage.dev/href: "https://vmselect.kirillorlov.pro/select/0/vmui"
+                gethomepage.dev/group: Infra
+                gethomepage.dev/name: Victoria Metrics
+                gethomepage.dev/icon: https://docs.victoriametrics.com/icons/favicon.svg
+                gethomepage.dev/pod-selector: "app.kubernetes.io/instance=victoriametrics"
+              ingressClassName: traefik
+              hosts:
+                - vmstorage.kirillorlov.pro
+              tls:
+                - secretName: vmstorage-ingress-tls
+                  hosts:
+                    - vmstorage.kirillorlov.pro
+            select:
+              enabled: true
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+              ingressClassName: traefik
+              hosts:
+                - vmselect.kirillorlov.pro
+              tls:
+                - secretName: vmselect-ingress-tls
+                  hosts:
+                    - vmselect.kirillorlov.pro
+            insert:
+              enabled: true
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+              ingressClassName: traefik
+              hosts:
+                - vminsert.kirillorlov.pro
+              tls:
+                - secretName: vminsert-ingress-tls
+                  hosts:
+                    - vminsert.kirillorlov.pro
+
+        victoria-metrics-operator:
+          admissionWebhooks:
+            enabled: false
+            certManager:
+              enabled: false
+
+          env:
+            - name: VM_VMAGENTDEFAULT_USEDEFAULTRESOURCES
+              value: "false"
+
+          operator:
+            enable_converter_ownership: true
+
+          podDisruptionBudget:
+            enabled: true
+            minAvailable: 1
+
+          serviceMonitor:
+            enabled: true
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
