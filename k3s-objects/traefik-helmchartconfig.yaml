@@ -28,3 +28,6 @@ spec:
     metrics:
       serviceMonitor:
         enabled: true
+    
+    additionalArguments:
+    - '--api.insecure=true'
