@@ -6,7 +6,8 @@ metadata:
 spec:
   valuesContent: |-
     deployment:
-      kind: DaemonSet
+      kind: Deployment
+      replicas: 2
     #    experimental:
     #      plugins:
     #        enabled: true
@@ -17,6 +18,17 @@ spec:
         level: INFO
     podDisruptionBudget:
       enabled: true
+    
+    ports:
+      websecure:
+        http3:
+          enabled: true
+    
+    service:
+      single: false
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.179.11
+        metallb.universe.tf/allow-shared-ip: "traefik"
     
     providers:
       kubernetesCRD:
