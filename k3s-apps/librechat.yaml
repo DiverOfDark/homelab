@@ -90,7 +90,7 @@ spec:
   source:
     chart: librechat
     repoURL: https://charts.blue-atlas.de
-    targetRevision: 1.8.8
+    targetRevision: 1.8.9
     helm:
       valuesObject:
         global:
