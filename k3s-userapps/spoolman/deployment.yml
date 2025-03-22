@@ -22,7 +22,7 @@ spec:
           persistentVolumeClaim:
             claimName: spoolman
       containers:
-        - image: 'ghcr.io/donkie/spoolman:0.22.0'
+        - image: 'ghcr.io/donkie/spoolman:0.22.1'
           imagePullPolicy: IfNotPresent
           name: spoolman
           env:
