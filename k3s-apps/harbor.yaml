@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: harbor
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: harbor
+    repoURL: https://helm.goharbor.io
+    targetRevision: 1.16.2
+    helm:
+      valuesObject:
+        externalURL: https://harbor.kirillorlov.pro
+        expose:
+          tls:
+            certSource: secret
+            secret:
+              secretName: tls-secret
+          ingress:
+            hosts:
+              core: harbor.kirillorlov.pro
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://harbor.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Harbor
+              gethomepage.dev/icon: https://goharbor.io/favicon.svg
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=harbor"
+        persistence:
+          persistentVolumeClaim:
+            registry:
+              storageClass: ceph-filesystem
+              size: 30Gi
+            jobservice:
+              jobLog:
+                storageClass: ceph-filesystem
+            database:
+              storageClass: ceph-filesystem
+            redis:
+              storageClass: ceph-filesystem
+            trivy:
+              storageClass: ceph-filesystem
+          #imageChartStorage: {}
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+        trace:
+          enabled: false # todo TO JAEGER
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
