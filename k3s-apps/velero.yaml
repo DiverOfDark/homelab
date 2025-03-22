@@ -75,7 +75,7 @@ spec:
             config:
               region: default
               s3ForcePathStyle: true
-              s3Url: http://archer.fritz.box:9000/
+              s3Url: http://minio.fritz.box:9000/
           volumeSnapshotLocation:
           - name: default
             provider: aws
@@ -83,7 +83,7 @@ spec:
             config:
               region: default
               s3ForcePathStyle: true
-              s3Url: http://archer.fritz.box:9000/
+              s3Url: http://minio.fritz.box:9000/
           uploaderType: restic
           features: EnableCSI
         deployNodeAgent: true
