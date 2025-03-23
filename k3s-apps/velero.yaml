@@ -136,7 +136,7 @@ spec:
           veleroNamespace: velero
           clusterName: homelab
         apiConfig:
-          inspectBackupEnabled: true
+          inspectBackupEnabled: "true"
           existingSecret: velero-credentials
           storage:
             enabled: true
