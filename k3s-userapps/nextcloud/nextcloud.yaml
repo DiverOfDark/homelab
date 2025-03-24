@@ -40,3 +40,21 @@ spec:
                   - "sh"
                   - "-c"
                   - "apt-get update && apt-get install -y openrc ffmpeg && start-stop-daemon --start --background --pidfile /cron.pid --exec /cron.sh"
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3

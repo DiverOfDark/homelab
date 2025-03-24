@@ -33,6 +33,24 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: actualbudget
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5006
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5006
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,6 +93,24 @@ spec:
             - containerPort: 5007
               protocol: TCP
               name: "http"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5007
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5007
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -114,3 +150,21 @@ spec:
             - containerPort: 3001
               protocol: TCP
               name: "metrics"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3

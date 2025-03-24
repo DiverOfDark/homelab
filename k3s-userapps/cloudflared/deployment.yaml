@@ -45,5 +45,15 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
           name: cloudflared
       serviceAccount: cloudflared-cloudflare-tunnel-remote
