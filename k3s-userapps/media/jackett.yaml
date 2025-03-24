@@ -41,8 +41,6 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: jackett
-            - mountPath: /downloads
-              name: downloads
           livenessProbe:
             httpGet:
               path: /
