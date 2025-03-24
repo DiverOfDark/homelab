@@ -16,7 +16,7 @@ spec:
         app.kubernetes.io/pod: rss-telegram-bot
     spec:
       containers:
-        - image: 'rongronggg9/rss-to-telegram:2.9.0'
+        - image: 'rongronggg9/rss-to-telegram:2.10.0'
           imagePullPolicy: IfNotPresent
           name: rss-telegram-bot
           envFrom:
