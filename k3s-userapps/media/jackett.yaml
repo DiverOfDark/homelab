@@ -41,3 +41,23 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: jackett
+            - mountPath: /downloads
+              name: downloads
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9117
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9117
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3

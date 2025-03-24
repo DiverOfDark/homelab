@@ -53,6 +53,9 @@ metadata:
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
   replicas: 1
   revisionHistoryLimit: 1
   selector:
@@ -101,6 +104,22 @@ spec:
               subPath: users.conf
           ports:
             - containerPort: 445
+          livenessProbe:
+            tcpSocket:
+              port: 445
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 445
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
