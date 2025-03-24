@@ -29,23 +29,13 @@
     mode: "0644"
   notify: Restart rclone
 
-- name: Copy rclone service
-  ansible.builtin.template:
-    src: "rclone-cifs.service"
-    dest: "/etc/systemd/system/rclone-cifs.service"
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart rclone
+- name: Remove rclone service
+  ansible.builtin.file:
+    path: "/etc/systemd/system/rclone-cifs.service"
+    state: absent
 
 - name: Make seedbox mount dir
   ansible.builtin.file:
     path: "/mnt/seedbox"
-    mode: "0777"
-    state: directory
-
-- name: Make seedbox mount dir
-  ansible.builtin.file:
-    path: "/mnt/cifs"
     mode: "0777"
     state: directory

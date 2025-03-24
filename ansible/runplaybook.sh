@@ -1,5 +1,12 @@
 #!/bin/bash
-source .venv/bin/activate
+
+if [ ! -d ".venv" ]; then
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install -r requirements.txt
+else
+  source .venv/bin/activate
+fi
 
 ANSIBLE_CONFIG=ansible.cfg ansible-playbook playbook.yaml -i inventory.yaml --syntax-check
 
