@@ -25,7 +25,7 @@ spec:
           persistentVolumeClaim:
             claimName: semaphoreui
       containers:
-        - image: 'semaphoreui/semaphore:v2.13.0'
+        - image: 'semaphoreui/semaphore:v2.13.2'
           imagePullPolicy: IfNotPresent
           name: semaphoreui
           env:
