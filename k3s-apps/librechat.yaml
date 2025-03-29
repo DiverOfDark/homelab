@@ -119,7 +119,7 @@ spec:
             OPENID_CALLBACK_URL: /oauth/openid/callback
             OPENID_SCOPE: "openid profile email"
             OPENID_IMAGE_URL: https://www.authelia.com/images/branding/logo-cropped.png
-            OPENID_USE_END_SESSION_ENDPOINT: "true"
+            OPENID_USE_END_SESSION_ENDPOINT: "false"
           existingSecretName: "librechat-credentials-env"
 
 
