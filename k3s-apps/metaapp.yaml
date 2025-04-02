@@ -13,6 +13,8 @@ spec:
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
+    automated:
+      prune: true
     syncOptions:
     - PruneLast=true
     - ServerSideApply=true
