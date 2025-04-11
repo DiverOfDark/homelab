@@ -73,7 +73,7 @@ spec:
         app.kubernetes.io/name: actualbudget
     spec:
       containers:
-        - image: 'jhonderson/actual-http-api:v0.18.0'
+        - image: 'jhonderson/actual-http-api:25.4.0'
           imagePullPolicy: IfNotPresent
           name: actualbudget-api
           env:
