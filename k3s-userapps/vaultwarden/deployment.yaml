@@ -117,7 +117,7 @@ spec:
             - -c
             - |
               /shared-data/bw config server ${BW_HOST} && \
-              export BW_SESSION=$(/shared-data/bw login ${BW_USER} --passwordenv BW_PASSWORD --raw) && \
+              export BW_SESSION=$(/shared-data/bw login --apikey --raw) && \
               /shared-data/bw unlock --check && \
               echo 'Running `bw server` on port 8087' && \
               /shared-data/bw serve --hostname 0.0.0.0
