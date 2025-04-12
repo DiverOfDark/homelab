@@ -125,7 +125,7 @@ spec:
             - name: BW_HOST
               value: "http://vaultwarden.vaultwarden.svc.cluster.local/"
             - name: BW_USER
-              value:
+              valueFrom:
                 secretKeyRef:
                   name: bitwarden-cli
                   key: BW_USERNAME
