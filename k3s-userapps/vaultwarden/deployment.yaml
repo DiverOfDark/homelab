@@ -57,3 +57,72 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: vaultwarden
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitwarden-cli
+  namespace: vaultwarden
+  labels:
+    app.kubernetes.io/instance: bitwarden-cli
+    app.kubernetes.io/name: bitwarden-cli
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bitwarden-cli
+      app.kubernetes.io/instance: bitwarden-cli
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bitwarden-cli
+        app.kubernetes.io/instance: bitwarden-cli
+    spec:
+      containers:
+        - name: bitwarden-cli
+          image: ghcr.io/charlesthomas/bitwarden-cli:2023.12.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BW_HOST
+              value: "vaultwarden"
+            - name: BW_USER
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-cli
+                  key: BW_USERNAME
+            - name: BW_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-cli
+                  key: BW_PASSWORD
+          ports:
+            - name: http
+              containerPort: 8087
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - wget
+                - -q
+                - http://127.0.0.1:8087/sync?force=true
+                - --post-data=''
+            initialDelaySeconds: 20
+            failureThreshold: 3
+            timeoutSeconds: 10
+            periodSeconds: 120
+          readinessProbe:
+            tcpSocket:
+              port: 8087
+            initialDelaySeconds: 20
+            failureThreshold: 3
+            timeoutSeconds: 1
+            periodSeconds: 10
+          startupProbe:
+            tcpSocket:
+              port: 8087
+            initialDelaySeconds: 10
+            failureThreshold: 30
+            timeoutSeconds: 1
+            periodSeconds: 5
