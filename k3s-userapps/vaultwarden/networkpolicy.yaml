@@ -10,6 +10,9 @@ spec:
       app.kubernetes.io/name: bitwarden-cli
   ingress:
   - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: eso
       - podSelector:
           matchLabels:
             app.kubernetes.io/instance: eso
