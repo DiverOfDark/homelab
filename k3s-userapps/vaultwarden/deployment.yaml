@@ -116,6 +116,7 @@ spec:
             - /bin/bash
             - -c
             - |
+              apt update && apt install -y wget && \
               /shared-data/bw config server ${BW_HOST} && \
               /shared-data/bw login --apikey --raw && \
               export BW_SESSION=$(/shared-data/bw unlock --passwordenv BW_UNLOCK --raw ) && \
