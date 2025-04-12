@@ -80,15 +80,51 @@ spec:
         app.kubernetes.io/name: bitwarden-cli
         app.kubernetes.io/instance: bitwarden-cli
     spec:
+      volumes:
+        - name: shared-data
+          emptyDir: { }
+      initContainers:
+        - name: download-bw-cli
+          image: debian:bullseye-slim
+          env:
+            - name: BW_CLI_VERSION
+              value: "2025.3.0"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              apt update && \
+              apt install -y wget unzip && \
+              wget https://github.com/bitwarden/clients/releases/download/cli-v${BW_CLI_VERSION}/bw-oss-linux-sha256-${BW_CLI_VERSION}.txt --no-verbose -O bw.zip.sha256 && \
+              wget https://github.com/bitwarden/clients/releases/download/cli-v${BW_CLI_VERSION}/bw-oss-linux-${BW_CLI_VERSION}.zip --no-verbose -O bw.zip && \
+              echo "$(cat bw.zip.sha256) bw.zip" | sha256sum --check - && \
+              unzip bw.zip && \
+              chmod +x bw && \
+              mv bw /shared-data/
+          volumeMounts:
+            - name: shared-data
+              mountPath: /shared-data
       containers:
         - name: bitwarden-cli
-          image: ghcr.io/charlesthomas/bitwarden-cli:2023.12.1
+          image: debian:bullseye-slim
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: shared-data
+              mountPath: /shared-data
+          command:
+            - /bin/bash
+            - -c
+            - |
+              bw config server ${BW_HOST} && \
+              export BW_SESSION=$(bw login ${BW_USER} --passwordenv BW_PASSWORD --raw) && \
+              bw unlock --check && \
+              echo 'Running `bw server` on port 8087' && \
+              bw serve --hostname 0.0.0.0
           env:
             - name: BW_HOST
               value: "http://vaultwarden.vaultwarden.svc.cluster.local/"
             - name: BW_USER
-              valueFrom:
+              value:
                 secretKeyRef:
                   name: bitwarden-cli
                   key: BW_USERNAME
