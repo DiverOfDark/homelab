@@ -12,5 +12,5 @@ spec:
   - from:
       - podSelector:
           matchLabels:
-            app.kubernetes.io/instance: external-secrets
+            app.kubernetes.io/instance: eso
             app.kubernetes.io/name: external-secrets
