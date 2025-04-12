@@ -121,19 +121,12 @@ spec:
               /shared-data/bw unlock --check && \
               echo 'Running `bw server` on port 8087' && \
               /shared-data/bw serve --hostname 0.0.0.0
+          envFrom:
+            - secretRef:
+                name: bitwarden-cli
           env:
             - name: BW_HOST
               value: "http://vaultwarden.vaultwarden.svc.cluster.local/"
-            - name: BW_USER
-              valueFrom:
-                secretKeyRef:
-                  name: bitwarden-cli
-                  key: BW_USERNAME
-            - name: BW_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: bitwarden-cli
-                  key: BW_PASSWORD
           ports:
             - name: http
               containerPort: 8087
