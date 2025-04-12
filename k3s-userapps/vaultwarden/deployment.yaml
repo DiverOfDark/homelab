@@ -86,7 +86,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: BW_HOST
-              value: "vaultwarden"
+              value: "http://vaultwarden.vaultwarden.svc.cluster.local/"
             - name: BW_USER
               valueFrom:
                 secretKeyRef:
