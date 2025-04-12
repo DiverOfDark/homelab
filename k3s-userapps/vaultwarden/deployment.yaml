@@ -81,15 +81,10 @@ spec:
         app.kubernetes.io/name: bitwarden-cli
         app.kubernetes.io/instance: bitwarden-cli
     spec:
-      volumes:
-        - name: shared-data
-          emptyDir: { }
-      initContainers:
-        - name: download-bw-cli
+      containers:
+        - name: bitwarden-cli
           image: debian:bullseye-slim
-          env:
-            - name: BW_CLI_VERSION
-              value: "2025.3.0"
+          imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
             - -c
@@ -101,32 +96,18 @@ spec:
               echo "$(cat bw.zip.sha256) bw.zip" | sha256sum --check - && \
               unzip bw.zip && \
               chmod +x bw && \
-              mv bw /shared-data/
-          volumeMounts:
-            - name: shared-data
-              mountPath: /shared-data
-      containers:
-        - name: bitwarden-cli
-          image: debian:bullseye-slim
-          imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: shared-data
-              mountPath: /shared-data
-          command:
-            - /bin/bash
-            - -c
-            - |
-              apt update && apt install -y wget && \
-              /shared-data/bw config server ${BW_HOST} && \
-              /shared-data/bw login --apikey --raw && \
-              export BW_SESSION=$(/shared-data/bw unlock --passwordenv BW_UNLOCK --raw ) && \
-              /shared-data/bw unlock --check && \
+              bw config server ${BW_HOST} && \
+              bw login --apikey --raw && \
+              export BW_SESSION=$(bw unlock --passwordenv BW_UNLOCK --raw ) && \
+              bw unlock --check && \
               echo 'Running `bw server` on port 8087' && \
-              /shared-data/bw serve --hostname 0.0.0.0
+              bw serve --hostname 0.0.0.0
           envFrom:
             - secretRef:
                 name: bitwarden-cli
           env:
+            - name: BW_CLI_VERSION
+              value: "2025.3.0"
             - name: BW_HOST
               value: "http://vaultwarden.vaultwarden.svc.cluster.local/"
           ports:
