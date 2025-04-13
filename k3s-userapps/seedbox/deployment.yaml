@@ -24,8 +24,7 @@ spec:
               protocol: TCP
               name: "http"
           volumeMounts:
-            - mountPath: /etc/caddy/Caddyfile
-              subPath: Caddyfile
+            - mountPath: /etc/caddy
               name: caddy
           livenessProbe:
             httpGet:
