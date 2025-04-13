@@ -125,11 +125,8 @@
         mode: "0600"
       loop: "{{ extra_manifests }}"
       when: extra_manifests is defined
-    - name: Setup secrets
-      no_log: true
+    - name: Remove rclone service
       notify: Restart k3s
-      ansible.builtin.template:
-        src: "secret.yaml.j2"
-        dest: "/var/lib/rancher/k3s/server/manifests/{{ item.namespace }}-{{ item.name }}.yaml"
-        mode: "0700"
-      loop: "{{ secrets }}"
+      ansible.builtin.file:
+        path: "/var/lib/rancher/k3s/server/manifests/kube-system-golden-secret.yaml"
+        state: absent
