@@ -14,3 +14,8 @@ mirrors:
       - "https://harbor.kirillorlov.pro"
     rewrite:
      "^(.*)": "proxy-quay/$1"
+  registry.k8s.io:
+    endpoint:
+      - "https://harbor.kirillorlov.pro"
+    rewrite:
+     "^(.*)": "proxy-registry-k8s/$1"
