@@ -96,8 +96,6 @@ spec:
               name: video
             - mountPath: /storage/seedbox
               name: seedbox
-            - mountPath: /storage/seedbox2
-              name: seedbox2
             - mountPath: /etc/samba/smb.conf
               name: config
               subPath: smb.conf
