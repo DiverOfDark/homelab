@@ -50,7 +50,6 @@ spec:
               storageClass: ceph-filesystem
             trivy:
               storageClass: ceph-filesystem
-              accessMode: ReadWriteMany
           #imageChartStorage: {}
         metrics:
           enabled: true
