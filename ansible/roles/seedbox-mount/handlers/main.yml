@@ -1,2 +1,0 @@
-  - name: Restart rclone
-    include_tasks: restart-rclone.yml
