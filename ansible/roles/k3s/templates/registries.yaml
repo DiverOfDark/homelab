@@ -1,2 +1,16 @@
 mirrors:
-  "*":
+  docker.io:
+    endpoint:
+      - "https://harbor.kirillorlov.pro"
+    rewrite:
+     "^(.*)": "proxy-dockerhub/$1"
+  ghcr.io:
+    endpoint:
+      - "https://harbor.kirillorlov.pro"
+    rewrite:
+     "^(.*)": "proxy-ghcr/$1"
+  quay.io:
+    endpoint:
+      - "https://harbor.kirillorlov.pro"
+    rewrite:
+     "^(.*)": "proxy-quay/$1"
