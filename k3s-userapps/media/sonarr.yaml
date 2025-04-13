@@ -25,8 +25,8 @@ spec:
           persistentVolumeClaim:
             claimName: video
         - name: downloads
-          hostPath:
-            path: "/mnt/seedbox"
+          persistentVolumeClaim:
+            claimName: rclone-seedbox
       containers:
         - image: 'lscr.io/linuxserver/sonarr:4.0.14'
           imagePullPolicy: IfNotPresent
