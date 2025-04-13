@@ -1,9 +1,10 @@
 mirrors:
-  docker.io:
-    endpoint:
-      - "https://harbor.kirillorlov.pro"
-    rewrite:
-     "^(.*)": "proxy-dockerhub/$1"
+  ## can't mirror docker.io because it's requirement for harbor
+  #docker.io:
+  #  endpoint:
+  #    - "https://harbor.kirillorlov.pro"
+  #  rewrite:
+  #   "^(.*)": "proxy-dockerhub/$1"
   ghcr.io:
     endpoint:
       - "https://harbor.kirillorlov.pro"
