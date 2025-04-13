@@ -85,6 +85,14 @@
     state: present
     reload: true
 
+- name: Max connections
+  ansible.posix.sysctl:
+    name: net.core.somaxconn
+    value: "16384"
+    state: present
+    reload: true
+
+
 - name: Up fs.inotify.max_queued_events
   ansible.posix.sysctl:
     name: fs.inotify.max_queued_events
