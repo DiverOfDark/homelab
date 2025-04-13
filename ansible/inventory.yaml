@@ -41,6 +41,8 @@ working_hosts:
     ansible_python_interpreter: auto_silent
 
     virtual_ip_address: 192.168.179.1
+    #virtual_ipv6_address: fd80::dead:beef:100
+    virtual_ipv6_address: 2a02:3102:4db0:2a00:fd80:dead:beef:100
     kube_hostname: k8s.kirillorlov.pro
 
     k3s_version: v1.32.2+k3s1
