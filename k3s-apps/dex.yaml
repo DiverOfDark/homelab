@@ -5,7 +5,7 @@ metadata:
   namespace: oauth2-proxy
 spec:
   secretStoreRef:
-    name: default-secret-store
+    name: bitwarden-login
     kind: ClusterSecretStore  # or ClusterSecretStore
 
   refreshInterval: "10s"
@@ -23,25 +23,25 @@ spec:
   data:
     - secretKey: clientId
       remoteRef:
-        key: golden-secret
+        key: e1699b85-e225-434f-b38d-4a4015341808
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: google-client-id
+        property: username
     - secretKey: clientSecret
       remoteRef:
-        key: golden-secret
+        key: e1699b85-e225-434f-b38d-4a4015341808
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: google-client-secret
+        property: password
     - secretKey: userPassword
       remoteRef:
-        key: golden-secret
+        key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: user-password
+        property: password
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
