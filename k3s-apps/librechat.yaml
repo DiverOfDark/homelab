@@ -5,7 +5,7 @@ metadata:
   namespace: librechat
 spec:
   secretStoreRef:
-    name: default-secret-store
+    name: bitwarden-fields
     kind: ClusterSecretStore  # or ClusterSecretStore
 
   refreshInterval: "10s"
@@ -34,46 +34,46 @@ spec:
   data:
     - secretKey: openai
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
         property: openai-api-key
     - secretKey: librechat_creds_key
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: librechat-creds-key
+        property: creds-key
     - secretKey: librechat_creds_iv
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: librechat-creds-iv
+        property: creds-iv
     - secretKey: librechat_jwt_secret
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: librechat-jwt-secret
+        property: jwt-secret
     - secretKey: librechat_jwt_refresh_secret
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: librechat-jwt-refresh-secret
+        property: jwt-refresh
     - secretKey: librechat_meili_master_key
       remoteRef:
-        key: golden-secret
+        key: a230b3d4-7b33-439f-b604-6016354a7865
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: librechat-meili-master-key
+        property: meili-master
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
