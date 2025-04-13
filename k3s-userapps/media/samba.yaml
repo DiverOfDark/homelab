@@ -29,9 +29,7 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: rclone
-  selector:
-    matchLabels:
-      name: rclone-seedbox
+  volumeName: rclone-seedbox
 ---
 apiVersion: v1
 kind: ConfigMap
