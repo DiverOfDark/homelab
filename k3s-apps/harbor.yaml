@@ -55,7 +55,18 @@ spec:
             enabled: true
         trace:
           enabled: false # todo TO JAEGER
-
+        portal:
+          replicas: 2
+        core:
+          replicas: 2
+        jobservice:
+          replicas: 2
+        registry:
+          replicas: 2
+        trivy:
+          replicas: 2
+        exporter:
+          replicas: 2
   syncPolicy:
     automated:
       prune: true
