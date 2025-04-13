@@ -46,7 +46,6 @@ spec:
                 accessMode: ReadWriteMany
             database:
               storageClass: ceph-filesystem
-              accessMode: ReadWriteMany
             redis:
               storageClass: ceph-filesystem
               accessMode: ReadWriteMany
