@@ -251,9 +251,9 @@ spec:
                               name: pihole-secret
                               key: replicas
                         - name: FULL_SYNC
-                          value: true
+                          value: "true"
                         - name: RUN_GRAVITY
-                          value: true
+                          value: "true"
   syncPolicy:
     automated:
       prune: true
