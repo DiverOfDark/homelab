@@ -20,7 +20,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns-dr
-        image: gcr.io/k8s-staging-external-dns/external-dns:v20250402-v0.16.1-48-g1efdf416
+        image: gcr.io/k8s-staging-external-dns/external-dns:v20250413-v0.16.1-90-g2de3b50b
         envFrom:
         - secretRef:
             name: pihole-password
