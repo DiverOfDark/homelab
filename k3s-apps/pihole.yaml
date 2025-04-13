@@ -17,7 +17,7 @@ spec:
     helm:
       releaseName: pihole
       values: |
-        DNS1: "192.168.178.1"
+        DNS1: "8.8.8.8"
         DNS2: "1.1.1.1"        
         replicaCount: 1
         antiaff:
@@ -164,7 +164,7 @@ spec:
     helm:
       releaseName: pihole-dr
       values: |
-        DNS1: "192.168.178.1"
+        DNS1: "8.8.8.8"
         DNS2: "1.1.1.1"        
         replicaCount: 1
         antiaff:
