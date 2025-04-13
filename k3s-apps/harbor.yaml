@@ -38,16 +38,21 @@ spec:
           persistentVolumeClaim:
             registry:
               storageClass: ceph-filesystem
+              accessMode: ReadWriteMany
               size: 30Gi
             jobservice:
               jobLog:
                 storageClass: ceph-filesystem
+                accessMode: ReadWriteMany
             database:
               storageClass: ceph-filesystem
+              accessMode: ReadWriteMany
             redis:
               storageClass: ceph-filesystem
+              accessMode: ReadWriteMany
             trivy:
               storageClass: ceph-filesystem
+              accessMode: ReadWriteMany
           #imageChartStorage: {}
         metrics:
           enabled: true
