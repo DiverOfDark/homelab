@@ -48,7 +48,6 @@ spec:
               storageClass: ceph-filesystem
             redis:
               storageClass: ceph-filesystem
-              accessMode: ReadWriteMany
             trivy:
               storageClass: ceph-filesystem
               accessMode: ReadWriteMany
