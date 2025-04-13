@@ -126,8 +126,8 @@ spec:
                   type: Opaque
                   data:
                     password: "{{ .password }}"
-                    PRIMARY_HOST_PASSWORD: "{{ .password }}"
-                    SECONDARY_HOSTS_1_PASSWORD: "{{ .password }}"
+                    primary: "https://pihole.kirillorlov.pro|{{ .password }}"
+                    replicas: "https://pihole-dr.kirillorlov.pro|{{ .password }}"
               data:
                 - secretKey: password
                   remoteRef:
@@ -160,7 +160,7 @@ spec:
   source:
     chart: pihole
     repoURL: https://mojo2600.github.io/pihole-kubernetes/
-    targetRevision: 2.27.0
+    targetRevision: 2.29.1
     helm:
       releaseName: pihole-dr
       values: |
@@ -236,19 +236,24 @@ spec:
                     nameservers:
                     - 192.168.179.254
                   containers:
-                    - image: 'mattwebbio/orbital-sync:1.8.4'
+                    - image: 'ghcr.io/lovelaze/nebula-sync:v0.9.0'
                       imagePullPolicy: IfNotPresent
                       name: sync
-                      envFrom:
-                       - secretRef:
-                          name: pihole-secret
                       env:
-                        - name: PRIMARY_HOST_BASE_URL
-                          value: https://pihole.kirillorlov.pro
-                        - name: SECONDARY_HOSTS_1_BASE_URL
-                          value: https://pihole-dr.kirillorlov.pro
-                        - name: INTERVAL_MINUTES
-                          value: "60"
+                        - name: PRIMARY
+                          valueFrom:
+                            secretKeyRef:
+                              name: pihole-secret
+                              key: primary
+                        - name: REPLICAS
+                          valueFrom:
+                            secretKeyRef:
+                              name: pihole-secret
+                              key: replicas
+                        - name: FULL_SYNC
+                          value: true
+                        - name: RUN_GRAVITY
+                          value: true
   syncPolicy:
     automated:
       prune: true
