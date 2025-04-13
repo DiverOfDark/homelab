@@ -254,6 +254,8 @@ spec:
                           value: "true"
                         - name: RUN_GRAVITY
                           value: "true"
+                        - name: CRON
+                          value: "0 * * * *"
   syncPolicy:
     automated:
       prune: true
