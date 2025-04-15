@@ -128,10 +128,7 @@ resource "cloudflare_record" "uptime" {
     name = "uptime"
     zone_id = cloudflare_zone.zone.id
     type = "A"
-    content = "185.199.108.153
-                185.199.109.153
-                185.199.110.153
-                185.199.111.153"
+    content = "185.199.108.153\n185.199.109.153\n185.199.110.153\n185.199.111.153"
     ttl = 1
     proxied = true
 }
