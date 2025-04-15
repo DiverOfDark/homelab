@@ -127,36 +127,11 @@ resource "cloudflare_record" "records" {
 resource "cloudflare_record" "uptime1" {
     name = "uptime"
     zone_id = cloudflare_zone.zone.id
-    type = "A"
-    content = "185.199.108.153"
+    type = "CNAME"
+    content = "diverofdark.github.io"
     ttl = 1
     proxied = true
 }
-resource "cloudflare_record" "uptime2" {
-    name = "uptime"
-    zone_id = cloudflare_zone.zone.id
-    type = "A"
-    content = "185.199.109.153"
-    ttl = 1
-    proxied = true
-}
-resource "cloudflare_record" "uptime3" {
-    name = "uptime"
-    zone_id = cloudflare_zone.zone.id
-    type = "A"
-    content = "185.199.110.153"
-    ttl = 1
-    proxied = true
-}
-resource "cloudflare_record" "uptime4" {
-    name = "uptime"
-    zone_id = cloudflare_zone.zone.id
-    type = "A"
-    content = "185.199.111.153"
-    ttl = 1
-    proxied = true
-}
-
 #todo setup email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
   enabled = true
