@@ -123,6 +123,19 @@ resource "cloudflare_record" "records" {
   ttl     = 1
   proxied = true
 }
+
+resource "cloudflare_record" "uptime" {
+    name = "uptime"
+    zone_id = cloudflare_zone.zone.id
+    type = "A"
+    content = "185.199.108.153
+                185.199.109.153
+                185.199.110.153
+                185.199.111.153"
+    ttl = 1
+    proxied = true
+}
+
 #todo setup email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
   enabled = true
