@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://vmware-tanzu.github.io/helm-charts
     chart: velero
-    targetRevision: 8.7.1
+    targetRevision: 8.7.2
     helm:
       valuesObject:
         credentials:
