@@ -34,7 +34,7 @@ spec:
             - name: socket-dir
               mountPath: /plugin
         - name: csi-attacher
-          image: registry.k8s.io/sig-storage/csi-attacher:v3.5.1
+          image: registry.k8s.io/sig-storage/csi-attacher:v4.8.1
           args:
             - "--csi-address=$(ADDRESS)"
             - "--v=1"
