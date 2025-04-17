@@ -15,6 +15,7 @@ spec:
       helm:
         valuesObject:
           operatorNamespace: rook-system
+          revisionHistoryLimit: 1
           toolbox:
             enabled: true
           monitoring:
