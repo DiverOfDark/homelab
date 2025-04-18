@@ -10,7 +10,7 @@ spec:
       path: /metrics
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace }}
+      - fritzbox-exporter
   selector:
     matchLabels:
       app.kubernetes.io/name: fritzbox-exporter
