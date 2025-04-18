@@ -130,7 +130,7 @@ resource "cloudflare_record" "uptime1" {
     type = "CNAME"
     content = "diverofdark.github.io"
     ttl = 1
-    proxied = true
+    proxied = false
 }
 #todo setup email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
