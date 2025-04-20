@@ -28,8 +28,8 @@ machine:
         #     - 169.254.2.53
 
         # # The `extraArgs` field is used to provide additional flags to the kubelet.
-        # extraArgs:
-        #     key: value
+        extraArgs:
+            rotate-server-certificates: true
 
         # # The `extraMounts` field is used to add additional mounts to the kubelet container.
         # extraMounts:
@@ -181,7 +181,7 @@ machine:
     # Used to provide instructions for installations.
     install:
         disk: /dev/sda # The disk used for installations.
-        image: "ghcr.io/siderolabs/installer:{{ talosctl_version }}" # Allows for supplying the image used to perform the installation.
+        image: "factory.talos.dev/metal-installer/{{ talos_factory_id }}:{{ talosctl_version }}" # Allows for supplying the image used to perform the installation.
         wipe: false # Indicates if the installation disk should be wiped at installation time.
         
         # # Look up disk using disk attributes like model, size, serial and others.
@@ -196,8 +196,12 @@ machine:
         #     - reboot=k
 
         # # Allows for supplying additional system extension images to install on top of base Talos image.
-        # extensions:
-        #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
+        extensions:
+        # todo:
+        # - katacontainers (or firecracker?)
+        # - stargz-snapshotter
+
+
     # Used to configure the machine's container image registry mirrors.
     registries: 
       mirrors:

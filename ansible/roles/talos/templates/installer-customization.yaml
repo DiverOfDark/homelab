@@ -1,0 +1,14 @@
+customization:
+    systemExtensions:
+        officialExtensions:
+            - siderolabs/amd-ucode
+            - siderolabs/amdgpu
+            - siderolabs/i915
+            - siderolabs/intel-ucode
+            - siderolabs/util-linux-tools
+            # not available for 1.9.0:
+            #- siderolabs/ctr
+            #- siderolabs/nvme-cli
+            # todo:
+            # - stargazer 
+            # - katacontainers
