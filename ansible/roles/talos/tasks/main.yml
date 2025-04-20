@@ -34,6 +34,21 @@
 
 - name: Template manifests
   ansible.builtin.template:
+    src: "installer-customization.yaml"
+    dest: "/tmp/talos-manifests/installer-customization.yaml"
+    mode: "0644"
+  
+- name: Post installer-customization.yaml to Talos factory schematics
+  ansible.builtin.command:
+    cmd: "curl -X POST --data-binary @/tmp/talos-manifests/installer-customization.yaml https://factory.talos.dev/schematics"
+  register: talos_factory_output
+
+- name: Save Talos factory output ID to a variable
+  ansible.builtin.set_fact:
+    talos_factory_id: "{{ talos_factory_output.stdout | from_json | json_query('id') }}"
+
+- name: Template manifests
+  ansible.builtin.template:
     src: "{{ item }}"
     dest: "/tmp/talos-manifests/{{ item }}"
     mode: "0644"
@@ -47,6 +62,12 @@
 
 ## todo -> get k8s version and upgrade if needed, e.g. (need to run just once - all cluster will be upgraded)
 # talosctl --nodes <controlplane node> upgrade-k8s --to 1.32.0
+
+## apply all machine configs
+# map of machine configs:
+# 192.168.178.9 -> master-hyperv-full.yaml
+# ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.9 -e 192.168.178.9 --file master-hyperv-full.yaml
+
 
 # talosctl apply-config --insecure -n 192.168.0.2 --file controlplane.yaml
 #  talosctl -n 192.168.0.2 get disks --insecure
