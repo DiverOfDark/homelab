@@ -1,4 +1,5 @@
 talosctl_version: "v1.9.0"  # Replace with the desired version
+kube_version: "v1.32.3"  # Replace with the desired version
 
 talos_manifests:
   - controlplane.yaml
