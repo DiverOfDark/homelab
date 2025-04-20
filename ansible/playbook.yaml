@@ -1,4 +1,12 @@
 ---
+- name: Talos
+  hosts: localhost
+  gather_facts: false
+  become: false
+  roles:
+     - role: talos
+       tags: ['talos']
+
 - name: Voron setup
   hosts: printer_hosts
   gather_facts: true
