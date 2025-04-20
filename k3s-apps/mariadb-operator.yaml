@@ -36,3 +36,29 @@ spec:
     - CreateNamespace=true
     - ServerSideApply=true
     - RespectIgnoreDifferences=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mariadb-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: mariadb-operator
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: mariadb-operator
+    repoURL: https://helm.mariadb.com/mariadb-operator-crds
+    targetRevision: 0.38.1
+    helm:
+      values: {}
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
