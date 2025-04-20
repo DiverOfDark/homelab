@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: meta-app
+  name: vaultwarden
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,10 +11,13 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: k3s-apps
+    path: k3s-userapps/vaultwarden-eso
     repoURL: https://github.com/DiverOfDark/homelab.git
     targetRevision: HEAD
   syncPolicy:
+    automated:
+      prune: true
     syncOptions:
     - PruneLast=true
     - ServerSideApply=true
+    - RespectIgnoreDifferences=true
