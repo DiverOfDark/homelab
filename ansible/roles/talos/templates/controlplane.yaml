@@ -435,6 +435,8 @@ cluster:
         serviceSubnets:
             - 10.96.0.0/12
         
+        cni:
+          name: none 
         # # The CNI used.
         # cni:
         #     name: custom # Name of CNI to use.
@@ -565,4 +567,4 @@ cluster:
     #     certLifetime: 1h0m0s # Admin kubeconfig certificate lifetime (default is 1 year).
 
     # # Allows running workload on control-plane nodes.
-    # allowSchedulingOnControlPlanes: true
+    allowSchedulingOnControlPlanes: true
