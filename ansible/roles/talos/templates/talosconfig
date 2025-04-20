@@ -1,0 +1,8 @@
+context: homelab
+contexts:
+    homelab:
+        endpoints:
+            - 127.0.0.1
+        ca: "{{ machine.ca.crt }}"
+        crt: "{{ config.crt }}"
+        key: "{{ config.key }}"

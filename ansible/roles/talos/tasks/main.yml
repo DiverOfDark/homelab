@@ -1,0 +1,68 @@
+- name: Ensure /tmp/talosctl of correct version
+  block: 
+  - name: Check if /tmp/talosctl exists
+    ansible.builtin.stat:
+      path: "/tmp/talosctl"
+    register: talosctl_stat
+
+  - name: Get Talos CLI version if binary exists
+    ansible.builtin.command: "/tmp/talosctl version --client"
+    register: talosctl_version_output
+    when: talosctl_stat.stat.exists
+    changed_when: false
+    check_mode: no
+    ignore_errors: true
+
+  - name: Set talos installed version
+    when: talosctl_stat.stat.exists and talosctl_version_output.rc == 0 and talosctl_version_output.stdout_lines is defined and talosctl_version_output.stdout_lines | length > 0
+    ansible.builtin.set_fact:
+      installed_talosctl_version: "{{ talosctl_version_output.stdout_lines[1].split(' ')[-1] }}"
+
+  - name: Download Talos CLI from GitHub if not already present
+    ansible.builtin.get_url:
+      url: "https://github.com/siderolabs/talos/releases/download/{{ talosctl_version }}/talosctl-linux-amd64"
+      force: yes
+      dest: "/tmp/talosctl"
+      mode: '0755'
+    when: not talosctl_stat.stat.exists or installed_talosctl_version != talosctl_version
+
+- name: Ensure /tmp/talos-manifests/ exists
+  ansible.builtin.file:
+    path: "/tmp/talos-manifests/"
+    state: directory
+    mode: "0755"
+
+- name: Template manifests
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/tmp/talos-manifests/{{ item }}"
+    mode: "0644"
+  loop: "{{ talos_manifests }}"
+
+- name: Template hosts
+  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-hyperv.yaml --output /tmp/talos-manifests/master-hyperv-full.yaml
+
+## todo -> for each node -> get current talos version and upgrade if needed, e.g. 
+# talosctl upgrade --nodes 10.20.30.40 --image ghcr.io/siderolabs/installer:v1.9.2
+
+## todo -> get k8s version and upgrade if needed, e.g. (need to run just once - all cluster will be upgraded)
+# talosctl --nodes <controlplane node> upgrade-k8s --to 1.32.0
+
+# talosctl apply-config --insecure -n 192.168.0.2 --file controlplane.yaml
+#  talosctl -n 192.168.0.2 get disks --insecure
+
+# install:
+#  disk: /dev/sda # The disk used for installations.
+
+# talosctl -e 192.168.0.2 -n 192.168.0.200 containers
+
+# talosctl --talosconfig=./talosconfig --nodes 192.168.0.2 -e 192.168.0.2 version
+
+# one time - first time for cluster
+#talosctl bootstrap --nodes 192.168.0.2 --endpoints 192.168.0.2 --talosconfig=./talosconfig 
+
+
+#talosctl --nodes 192.168.0.2 --endpoints 192.168.0.2 health --talosconfig=./talosconfig
+#talosctl --nodes 192.168.0.2 --endpoints 192.168.0.2 dashboard --talosconfig=./talosconfig
+
+
