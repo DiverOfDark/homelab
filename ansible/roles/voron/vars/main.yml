@@ -13,7 +13,6 @@ voron_packages:
   - net-tools
   - mc
   - chrony
-  - docker-ce
   - socat
   - sysstat
 
