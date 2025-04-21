@@ -79,7 +79,7 @@ spec:
             name: smb-server
       containers:
         - name: smb-server
-          image: dockurr/samba:4.21.3
+          image: dockurr/samba:4.21.4
           env:
             - name: "NAME"
               value: "share"
