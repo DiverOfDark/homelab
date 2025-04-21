@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-approver
+  namespace: argocd
+spec:
+  project: default
+  source:
+    path: k3s-userapps/cert-approver
+    repoURL: https://github.com/DiverOfDark/homelab.git
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubelet-serving-cert-approver
+  syncPolicy:
+    syncOptions:
+        - PruneLast=true
+        - ServerSideApply=true
+        - RespectIgnoreDifferences=true
