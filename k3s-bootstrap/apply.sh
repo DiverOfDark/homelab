@@ -1,4 +1,4 @@
-#!/bin/bash;
+#!/bin/bash
 kubectl apply -f argocd-ns.yaml
 
 helm template argocd -n argocd oci://ghcr.io/argoproj/argo-helm/argo-cd --version 7.3.11 -f .\argocd-values.yaml > argocd.yaml

@@ -40,4 +40,4 @@ Thin-Clients and mini-pcs!
 | Alfheimr   | 192.168.178.10 | Worker | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD | 45$  + SSD + RAM | Bought used from some website |
 | Midgard    | 192.168.178.11 | Master | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 512GB SSD | 100$ + SSD + RAM | Bought used from a friend     |
 | Niflheimr  | 192.168.178.12 | Master | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD | 160$             | Bought from AliExpress as new |
-| Yotunheimr | 192.168.178.13 | Master | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD | 115$             | Bought from AliExpress as new |
+| Jotunheimr | 192.168.178.13 | Master | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD | 115$             | Bought from AliExpress as new |
