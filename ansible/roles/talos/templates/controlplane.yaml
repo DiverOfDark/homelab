@@ -493,6 +493,7 @@ cluster:
         image: "registry.k8s.io/kube-controller-manager:{{ kube_version }}" # The container image used in the controller manager manifest.
     # Kube-proxy server-specific configuration options
     proxy:
+        disabled: true
         image: "registry.k8s.io/kube-proxy:{{ kube_version }}" # The container image used in the kube-proxy manifest.
         
         # # Disable kube-proxy deployment on cluster bootstrap.
