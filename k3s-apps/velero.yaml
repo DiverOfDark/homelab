@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://vmware-tanzu.github.io/helm-charts
     chart: velero
-    targetRevision: 9.0.0
+    targetRevision: 8.7.2
     helm:
       valuesObject:
         credentials:
@@ -67,7 +67,6 @@ spec:
           existingSecret: velero-credentials
 
         configuration:
-        #  provider: restic
           backupStorageLocation:
           - name: default
             provider: aws
@@ -84,7 +83,6 @@ spec:
               region: default
               s3ForcePathStyle: true
               s3Url: http://192.168.178.5:9000/
-          uploaderType: restic
           features: EnableCSI
         deployNodeAgent: true
         initContainers:
