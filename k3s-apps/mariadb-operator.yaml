@@ -15,7 +15,7 @@ spec:
     repoURL: https://helm.mariadb.com/mariadb-operator
     targetRevision: 0.38.1
     helm:
-      valuesObject:
+      values:
         certController:
           ha:
             enabled: true
