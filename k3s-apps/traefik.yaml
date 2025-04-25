@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: traefik
+      repoURL: https://traefik.github.io/charts
+      targetRevision: 35.0.1
+      helm:
+        valuesObject:
+          deployment:
+            kind: Deployment
+            replicas: 2
+          #    experimental:
+          #      plugins:
+          #        enabled: true
+          logs:
+            access:
+              enabled: true
+            general:
+              level: INFO
+          podDisruptionBudget:
+            enabled: true
+
+          ports:
+            websecure:
+              http3:
+                enabled: true
+
+          service:
+            single: false
+            annotations:
+              metallb.universe.tf/loadBalancerIPs: 192.168.179.12
+              metallb.universe.tf/allow-shared-ip: "traefik"
+
+          providers:
+            kubernetesCRD:
+              allowExternalNameServices: true
+              allowCrossNamespace: true
+            kubernetesIngress:
+              allowExternalNameServices: true
+
+          metrics:
+            prometheus:
+              serviceMonitor:
+                enabled: true
+
+          additionalArguments:
+            - '--api.insecure=true'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+---
