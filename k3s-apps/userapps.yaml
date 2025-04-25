@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: userapps
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/DiverOfDark/homelab.git
+        revision: HEAD
+        directories:
+          - path: k3s-userapps/*
+  template:
+    metadata:
+      name: "{{path.basename}}"
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: argocd
+        server: https://kubernetes.default.svc
+      project: default
+      source:
+        path: "k3s-userapps/{{path.basename}}"
+        repoURL: https://github.com/DiverOfDark/homelab.git
+        targetRevision: HEAD
+      ignoreDifferences:
+        - group: '*'
+          jqPathExpressions:
+            - .metadata.annotations."gethomepage.dev/widget.accountid"
+            - .metadata.annotations."gethomepage.dev/widget.key"
+            - .metadata.annotations."gethomepage.dev/widget.tunnelid"
+            - .metadata.annotations."gethomepage.dev/widget.key"
+          kind: Ingress
+      syncPolicy:
+        syncOptions:
+        - PruneLast=true
+        - ServerSideApply=true
+        - RespectIgnoreDifferences=true
+        - CreateNamespace=true
