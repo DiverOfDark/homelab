@@ -5,7 +5,7 @@ machine:
   network:
     hostname: jotunheimr
     nameservers:
-      - 192.168.179.1
+      - 192.168.179.254
     interfaces:
     - interface: enp3s0
       addresses:

@@ -1,2 +1,0 @@
-  - name: Restart etcd
-    include_tasks: restart-etcd.yml

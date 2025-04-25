@@ -58,10 +58,10 @@
   ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-hyperv.yaml --output /tmp/talos-manifests/master-hyperv-full.yaml
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-hyperv2.yaml --output /tmp/talos-manifests/master-hyperv2-full.yaml
+  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-jotunheimr.yaml --output /tmp/talos-manifests/master-jotunheimr-full.yaml
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-jotunheimr.yaml --output /tmp/talos-manifests/master-jotunheimr-full.yaml
+  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-niflheimr.yaml --output /tmp/talos-manifests/master-niflheimr-full.yaml
 
 ## todo -> for each node -> get current talos version and upgrade if needed, e.g.
 # talosctl upgrade --nodes 10.20.30.40 --image ghcr.io/siderolabs/installer:v1.9.2

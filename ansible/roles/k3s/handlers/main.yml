@@ -1,2 +1,0 @@
-- name: Restart k3s
-  include_tasks: restart-k3s.yml

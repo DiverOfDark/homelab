@@ -6,8 +6,8 @@ talos_manifests:
   - worker.yaml
   - talosconfig
   - master-hyperv.yaml
-  - master-hyperv2.yaml
   - master-jotunheimr.yaml
+  - master-niflheimr.yaml
 
 talos:
   token: !vault |
