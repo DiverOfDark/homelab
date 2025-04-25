@@ -18,6 +18,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: rook-system
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
