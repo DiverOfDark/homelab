@@ -143,6 +143,9 @@ spec:
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 70.8.0
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:

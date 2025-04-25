@@ -95,7 +95,7 @@ spec:
               - mountPath: /target
                 name: plugins
         schedules:
-          archer:
+          talos:
             disabled: false
             schedule: "0 0 * * *" ## choose time, when scheduled backups will be make.
             template:
@@ -163,6 +163,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: velero
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:

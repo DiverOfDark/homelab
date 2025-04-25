@@ -30,6 +30,9 @@ spec:
             enabled: true
 
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
