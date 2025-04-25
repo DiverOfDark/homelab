@@ -1,6 +1,0 @@
-- name: Restart zram-generator
-  ansible.builtin.systemd_service:
-    name: systemd-zram-setup@zram0
-    daemon-reload: yes
-    enabled: true
-    state: restarted

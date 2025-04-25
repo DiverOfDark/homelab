@@ -1,15 +1,15 @@
 machine:
   install:
-    disk: /dev/sda 
+    disk: /dev/sdb
     wipe: true
   network:
-    hostname: hyperv-master
+    hostname: niflheimr
     nameservers:
       - 192.168.179.254
     interfaces:
-    - interface: enx00155db27e02
+    - interface: enp2s0
       addresses:
-        - 192.168.178.9/24
+        - 192.168.178.12/24
       vip:
         ip: 192.168.179.2
       routes:

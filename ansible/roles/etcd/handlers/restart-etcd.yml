@@ -1,8 +1,0 @@
-    - name: Restart etcd service
-      ansible.builtin.systemd:
-        name: etcd
-        state: restarted
-
-    - name: Wait for 1 minutes for service to start
-      pause:
-        minutes: 1

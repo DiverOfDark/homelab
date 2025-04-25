@@ -1,1 +1,0 @@
-DAEMON_ARGS=--data-dir /var/lib/etcd/default --config-file /etc/etcd.yaml
