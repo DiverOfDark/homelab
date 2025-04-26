@@ -55,9 +55,6 @@
   loop: "{{ talos_manifests }}"
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-hyperv.yaml --output /tmp/talos-manifests/master-hyperv-full.yaml
-
-- name: Template hosts
   ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-jotunheimr.yaml --output /tmp/talos-manifests/master-jotunheimr-full.yaml
 
 - name: Template hosts
@@ -74,8 +71,7 @@
 
 ## apply all machine configs
 # map of machine configs:
-# 192.168.178.9 -> master-hyperv-full.yaml
-# ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.9 -e 192.168.178.9 --file master-hyperv-full.yaml
+# ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.14 -e 192.168.178.14 --file master-muspelheimr-full.yaml
 # ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.13 -e 192.168.178.13 --file master-jotunheimr-full.yaml
 # ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.12 -e 192.168.178.12 --file master-niflheimr-full.yaml
 
