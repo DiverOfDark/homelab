@@ -44,24 +44,24 @@ spec:
                   cpu: 50m
               mon:
                 requests:
-                  cpu: 200m
+                  cpu: 100m
               osd:
                 requests:
-                  cpu: 200m
-                  memory: 2Gi
+                  cpu: 100m
+                  memory: 512Mi
             storage:
               useAllNodes: false
               useAllDevices: false
               nodes:
                 - name: "niflheimr"
                   devices:
-                    - name: "nvme0n1p3"
+                    - name: "nvme0n1"
                 - name: "midgard"
                   devices:
-                    - name: "nvme0n1p3"
+                    - name: "nvme0n1"
                 - name: "jotunheimr"
                   devices:
-                    - name: "nvme0n1p3"
+                    - name: "nvme0n1"
           ingress:
             dashboard:
               annotations:
@@ -131,7 +131,7 @@ spec:
                       memory: "4Gi"
                     requests:
                       cpu: "100m"
-                      memory: "1Gi"
+                      memory: "512Mi"
                   priorityClassName: system-cluster-critical
               storageClass:
                 enabled: true
@@ -230,6 +230,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: rook-ceph
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
