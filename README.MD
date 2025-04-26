@@ -35,9 +35,10 @@ Thin-Clients and mini-pcs!
 
 ## Hardware
 
-| Node name  | IP             | Roles  | Device            | CPU                      | RAM  | Storage   | Price            | Notes                         |
-|------------|----------------|--------|-------------------|--------------------------|------|-----------|------------------|-------------------------------|
-| Alfheimr   | 192.168.178.10 | Worker | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD | 45$  + SSD + RAM | Bought used from some website |
-| Midgard    | 192.168.178.11 | Master | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 512GB SSD | 100$ + SSD + RAM | Bought used from a friend     |
-| Niflheimr  | 192.168.178.12 | Master | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD | 160$             | Bought from AliExpress as new |
-| Jotunheimr | 192.168.178.13 | Master | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD | 115$             | Bought from AliExpress as new |
+| Node name   | IP             | Roles  | Device            | CPU                      | RAM  | Storage                | Price            | Notes                         |
+|-------------|----------------|--------|-------------------|--------------------------|------|------------------------|------------------|-------------------------------|
+| Alfheimr    | 192.168.178.10 | Unused | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD              | 45$  + SSD + RAM | Bought used from some website |
+| Midgard     | 192.168.178.11 | Unused | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 512GB SSD              | 100$ + SSD + RAM | Bought used from a friend     |
+| Niflheimr   | 192.168.178.12 | Master | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 160$             | Bought from AliExpress as new |
+| Jotunheimr  | 192.168.178.13 | Master | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 115$             | Bought from AliExpress as new |
+| Muspelheimr | 192.168.178.14 | Master | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 100$             | Bought unused from a friend   |
