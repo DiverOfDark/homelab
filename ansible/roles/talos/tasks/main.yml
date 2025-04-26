@@ -63,6 +63,9 @@
 - name: Template hosts
   ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-niflheimr.yaml --output /tmp/talos-manifests/master-niflheimr-full.yaml
 
+- name: Template hosts
+  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-muspelheimr.yaml --output /tmp/talos-manifests/master-muspelheimr-full.yaml
+
 ## todo -> for each node -> get current talos version and upgrade if needed, e.g.
 # talosctl upgrade --nodes 10.20.30.40 --image ghcr.io/siderolabs/installer:v1.9.2
 
@@ -73,7 +76,8 @@
 # map of machine configs:
 # 192.168.178.9 -> master-hyperv-full.yaml
 # ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.9 -e 192.168.178.9 --file master-hyperv-full.yaml
-
+# ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.13 -e 192.168.178.13 --file master-jotunheimr-full.yaml
+# ../talosctl --talosconfig=./talosconfig apply-config -n 192.168.178.12 -e 192.168.178.12 --file master-niflheimr-full.yaml
 
 # talosctl apply-config --insecure -n 192.168.0.2 --file controlplane.yaml
 #  talosctl -n 192.168.0.2 get disks --insecure
