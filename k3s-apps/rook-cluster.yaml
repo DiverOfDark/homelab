@@ -18,6 +18,10 @@ spec:
           revisionHistoryLimit: 1
           toolbox:
             enabled: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
           monitoring:
             enabled: false
             createPrometheusRules: true
@@ -38,17 +42,26 @@ spec:
                   cpu: 50m
               mgr:
                 requests:
-                  cpu: 100m
+                  cpu: 50m
               mgr-sidecar:
                 requests:
                   cpu: 50m
               mon:
                 requests:
-                  cpu: 100m
+                  cpu: 50m
               osd:
                 requests:
-                  cpu: 100m
+                  cpu: 50m
                   memory: 512Mi
+              crashcollector:
+                requests:
+                  cpu: 50m
+              logcollector:
+                requests:
+                  cpu: 50m
+              prepareosd:
+                requests:
+                  cpu: 50m
             storage:
               useAllNodes: false
               useAllDevices: false
@@ -130,7 +143,7 @@ spec:
                     limits:
                       memory: "4Gi"
                     requests:
-                      cpu: "100m"
+                      cpu: "50m"
                       memory: "512Mi"
                   priorityClassName: system-cluster-critical
               storageClass:
