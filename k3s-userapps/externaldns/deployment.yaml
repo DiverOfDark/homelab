@@ -38,6 +38,8 @@ spec:
         - --provider=pihole
         - --pihole-api-version=6
         - --pihole-server=http://pihole-web.pihole
+        - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+        - --crd-source-kind=DNSEndpoint
         livenessProbe:
           httpGet:
             path: /healthz
