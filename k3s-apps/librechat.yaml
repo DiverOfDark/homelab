@@ -114,7 +114,7 @@ spec:
             OPENID_BUTTON_LABEL: 'Log in with SSO'
             OPENID_ISSUER: https://dex.kirillorlov.pro/.well-known/openid-configuration
             OPENID_CLIENT_ID: librechat
-            OPENID_CLIENT_SECRET: IndOoa3J2
+            OPENID_CLIENT_SECRET: 
             OPENID_SESSION_SECRET: "12345"
             OPENID_CALLBACK_URL: /oauth/openid/callback
             OPENID_SCOPE: "openid profile email"
