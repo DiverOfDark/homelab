@@ -124,6 +124,16 @@ resource "cloudflare_record" "records" {
   proxied = true
 }
 
+resource "cloudflare_record" "backup" {
+  name    = yggdrasil
+
+  zone_id = cloudflare_zone.zone.id
+  type    = "CNAME"
+  content = cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.cname
+  ttl     = 1
+  proxied = true
+}
+
 resource "cloudflare_record" "uptime1" {
     name = "uptime"
     zone_id = cloudflare_zone.zone.id
@@ -282,6 +292,13 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes_account" {
   config_src = "cloudflare"
 }
 
+resource "cloudflare_zero_trust_tunnel_cloudflared" "yggdrasil" {
+  account_id = cloudflare_account.account.id
+  name       = "yggdrasil"
+  secret     = base64encode(var.tunnel_secret)
+  config_src = "cloudflare"
+}
+
 resource "cloudflare_zero_trust_tunnel_virtual_network" "kubernetes_virtual_network" {
   account_id         = cloudflare_account.account.id
   name               = "HomeNetwork"
@@ -294,6 +311,25 @@ resource "cloudflare_zero_trust_tunnel_route" "example" {
   network            = "192.168.0.0/16"
   comment            = "HomeNetwork route"
   virtual_network_id = cloudflare_zero_trust_tunnel_virtual_network.kubernetes_virtual_network.id
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "yggdrasil_config" {
+  account_id = cloudflare_account.account.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared_backups.yggdrasil.id
+
+  config {
+    ingress_rule {
+      hostname = "yggdrasil.kirillorlov.pro"
+      service  = "http://127.0.0.1"
+    }
+    ingress_rule {
+      # Respond with a `404` status code when the request does not match any of the previous hostnames.
+      service  = "http_status:404"
+    }
+    warp_routing {
+      enabled = true
+    }
+  }
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_config" {
