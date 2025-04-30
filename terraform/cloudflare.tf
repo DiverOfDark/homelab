@@ -125,7 +125,7 @@ resource "cloudflare_record" "records" {
 }
 
 resource "cloudflare_record" "backup" {
-  name    = yggdrasil
+  name    = "yggdrasil"
 
   zone_id = cloudflare_zone.zone.id
   type    = "CNAME"
@@ -315,7 +315,7 @@ resource "cloudflare_zero_trust_tunnel_route" "example" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "yggdrasil_config" {
   account_id = cloudflare_account.account.id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared_backups.yggdrasil.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.id
 
   config {
     ingress_rule {
