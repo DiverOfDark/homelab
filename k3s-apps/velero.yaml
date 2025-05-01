@@ -1,6 +1,33 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
+  name: "velero-repo-secret"
+  namespace: velero
+spec:
+  secretStoreRef:
+    name: bitwarden-fields
+    kind: ClusterSecretStore  # or ClusterSecretStore
+  refreshInterval: "10s"
+  target:
+    name: velero-repo-credentials
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        repository-password: "{{ .encryption }}"
+  data:
+    - secretKey: encryption
+      remoteRef:
+        key: 583655f6-ce75-43e1-8326-85860d136809
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: encryption
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
   name: "velero-secret"
   namespace: velero
 spec:
@@ -22,7 +49,7 @@ spec:
         SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
         AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
         AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
-        RESTIC_PASSWORD: "static-passw0rd" # TODO default one - to be changed later - https://github.com/vmware-tanzu/velero/blob/main/pkg/repository/keys/keys.go#L57
+        RESTIC_PASSWORD: "{{ .encryption }}"
         SECURITY_PATH_DATABASE: "./data"
         DEFAULT_ADMIN_USERNAME: "admin"
         DEFAULT_ADMIN_PASSWORD: "admin"
@@ -48,6 +75,14 @@ spec:
         decodingStrategy: None
         metadataPolicy: None
         property: security-token
+    - secretKey: encryption
+      remoteRef:
+        key: 583655f6-ce75-43e1-8326-85860d136809
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: encryption
+
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -74,7 +109,7 @@ spec:
             config:
               region: default
               s3ForcePathStyle: true
-              s3Url: http://192.168.178.5:9000/
+              s3Url: https://yggdrasil.kirillorlov.pro/
           volumeSnapshotLocation:
           - name: default
             provider: aws
@@ -82,7 +117,7 @@ spec:
             config:
               region: default
               s3ForcePathStyle: true
-              s3Url: http://192.168.178.5:9000/
+              s3Url: https://yggdrasil.kirillorlov.pro/
           features: EnableCSI
         deployNodeAgent: true
         initContainers:
