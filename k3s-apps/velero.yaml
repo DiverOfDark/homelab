@@ -145,6 +145,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: velero
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        reloader.stakater.com/auto: "true"
     automated:
       prune: true
     syncOptions:
