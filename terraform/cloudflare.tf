@@ -131,7 +131,7 @@ resource "cloudflare_record" "backup" {
   type    = "CNAME"
   content = cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.cname
   ttl     = 1
-  proxied = false
+  proxied = true
 }
 
 resource "cloudflare_record" "uptime1" {
