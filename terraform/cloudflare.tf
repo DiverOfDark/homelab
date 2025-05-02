@@ -134,6 +134,16 @@ resource "cloudflare_record" "backup" {
   proxied = true
 }
 
+resource "cloudflare_record" "backup-s" {
+  name    = "yggdrasil-s"
+
+  zone_id = cloudflare_zone.zone.id
+  type    = "CNAME"
+  content = cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.cname
+  ttl     = 1
+  proxied = true
+}
+
 resource "cloudflare_record" "uptime1" {
     name = "uptime"
     zone_id = cloudflare_zone.zone.id
