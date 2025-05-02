@@ -323,6 +323,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "yggdrasil_config" {
       service  = "http://127.0.0.1"
     }
     ingress_rule {
+      hostname = "yggdrasil-s.kirillorlov.pro"
+      service  = "ssh://127.0.0.1"
+    }
+    ingress_rule {
       # Respond with a `404` status code when the request does not match any of the previous hostnames.
       service  = "http_status:404"
     }
