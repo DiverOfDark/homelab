@@ -135,6 +135,8 @@ spec:
               ttl: "240h" ## choose ttl, after which the backups will be removed.
               snapshotVolumes: true
               defaultVolumesToFsBackup: true
+              uploaderConfig:
+                parallelFilesUpload: 10
               metadata:
                 labels: # reset labels to not show backups in ArgoCD
                   app.kubernetes.io/instance: ""
