@@ -52,21 +52,21 @@ spec:
               name: video
             - name: dri
               mountPath: /dev/dri
-#          livenessProbe:
-#            httpGet:
-#              path: /
-#              port: 32400
-#            initialDelaySeconds: 30
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            successThreshold: 1
-#            failureThreshold: 3
-#          readinessProbe:
-#            httpGet:
-#              path: /
-#              port: 32400
-#            initialDelaySeconds: 10
-#            periodSeconds: 5
-#            timeoutSeconds: 3
-#            successThreshold: 1
-#            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /emby/system/info/public
+              port: 8096
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /emby/system/info/public
+              port: 8096
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3

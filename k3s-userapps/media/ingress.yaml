@@ -140,40 +140,6 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://plex.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Plex
-    gethomepage.dev/icon: plex.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=plex"
-    gethomepage.dev/widget.type: plex
-    gethomepage.dev/widget.url: http://plex.media.svc.cluster.local
-    gethomepage.dev/widget.key: "$PLEX_API_TOKEN$"
-    kirillorlov.pro/annotationsFromSecretName: plex-secret
-  name: plex
-  namespace: media
-spec:
-  rules:
-  - host: plex.kirillorlov.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: plex
-            port:
-              number: 80
-        path: /
-        pathType: Prefix
-  tls:
-  - hosts:
-    - plex.kirillorlov.pro
-    secretName: plex-tls
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://emby.kirillorlov.pro"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Emby
