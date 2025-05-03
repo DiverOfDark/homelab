@@ -4,8 +4,7 @@ metadata:
   name: traefik-dashboard
   namespace: kube-system
   labels:
-    app.kubernetes.io/instance: traefik
-    app.kubernetes.io/name: traefik-dashboard
+    app.kubernetes.io/name: traefik
 spec:
   type: ClusterIP
   ports:
@@ -14,7 +13,6 @@ spec:
     targetPort: traefik
     protocol: TCP
   selector:
-    app.kubernetes.io/instance: traefik-kube-system
     app.kubernetes.io/name: traefik
 ---
 apiVersion: networking.k8s.io/v1
