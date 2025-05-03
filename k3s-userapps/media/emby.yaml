@@ -38,9 +38,9 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: UID
-              value: "1000"
+              value: "0"
             - name: GID
-              value: "100"
+              value: "0"
           ports:
             - containerPort: 8096
               protocol: TCP
