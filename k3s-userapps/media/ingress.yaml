@@ -168,3 +168,33 @@ spec:
     - plex.kirillorlov.pro
     secretName: plex-tls
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://emby.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Emby
+    gethomepage.dev/icon: emby.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=emby"
+  name: emby
+  namespace: media
+spec:
+  rules:
+  - host: emby.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: emby
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - emby.kirillorlov.pro
+    secretName: emby-tls
+---

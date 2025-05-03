@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: plex
+  name: emby
   namespace: media
 spec:
   progressDeadlineSeconds: 600
@@ -11,26 +11,24 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app.kubernetes.io/pod: plex
+      app.kubernetes.io/pod: emby
   template:
     metadata:
       labels:
-        app.kubernetes.io/pod: plex
+        app.kubernetes.io/pod: emby
     spec:
       volumes:
-        - name: plex
+        - name: emby
           persistentVolumeClaim:
-            claimName: plex
+            claimName: emby
         - name: video
           persistentVolumeClaim:
             claimName: video
-        - name: transcode
-          emptyDir: {}
         - name: dri
           hostPath:
             path: /dev/dri
       containers:
-        - image: 'plexinc/pms-docker:1.40.4.8679-424562606'
+        - image: 'emby/embyserver:4.9.0.50'
           imagePullPolicy: IfNotPresent
           name: plex
           envFrom:
@@ -39,14 +37,12 @@ spec:
           env:
             - name: TZ
               value: "Europe/Berlin"
-            - name: PLEX_UID
-              value: "0"
-            - name: PLEX_GID
-              value: "0"
-            - name: ADVERTISE_IP
-              value: "https://plex.kirillorlov.pro"
+            - name: UID
+              value: "1000"
+            - name: GID
+              value: "100"
           ports:
-            - containerPort: 32400
+            - containerPort: 8096
               protocol: TCP
               name: "http"
           volumeMounts:
@@ -58,21 +54,21 @@ spec:
               name: video
             - name: dri
               mountPath: /dev/dri
-          livenessProbe:
-            httpGet:
-              path: /identity
-              port: 32400
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /identity
-              port: 32400
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 3
-            successThreshold: 1
-            failureThreshold: 3
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: 32400
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            successThreshold: 1
+#            failureThreshold: 3
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: 32400
+#            initialDelaySeconds: 10
+#            periodSeconds: 5
+#            timeoutSeconds: 3
+#            successThreshold: 1
+#            failureThreshold: 3

@@ -78,3 +78,19 @@ spec:
     app.kubernetes.io/pod: plex
   type: ClusterIP
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emby
+  namespace: media
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8096
+  selector:
+    app.kubernetes.io/pod: emby
+  type: ClusterIP
+---
