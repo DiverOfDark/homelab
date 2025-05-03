@@ -38,7 +38,7 @@ data:
               type: fritzbox
               url: http://192.168.178.1/
         - Minio:
-            href: https://yggdrasil.kirillorlov.pro/
+            href: https://yggdrasil.kirillorlov.pro/minio/ui/login
             icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/minio.svg
             description: Backup storage
     
