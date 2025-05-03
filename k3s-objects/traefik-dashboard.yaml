@@ -30,7 +30,7 @@ metadata:
     gethomepage.dev/icon: traefik.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
     gethomepage.dev/widget.type: traefik
-    gethomepage.dev/widget.url: http://traefik-dashboard.kube-system.svc.cluster.local:9000
+    gethomepage.dev/widget.url: http://traefik-dashboard.traefik.svc.cluster.local:9000
 spec:
   rules:
     - host: traefik.kirillorlov.pro
