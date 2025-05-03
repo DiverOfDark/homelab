@@ -82,7 +82,58 @@ spec:
         decodingStrategy: None
         metadataPolicy: None
         property: encryption
-
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: minio-monitoring-cluster
+  namespace: velero
+spec:
+  metricsPath: /minio/v2/metrics/cluster
+  staticConfigs:
+    - labels:
+        job: prometheus
+      targets:
+        - yggdrasil.kirillorlov.pro:80
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: minio-monitoring-bucket
+  namespace: velero
+spec:
+  metricsPath: /minio/v2/metrics/bucket
+  staticConfigs:
+    - labels:
+        job: prometheus
+      targets:
+        - yggdrasil.kirillorlov.pro:80
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: minio-monitoring-node
+  namespace: velero
+spec:
+  metricsPath: /minio/v2/metrics/node
+  staticConfigs:
+    - labels:
+        job: prometheus
+      targets:
+        - yggdrasil.kirillorlov.pro:80
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: minio-monitoring-resource
+  namespace: velero
+spec:
+  metricsPath: /minio/v2/metrics/resource
+  staticConfigs:
+    - labels:
+        job: prometheus
+      targets:
+        - yggdrasil.kirillorlov.pro:80
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
