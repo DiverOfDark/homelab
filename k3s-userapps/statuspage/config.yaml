@@ -39,12 +39,12 @@ data:
               url: http://192.168.178.1/
     - 3D Printer:
         - Voron:
-            href: http://voron2.fritz.box/
+            href: http://voron2.kirillorlov.pro/
             icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/voron.svg"
             description: 3d Printer
             widget:
               type: moonraker
-              url: http://voron2.fritz.box
+              url: http://voron2.kirillorlov.pro
         - Knomi:
             href: http://knomi.fritz.box/
             description: Knomi display
