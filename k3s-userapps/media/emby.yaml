@@ -48,8 +48,6 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: emby
-            - mountPath: /transcode
-              name: transcode
             - mountPath: /data
               name: video
             - name: dri
