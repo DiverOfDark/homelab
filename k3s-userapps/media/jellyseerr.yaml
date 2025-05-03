@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: jellyseerr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: jellyseerr
+    spec:
+      volumes:
+        - name: jellyseerr
+          persistentVolumeClaim:
+            claimName: jellyseerr
+      containers:
+        - image: 'ghcr.io/fallenbagel/jellyseerr:2.5.1'
+          imagePullPolicy: IfNotPresent
+          name: jellyseerr
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: PORT
+              value: "80"
+          ports:
+            - containerPort: 80
+              protocol: TCP
+              name: "http"
+          volumeMounts:
+            - mountPath: /app/config
+              name: jellyseerr
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3

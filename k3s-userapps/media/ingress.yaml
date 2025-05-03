@@ -140,6 +140,40 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://jellyseerr.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Jellyseerr
+    gethomepage.dev/icon: jellyseerr.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jellyseerr"
+    gethomepage.dev/widget.type: jellyseerr
+    gethomepage.dev/widget.url: http://jellyseerr.media.svc.cluster.local
+    gethomepage.dev/widget.key: "$JELLYSEERR_TOKEN$"
+    kirillorlov.pro/annotationsFromSecretName: plex-secret
+  name: overseerr
+  namespace: media
+spec:
+  rules:
+  - host: jellyseerr.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: jellyseerr
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - jellyseerr.kirillorlov.pro
+    secretName: jellyseerr-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://emby.kirillorlov.pro"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Emby
