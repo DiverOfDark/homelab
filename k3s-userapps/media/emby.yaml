@@ -30,7 +30,7 @@ spec:
       containers:
         - image: 'emby/embyserver:4.9.0.50'
           imagePullPolicy: IfNotPresent
-          name: plex
+          name: emby
           envFrom:
             - secretRef:
                 name: plex-secret
@@ -47,7 +47,7 @@ spec:
               name: "http"
           volumeMounts:
             - mountPath: /config
-              name: plex
+              name: emby
             - mountPath: /transcode
               name: transcode
             - mountPath: /data
