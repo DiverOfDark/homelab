@@ -48,21 +48,6 @@ kind: PersistentVolumeClaim
 metadata:
   finalizers:
     - kubernetes.io/pvc-protection
-  name: overseerr
-  namespace: media
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Mi
-  storageClassName: "ceph-block"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  finalizers:
-    - kubernetes.io/pvc-protection
   name: jellyseerr
   namespace: media
 spec:

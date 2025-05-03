@@ -106,40 +106,6 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://overseerr.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Overserr
-    gethomepage.dev/icon: overseerr.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=overseerr"
-    gethomepage.dev/widget.type: overseerr
-    gethomepage.dev/widget.url: http://overseerr.media.svc.cluster.local
-    gethomepage.dev/widget.key: "$OVERSEERR_TOKEN$"
-    kirillorlov.pro/annotationsFromSecretName: plex-secret
-  name: overseerr
-  namespace: media
-spec:
-  rules:
-  - host: overseerr.kirillorlov.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: overseerr
-            port:
-              number: 80
-        path: /
-        pathType: Prefix
-  tls:
-  - hosts:
-    - overseerr.kirillorlov.pro
-    secretName: overseerr-tls
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://jellyseerr.kirillorlov.pro"
     gethomepage.dev/group: Media
     gethomepage.dev/name: Jellyseerr
