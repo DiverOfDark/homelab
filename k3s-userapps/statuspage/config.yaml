@@ -37,6 +37,11 @@ data:
             widget:
               type: fritzbox
               url: http://192.168.178.1/
+        - Minio:
+            href: https://yggdrasil.kirillorlov.pro/
+            icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/minio.svg
+            description: Backup storage
+    
     - 3D Printer:
         - Voron:
             href: http://voron2.kirillorlov.pro/
