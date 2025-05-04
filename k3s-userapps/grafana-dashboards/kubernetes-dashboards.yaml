@@ -2,6 +2,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-system-api-server
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
@@ -12,6 +13,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-system-coredns
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
@@ -22,6 +24,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-views-global
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
@@ -32,6 +35,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-views-namespaces
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
@@ -42,6 +46,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-views-nodes
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
@@ -52,6 +57,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: k8s-views-pods
+  namespace: prometheus
 spec:
   instanceSelector:
     matchLabels:
