@@ -24,6 +24,10 @@ spec:
     chart: kube-prometheus-stack
     helm:
       valuesObject:
+        crds:
+          upgradeJob:
+            enabled: true
+
         prometheus-node-exporter:
           tolerations: 
             - key: "weakling"
@@ -63,30 +67,32 @@ spec:
                     requests:
                       storage: 5Gi
         grafana:
-          plugins:
-            - victoriametrics-logs-datasource
-            - victoriametrics-metrics-datasource
-          ingress:
-            enabled: true
-            hosts:
-              - grafana.kirillorlov.pro
-            tls: 
-            - secretName: grafana-secret
-              hosts:
-                - grafana.kirillorlov.pro
-            annotations:
-              cert-manager.io/cluster-issuer: "acme-issuer"
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://grafana.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: Grafana
-              gethomepage.dev/icon: grafana.png
-              gethomepage.dev/pod-selector: "app.kubernetes.io/name=grafana"
-              gethomepage.dev/widget.type: grafana
-              gethomepage.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
-              gethomepage.dev/widget.username: diverofdark
-              gethomepage.dev/widget.password: "$admin-password$"
-              kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
+          enabled: false
+
+          #plugins:
+          #  - victoriametrics-logs-datasource
+          #  - victoriametrics-metrics-datasource
+          #ingress:
+          #  enabled: true
+          #  hosts:
+          #    - grafana.kirillorlov.pro
+          #  tls:
+          #  - secretName: grafana-secret
+          #    hosts:
+          #      - grafana.kirillorlov.pro
+          #  annotations:
+          #    cert-manager.io/cluster-issuer: "acme-issuer"
+          #    gethomepage.dev/enabled: "true"
+          #    gethomepage.dev/href: "https://grafana.kirillorlov.pro"
+          #    gethomepage.dev/group: Cluster Management
+          #    gethomepage.dev/name: Grafana
+          #    gethomepage.dev/icon: grafana.png
+          #    gethomepage.dev/pod-selector: "app.kubernetes.io/name=grafana"
+          #    gethomepage.dev/widget.type: grafana
+          #    gethomepage.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
+          #    gethomepage.dev/widget.username: diverofdark
+          #    gethomepage.dev/widget.password: "$admin-password$"
+          #    kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
         
           persistence:
             enabled: true

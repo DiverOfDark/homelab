@@ -108,6 +108,11 @@ spec:
               redirectURIs:
                   - https://ai.kirillorlov.pro/oauth/openid/callback
               secretEnv: "OAUTH_SECRET"
+            - id: grafana
+              name: Grafana
+              redirectURIs:
+                - https://grafana.kirillorlov.pro/login/generic_oauth
+              secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
             type: kubernetes
