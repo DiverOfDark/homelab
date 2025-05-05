@@ -96,6 +96,19 @@ spec:
       targets:
         - yggdrasil.kirillorlov.pro:80
 ---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: minio-monitoring
+  namespace: velero
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 13502
+---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
