@@ -62,6 +62,41 @@ spec:
         metadataPolicy: None
         property: password
 ---
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: pv-fritz-smb
+  namespace: media
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: fritz-smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1001
+    - gid=1001
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino  # required to prevent data corruption
+  csi:
+    driver: smb.csi.k8s.io
+    # volumeHandle format: {smb-server-address}#{sub-dir-name}#{share-name}
+    # make sure this value is unique for every share in the cluster
+    volumeHandle: 192.168.178.1/fritz.nas##
+    volumeAttributes:
+      source: //192.168.178.1/fritz.nas
+    nodeStageSecretRef:
+      name: fritz-smb-creds
+      namespace: media
+---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -73,5 +108,5 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  volumeName: pvc-fritz-smb
+  volumeName: pv-fritz-smb
   storageClassName: fritz-smb
