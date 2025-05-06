@@ -5,7 +5,7 @@ metadata:
 provisioner: smb.csi.k8s.io
 parameters:
   # On Windows, "*.default.svc.cluster.local" could not be recognized by csi-proxy
-  source: //192.168.178.1/fritz.nas
+  source: //192.168.178.1/fritz.nas/TOSHIBA-HDWD130-01/
   onDelete: retain
   # if csi.storage.k8s.io/provisioner-secret is provided, will create a sub directory
   # with PV name under source
@@ -90,9 +90,9 @@ spec:
     driver: smb.csi.k8s.io
     # volumeHandle format: {smb-server-address}#{sub-dir-name}#{share-name}
     # make sure this value is unique for every share in the cluster
-    volumeHandle: 192.168.178.1/fritz.nas##
+    volumeHandle: 192.168.178.1/fritz.nas/TOSHIBA-HDWD130-01#media#
     volumeAttributes:
-      source: //192.168.178.1/fritz.nas
+      source: //192.168.178.1/fritz.nas/TOSHIBA-HDWD130-01
     nodeStageSecretRef:
       name: fritz-smb-creds
       namespace: media
