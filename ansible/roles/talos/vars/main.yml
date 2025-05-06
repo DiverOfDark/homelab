@@ -5,7 +5,6 @@ talos_manifests:
   - controlplane.yaml
   - worker.yaml
   - talosconfig
-  - master-hyperv.yaml
   - master-jotunheimr.yaml
   - master-niflheimr.yaml
   - master-muspelheimr.yaml
