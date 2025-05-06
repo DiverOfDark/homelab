@@ -74,6 +74,9 @@ spec:
         - name: seedbox
           persistentVolumeClaim:
             claimName: rclone-seedbox
+        - name: video-fritz
+          persistentVolumeClaim:
+            claimName: pvc-fritz-smb
         - name: config
           configMap:
             name: smb-server
@@ -96,6 +99,8 @@ spec:
               name: video
             - mountPath: /storage/seedbox
               name: seedbox
+            - mountPath: /storage/video-fritz
+              name: video-fritz
             - mountPath: /etc/samba/smb.conf
               name: config
               subPath: smb.conf
