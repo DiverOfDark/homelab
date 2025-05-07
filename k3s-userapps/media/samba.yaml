@@ -68,9 +68,6 @@ spec:
         app.kubernetes.io/name: smb-server
     spec:
       volumes:
-        - name: video
-          persistentVolumeClaim:
-            claimName: video
         - name: seedbox
           persistentVolumeClaim:
             claimName: rclone-seedbox
@@ -95,11 +92,9 @@ spec:
             - name: GID
               value: "0"
           volumeMounts:
-            - mountPath: /storage/video
-              name: video
             - mountPath: /storage/seedbox
               name: seedbox
-            - mountPath: /storage/video-fritz
+            - mountPath: /storage/video
               name: video-fritz
             - mountPath: /etc/samba/smb.conf
               name: config
