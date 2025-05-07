@@ -21,9 +21,6 @@ spec:
         - name: sonarr
           persistentVolumeClaim:
             claimName: sonarr
-        - name: media
-          persistentVolumeClaim:
-            claimName: video
         - name: video-fritz
           persistentVolumeClaim:
             claimName: pvc-fritz-smb
@@ -53,8 +50,6 @@ spec:
             - mountPath: /downloads
               name: downloads
             - mountPath: /media
-              name: media
-            - mountPath: /data-fritz
               name: video-fritz
           livenessProbe:
             httpGet:

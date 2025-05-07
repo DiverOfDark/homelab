@@ -21,9 +21,6 @@ spec:
         - name: emby
           persistentVolumeClaim:
             claimName: emby
-        - name: video
-          persistentVolumeClaim:
-            claimName: video
         - name: video-fritz
           persistentVolumeClaim:
             claimName: pvc-fritz-smb
@@ -52,8 +49,6 @@ spec:
             - mountPath: /config
               name: emby
             - mountPath: /data
-              name: video
-            - mountPath: /data-fritz
               name: video-fritz
             - name: dri
               mountPath: /dev/dri
