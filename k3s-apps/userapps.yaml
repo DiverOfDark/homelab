@@ -31,9 +31,10 @@ spec:
             - .metadata.annotations."gethomepage.dev/widget.accountid"
             - .metadata.annotations."gethomepage.dev/widget.key"
             - .metadata.annotations."gethomepage.dev/widget.tunnelid"
-            - .metadata.annotations."gethomepage.dev/widget.key"
           kind: Ingress
       syncPolicy:
+        automated:
+          prune: true
         syncOptions:
         - PruneLast=true
         - ServerSideApply=true
