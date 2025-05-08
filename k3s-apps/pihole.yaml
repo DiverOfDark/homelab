@@ -20,6 +20,9 @@ spec:
         DNS1: "8.8.8.8"
         DNS2: "1.1.1.1"        
         replicaCount: 1
+        dnsmasq:
+          customSettings:
+            filter-AAAA
         antiaff:
           enabled: true
           avoidRelease: pihole-dr
@@ -167,6 +170,9 @@ spec:
         DNS1: "8.8.8.8"
         DNS2: "1.1.1.1"        
         replicaCount: 1
+        dnsmasq:
+          customSettings:
+            filter-AAAA
         antiaff:
           enabled: true
           avoidRelease: pihole
