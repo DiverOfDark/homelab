@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: actualbudget
   namespace: actualbudget
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:
@@ -19,6 +20,7 @@ kind: Service
 metadata:
   name: actualbudget-api
   namespace: actualbudget
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:

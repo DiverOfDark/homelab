@@ -5,6 +5,7 @@ metadata:
     - kubernetes.io/pvc-protection
   name: actualbudget
   namespace: actualbudget
+  labels: {}
 spec:
   accessModes:
     - ReadWriteOnce

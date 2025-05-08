@@ -11,6 +11,7 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/name=actualbudget"
   name: actualbudget
   namespace: actualbudget
+  labels: {}
 spec:
   rules:
   - host: money.kirillorlov.pro
