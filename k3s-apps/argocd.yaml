@@ -73,9 +73,7 @@ spec:
                 accounts.readonly: apiKey
                 resource.customizations.ignoreDifferences.all: |
                   jqPathExpressions:
-                    - '.metadata.labels."velero.io/backup-name"'
-                    - '.metadata.labels."velero.io/restore-name"'
-                    - '.metadata.labels."argocd.argoproj.io/instance"'
+                    - '.metadata.labels'
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
