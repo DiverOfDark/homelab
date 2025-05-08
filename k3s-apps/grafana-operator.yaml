@@ -164,7 +164,7 @@ spec:
                 access: "proxy"
                 type: prometheus
                 name: Prometheus
-                isDefault: "true"
+                isDefault: true
                 url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
               instanceSelector:
                 matchLabels:
