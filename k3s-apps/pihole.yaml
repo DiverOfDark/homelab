@@ -22,7 +22,7 @@ spec:
         replicaCount: 1
         dnsmasq:
           customSettings:
-            filter-AAAA
+            - filter-AAAA
         antiaff:
           enabled: true
           avoidRelease: pihole-dr
@@ -172,7 +172,7 @@ spec:
         replicaCount: 1
         dnsmasq:
           customSettings:
-            filter-AAAA
+            - filter-AAAA
         antiaff:
           enabled: true
           avoidRelease: pihole
