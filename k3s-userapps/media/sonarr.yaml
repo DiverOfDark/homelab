@@ -24,9 +24,6 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: video
-        - name: video-fritz
-          persistentVolumeClaim:
-            claimName: pvc-fritz-smb
         - name: downloads
           persistentVolumeClaim:
             claimName: rclone-seedbox
@@ -54,8 +51,6 @@ spec:
               name: downloads
             - mountPath: /media
               name: media
-            - mountPath: /data-fritz
-              name: video-fritz
           livenessProbe:
             httpGet:
               path: /

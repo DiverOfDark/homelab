@@ -27,9 +27,6 @@ spec:
         - name: downloads
           persistentVolumeClaim:
             claimName: rclone-seedbox
-        - name: video-fritz
-          persistentVolumeClaim:
-            claimName: pvc-fritz-smb
       containers:
         - image: 'linuxserver/radarr:5.22.4'
           imagePullPolicy: IfNotPresent
@@ -54,8 +51,6 @@ spec:
               name: downloads
             - mountPath: /media
               name: media
-            - mountPath: /data-fritz
-              name: video-fritz
           livenessProbe:
             httpGet:
               path: /

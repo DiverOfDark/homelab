@@ -24,9 +24,6 @@ spec:
         - name: video
           persistentVolumeClaim:
             claimName: video
-        - name: video-fritz
-          persistentVolumeClaim:
-            claimName: pvc-fritz-smb
         - name: dri
           hostPath:
             path: /dev/dri
@@ -53,8 +50,6 @@ spec:
               name: emby
             - mountPath: /data
               name: video
-            - mountPath: /data-fritz
-              name: video-fritz
             - name: dri
               mountPath: /dev/dri
           livenessProbe:
