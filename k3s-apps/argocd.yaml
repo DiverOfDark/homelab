@@ -70,6 +70,10 @@ spec:
               cm:
                 exec.enabled: true
                 accounts.readonly: apiKey
+                resource.customizations.ignoreDifferences.all: |
+                  jqPathExpressions:
+                    - '.metadata.labels."velero.io/backup-name"'
+                    - '.metadata.labels."velero.io/restore-name"'
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
