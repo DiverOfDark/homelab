@@ -23,7 +23,7 @@ spec:
           persistentVolumeClaim:
             claimName: paperless
       containers:
-        - image: 'docker.io/library/redis:8'
+        - image: 'docker.io/library/redis:7'
           name: redis
           ports:
             - containerPort: 6379
@@ -48,7 +48,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 15
         - image: 'ghcr.io/paperless-ngx/paperless-ngx:2.15.3'
           name: paperless
           ports:
@@ -92,7 +92,7 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 15
           readinessProbe:
             httpGet:
               path: /
