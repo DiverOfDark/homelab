@@ -116,6 +116,9 @@ spec:
       dashboards: "grafana"
   grafanaCom:
     id: 13502
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: prometheus
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -298,28 +301,28 @@ spec:
             - hosts:
                 - velero.kirillorlov.pro
               secretName: velero-tls
-          env:
-            - name: OAUTH_AUTH_ENABLED
-              value: "true"
-            - name: OAUTH_NAME
-              value: "Homelab"
-            - name: OAUTH_AUTHORIZATION_URL
-              value: "https://dex.kirillorlov.pro/auth"
-            - name: OAUTH_USER_INFO_URL
-              value: "https://dex.kirillorlov.pro/userinfo"
-            - name: OAUTH_TOKEN_URL
-              value: "https://dex.kirillorlov.pro/token"
-            - name: OAUTH_CLIENT_ID
-              value: "velero"
-            - name: OAUTH_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: velero-credentials
-                  key: OAUTH_KEY
-            - name: OAUTH_OAUTH_SCOPE
-              value: "openid email groups profile offline_access"
-            - name: OAUTH_REDIRECT_URI
-              value: "https://velero.kirillorlov.pro/login"
+        env:
+          - name: OAUTH_AUTH_ENABLED
+            value: "true"
+          - name: OAUTH_NAME
+            value: "Homelab"
+          - name: OAUTH_AUTHORIZATION_URL
+            value: "https://dex.kirillorlov.pro/auth"
+          - name: OAUTH_USER_INFO_URL
+            value: "https://dex.kirillorlov.pro/userinfo"
+          - name: OAUTH_TOKEN_URL
+            value: "https://dex.kirillorlov.pro/token"
+          - name: OAUTH_CLIENT_ID
+            value: "velero"
+          - name: OAUTH_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: velero-credentials
+                key: OAUTH_KEY
+          - name: OAUTH_OAUTH_SCOPE
+            value: "openid email groups profile offline_access"
+          - name: OAUTH_REDIRECT_URI
+            value: "https://velero.kirillorlov.pro/login"
 
   destination:
     server: https://kubernetes.default.svc
