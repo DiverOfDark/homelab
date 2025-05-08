@@ -1,198 +1,3 @@
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: "velero-repo-secret"
-  namespace: velero
-spec:
-  secretStoreRef:
-    name: bitwarden-fields
-    kind: ClusterSecretStore  # or ClusterSecretStore
-  refreshInterval: "10s"
-  target:
-    name: velero-repo-credentials
-    creationPolicy: 'Owner'
-    deletionPolicy: "Retain"
-    template:
-      type: Opaque
-      data:
-        repository-password: "{{ .encryption }}"
-  data:
-    - secretKey: encryption
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: encryption
----
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: "velero-secret"
-  namespace: velero
-spec:
-  secretStoreRef:
-    name: bitwarden-fields
-    kind: ClusterSecretStore  # or ClusterSecretStore
-  refreshInterval: "10s"
-  target:
-    name: velero-credentials
-    creationPolicy: 'Owner'
-    deletionPolicy: "Retain"
-    template:
-      type: Opaque
-      data:
-        cloud: |
-          [default]
-          aws_access_key_id="{{ .archer_s3_access_key }}"
-          aws_secret_access_key="{{ .archer_s3_secret_key }}"
-        SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
-        AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
-        AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
-        RESTIC_PASSWORD: "{{ .encryption }}"
-        OAUTH_KEY: "{{ .password }}"
-        SECURITY_PATH_DATABASE: "./data"
-        DEFAULT_ADMIN_USERNAME: "admin"
-        DEFAULT_ADMIN_PASSWORD: "admin"
-  data:
-    - secretKey: password
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: oauth
-    - secretKey: archer_s3_access_key
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: access
-    - secretKey: archer_s3_secret_key
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: secret
-    - secretKey: velero_ui_security_token_key
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: security-token
-    - secretKey: encryption
-      remoteRef:
-        key: 583655f6-ce75-43e1-8326-85860d136809
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: encryption
----
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: minio-monitoring-cluster
-  namespace: velero
-spec:
-  metricsPath: /minio/v2/metrics/cluster
-  staticConfigs:
-    - labels:
-        job: prometheus
-      targets:
-        - yggdrasil.kirillorlov.pro:80
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDashboard
-metadata:
-  name: minio-monitoring
-  namespace: velero
-spec:
-  allowCrossNamespaceImport: true
-  instanceSelector:
-    matchLabels:
-      dashboards: "grafana"
-  grafanaCom:
-    id: 13502
-  datasources:
-    - inputName: DS_PROMETHEUS
-      datasourceName: Prometheus
----
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: minio-monitoring-bucket
-  namespace: velero
-spec:
-  metricsPath: /minio/v2/metrics/bucket
-  staticConfigs:
-    - labels:
-        job: prometheus
-      targets:
-        - yggdrasil.kirillorlov.pro:80
----
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: minio-monitoring-node
-  namespace: velero
-spec:
-  metricsPath: /minio/v2/metrics/node
-  staticConfigs:
-    - labels:
-        job: prometheus
-      targets:
-        - yggdrasil.kirillorlov.pro:80
----
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: minio-monitoring-resource
-  namespace: velero
-spec:
-  metricsPath: /minio/v2/metrics/resource
-  staticConfigs:
-    - labels:
-        job: prometheus
-      targets:
-        - yggdrasil.kirillorlov.pro:80
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: resource-policy-configmap
-  namespace: velero
-data:
-  resource-policy.yaml: |
-    # currently only supports v1 version
-    version: v1
-    volumePolicies:
-    - conditions:
-        pvcLabels:
-          velero.io/exclude-from-backup: "true"
-      action:
-        type: skip
-    - conditions:
-        # nfs could be empty which matches any nfs volume source
-        nfs: {}
-      action:
-        type: skip
-    - conditions:
-        # csi could be empty which matches any csi volume source
-        csi: {}
-      action:
-        type: snapshot
-    - conditions:
-        volumeTypes:
-          - emptyDir
-          - downwardAPI
-          - configmap
-          - cinder
-      action:
-        type: skip
----
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -206,11 +11,201 @@ spec:
     targetRevision: 9.1.0
     helm:
       valuesObject:
+        extraObjects:
+          - apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: resource-policy-configmap
+              namespace: velero
+            data:
+              resource-policy.yaml: |
+                # currently only supports v1 version
+                version: v1
+                volumePolicies:
+                - conditions:
+                    pvcLabels:
+                      velero.io/exclude-from-backup: "true"
+                  action:
+                    type: skip
+                - conditions:
+                    # nfs could be empty which matches any nfs volume source
+                    nfs: {}
+                  action:
+                    type: skip
+                - conditions:
+                    # csi could be empty which matches any csi volume source
+                    csi: {}
+                  action:
+                    type: snapshot
+                - conditions:
+                    volumeTypes:
+                      - emptyDir
+                      - downwardAPI
+                      - configmap
+                      - cinder
+                  action:
+                    type: skip
+
+          - apiVersion: external-secrets.io/v1beta1
+            kind: ExternalSecret
+            metadata:
+              name: "velero-repo-secret"
+              namespace: velero
+            spec:
+              secretStoreRef:
+                name: bitwarden-fields
+                kind: ClusterSecretStore  # or ClusterSecretStore
+              refreshInterval: "10s"
+              target:
+                name: velero-repo-credentials
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    repository-password: "{{ .encryption }}"
+              data:
+                - secretKey: encryption
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: encryption
+          - apiVersion: external-secrets.io/v1beta1
+            kind: ExternalSecret
+            metadata:
+              name: "velero-secret"
+              namespace: velero
+            spec:
+              secretStoreRef:
+                name: bitwarden-fields
+                kind: ClusterSecretStore  # or ClusterSecretStore
+              refreshInterval: "10s"
+              target:
+                name: velero-credentials
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    cloud: |
+                      [default]
+                      aws_access_key_id="{{ .archer_s3_access_key }}"
+                      aws_secret_access_key="{{ .archer_s3_secret_key }}"
+                    SECURITY_TOKEN_KEY: "{{ .velero_ui_security_token_key }}"
+                    AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
+                    AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
+                    RESTIC_PASSWORD: "{{ .encryption }}"
+                    OAUTH_KEY: "{{ .password }}"
+                    SECURITY_PATH_DATABASE: "./data"
+                    DEFAULT_ADMIN_USERNAME: "admin"
+                    DEFAULT_ADMIN_PASSWORD: "admin"
+              data:
+                - secretKey: password
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: oauth
+                - secretKey: archer_s3_access_key
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: access
+                - secretKey: archer_s3_secret_key
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: secret
+                - secretKey: velero_ui_security_token_key
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: security-token
+                - secretKey: encryption
+                  remoteRef:
+                    key: 583655f6-ce75-43e1-8326-85860d136809
+                    conversionStrategy: Default
+                    decodingStrategy: None
+                    metadataPolicy: None
+                    property: encryption
+          - apiVersion: monitoring.coreos.com/v1alpha1
+            kind: ScrapeConfig
+            metadata:
+              name: minio-monitoring-cluster
+              namespace: velero
+            spec:
+              metricsPath: /minio/v2/metrics/cluster
+              staticConfigs:
+                - labels:
+                    job: prometheus
+                  targets:
+                    - yggdrasil.kirillorlov.pro:80
+          - apiVersion: grafana.integreatly.org/v1beta1
+            kind: GrafanaDashboard
+            metadata:
+              name: minio-monitoring
+              namespace: velero
+            spec:
+              allowCrossNamespaceImport: true
+              instanceSelector:
+                matchLabels:
+                  dashboards: "grafana"
+              grafanaCom:
+                id: 13502
+              datasources:
+                - inputName: DS_PROMETHEUS
+                  datasourceName: Prometheus
+          - apiVersion: monitoring.coreos.com/v1alpha1
+            kind: ScrapeConfig
+            metadata:
+              name: minio-monitoring-bucket
+              namespace: velero
+            spec:
+              metricsPath: /minio/v2/metrics/bucket
+              staticConfigs:
+                - labels:
+                    job: prometheus
+                  targets:
+                    - yggdrasil.kirillorlov.pro:80
+          - apiVersion: monitoring.coreos.com/v1alpha1
+            kind: ScrapeConfig
+            metadata:
+              name: minio-monitoring-node
+              namespace: velero
+            spec:
+              metricsPath: /minio/v2/metrics/node
+              staticConfigs:
+                - labels:
+                    job: prometheus
+                  targets:
+                    - yggdrasil.kirillorlov.pro:80
+          - apiVersion: monitoring.coreos.com/v1alpha1
+            kind: ScrapeConfig
+            metadata:
+              name: minio-monitoring-resource
+              namespace: velero
+            spec:
+              metricsPath: /minio/v2/metrics/resource
+              staticConfigs:
+                - labels:
+                    job: prometheus
+                  targets:
+                    - yggdrasil.kirillorlov.pro:80
         credentials:
           useSecret: true
           existingSecret: velero-credentials
 
         configuration:
+          itemBlockWorkerCount: 2
           backupStorageLocation:
           - name: default
             provider: aws
