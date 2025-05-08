@@ -70,9 +70,6 @@ spec:
               cm:
                 exec.enabled: true
                 accounts.readonly: apiKey
-                resource.customizations.ignoreDifferences.all: |
-                  jqPathExpressions:
-                    - '.metadata.labels'
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
