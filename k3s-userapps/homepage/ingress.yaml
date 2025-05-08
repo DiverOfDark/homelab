@@ -8,6 +8,7 @@ metadata:
     gethomepage.dev/group: Apps
     gethomepage.dev/name: Public Homepage
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=homepage"
+  labels: {}
   name: homepage
   namespace: nextcloud
 spec:
