@@ -3,6 +3,7 @@ kind: ExternalSecret
 metadata:
   name: "openai-secret"
   namespace: librechat
+  labels: {}
 spec:
   secretStoreRef:
     name: bitwarden-fields
