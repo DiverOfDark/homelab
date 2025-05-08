@@ -64,7 +64,6 @@ spec:
         
             configs:
               params:
-                controller.diff.server.side: "true"
                 server.insecure: true
               rbac:
                 policy.csv: "g, readonly, role:readonly"
