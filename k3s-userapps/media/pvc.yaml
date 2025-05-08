@@ -72,3 +72,20 @@ spec:
     requests:
       storage: 500Mi
   storageClassName: "ceph-block"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  finalizers:
+    - kubernetes.io/pvc-protection
+  name: video
+  namespace: media
+  labels:
+    velero.io/exclude-from-backup: "true"
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 400Gi
+  storageClassName: "ceph-filesystem"
