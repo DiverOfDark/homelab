@@ -33,11 +33,6 @@ spec:
                   action:
                     type: skip
                 - conditions:
-                    # csi could be empty which matches any csi volume source
-                    csi: {}
-                  action:
-                    type: snapshot
-                - conditions:
                     volumeTypes:
                       - emptyDir
                       - downwardAPI
