@@ -63,7 +63,7 @@ spec:
                 template:
                   type: Opaque
                   data:
-                    repository-password: "{{`{{ .encryption }}`}}"
+                    repository-password: "{{`{{`{{ .encryption }}`}}`}}"
               data:
                 - secretKey: encryption
                   remoteRef:
