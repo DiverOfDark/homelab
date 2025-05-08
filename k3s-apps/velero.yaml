@@ -50,10 +50,18 @@ spec:
         AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
         AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
         RESTIC_PASSWORD: "{{ .encryption }}"
+        OAUTH_KEY: {{ .password }}
         SECURITY_PATH_DATABASE: "./data"
         DEFAULT_ADMIN_USERNAME: "admin"
         DEFAULT_ADMIN_PASSWORD: "admin"
   data:
+    - secretKey: password
+      remoteRef:
+        key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: access
     - secretKey: archer_s3_access_key
       remoteRef:
         key: 583655f6-ce75-43e1-8326-85860d136809
@@ -266,37 +274,52 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://seriohub.github.io/velero-helm/
-    chart: vui
-    targetRevision: 1.0.0
+    repoURL: https://helm.otwld.com/
+    chart: velero-ui
+    targetRevision: 0.10.0
     helm:
       valuesObject:
-        global:
-          veleroNamespace: velero
-          clusterName: homelab
-        apiConfig:
-          inspectBackupEnabled: "true"
-          existingSecret: velero-credentials
-          storage:
-            enabled: true
-            storageClassName: ceph-filesystem
-        uiConfig:
-          nextPublicVeleroApiUrl: https://velero.kirillorlov.pro
-          nextPublicVeleroApiWs: wss://velero.kirillorlov.pro
-        uiNp:
-          enabled: false
-        uiIngress:
+        configuration:
+          general:
+            grafanaUrl: https://grafana.kirillorlov.pro/
+            secretPassPhrase:
+              existingSecret: velero-credentials
+        ingress:
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
           enabled: true
           ingressClassName: traefik
-          host: velero.kirillorlov.pro
-          metadata:
-            annotations:
-              cert-manager.io/cluster-issuer: acme-issuer
-          spec:
-            tls:
-              - hosts:
-                  - velero.kirillorlov.pro
-                secretName: velero-tls
+          hosts:
+            - host: velero.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - velero.kirillorlov.pro
+              secretName: velero-tls
+          env:
+            - name: OAUTH_AUTH_ENABLED
+              value: "true"
+            - name: OAUTH_NAME
+              value: "Homelab"
+            - name: OAUTH_AUTHORIZATION_URL
+              value: "https://dex.kirillorlov.pro/auth"
+            - name: OAUTH_USER_INFO_URL
+              value: "https://dex.kirillorlov.pro/userinfo"
+            - name: OAUTH_TOKEN_URL
+              value: "https://dex.kirillorlov.pro/token"
+            - name: OAUTH_CLIENT_ID
+              value: "velero"
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: velero-credentials
+                  key: OAUTH_KEY
+            - name: OAUTH_OAUTH_SCOPE
+              value: "openid email groups profile offline_access"
+            - name: OAUTH_REDIRECT_URI
+              value: "https://velero.kirillorlov.pro/login"
 
   destination:
     server: https://kubernetes.default.svc

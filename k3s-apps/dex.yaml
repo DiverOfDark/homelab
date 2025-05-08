@@ -113,6 +113,11 @@ spec:
               redirectURIs:
                 - https://grafana.kirillorlov.pro/login/generic_oauth
               secretEnv: "OAUTH_SECRET"
+            - id: velero
+              name: Velero
+              redirectURIs:
+                - https://velero.kirillorlov.pro/login
+              secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
             type: kubernetes
