@@ -75,6 +75,7 @@ spec:
                   jqPathExpressions:
                     - '.metadata.labels."velero.io/backup-name"'
                     - '.metadata.labels."velero.io/restore-name"'
+                    - '.metadata.labels."argocd.argoproj.io/instance"'
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
