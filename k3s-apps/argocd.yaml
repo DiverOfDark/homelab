@@ -79,7 +79,6 @@ spec:
                     - '.spec.volumeName'
                     - '.metadata.finalizers'
                     - '.metadata.annotations'
-                    - '.metadata.labels."recurring-job-group.longhorn.io/default"'
                 resource.customizations.ignoreDifferences.admissionregistration.k8s.io_MutatingWebhookConfiguration: |
                   jqPathExpressions:
                     - '.webhooks[]?.clientConfig.caBundle'
