@@ -1,12 +1,12 @@
-- name: Ensure /tmp/talosctl of correct version
+- name: Ensure talosctl of correct version
   block: 
-  - name: Check if /tmp/talosctl exists
+  - name: Check if talosctl exists
     ansible.builtin.stat:
-      path: "/tmp/talosctl"
+      path: "{{ working_dir }}/talosctl"
     register: talosctl_stat
 
   - name: Get Talos CLI version if binary exists
-    ansible.builtin.command: "/tmp/talosctl version --client"
+    ansible.builtin.command: "{{ working_dir }}/talosctl version --client"
     register: talosctl_version_output
     when: talosctl_stat.stat.exists
     changed_when: false
@@ -22,25 +22,25 @@
     ansible.builtin.get_url:
       url: "https://github.com/siderolabs/talos/releases/download/{{ talosctl_version }}/talosctl-linux-amd64"
       force: yes
-      dest: "/tmp/talosctl"
+      dest: "{{ working_dir }}/talosctl"
       mode: '0755'
     when: not talosctl_stat.stat.exists or installed_talosctl_version != talosctl_version
 
-- name: Ensure /tmp/talos-manifests/ exists
+- name: Ensure talos-manifests/ exists
   ansible.builtin.file:
-    path: "/tmp/talos-manifests/"
+    path: "{{ working_dir }}/talos-manifests/"
     state: directory
     mode: "0755"
 
 - name: Template manifests
   ansible.builtin.template:
     src: "installer-customization.yaml"
-    dest: "/tmp/talos-manifests/installer-customization.yaml"
+    dest: "{{ working_dir }}/talos-manifests/installer-customization.yaml"
     mode: "0644"
   
 - name: Post installer-customization.yaml to Talos factory schematics
   ansible.builtin.command:
-    cmd: "curl -X POST --data-binary @/tmp/talos-manifests/installer-customization.yaml https://factory.talos.dev/schematics"
+    cmd: "curl -X POST --data-binary @{{ working_dir }}/talos-manifests/installer-customization.yaml https://factory.talos.dev/schematics"
   register: talos_factory_output
 
 - name: Save Talos factory output ID to a variable
@@ -50,18 +50,18 @@
 - name: Template manifests
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "/tmp/talos-manifests/{{ item }}"
+    dest: "{{ working_dir }}/talos-manifests/{{ item }}"
     mode: "0644"
   loop: "{{ talos_manifests }}"
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-jotunheimr.yaml --output /tmp/talos-manifests/master-jotunheimr-full.yaml
+  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/controlplane.yaml --patch @{{ working_dir }}/talos-manifests/master-jotunheimr.yaml --output {{ working_dir }}/talos-manifests/master-jotunheimr-full.yaml"
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-niflheimr.yaml --output /tmp/talos-manifests/master-niflheimr-full.yaml
+  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/controlplane.yaml --patch @{{ working_dir }}/talos-manifests/master-niflheimr.yaml --output {{ working_dir }}/talos-manifests/master-niflheimr-full.yaml"
 
 - name: Template hosts
-  ansible.builtin.command: /tmp/talosctl machineconfig patch /tmp/talos-manifests/controlplane.yaml --patch @/tmp/talos-manifests/master-muspelheimr.yaml --output /tmp/talos-manifests/master-muspelheimr-full.yaml
+  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/controlplane.yaml --patch @{{ working_dir }}/talos-manifests/master-muspelheimr.yaml --output {{ working_dir }}/talos-manifests/master-muspelheimr-full.yaml"
 
 ## todo -> for each node -> get current talos version and upgrade if needed, e.g.
 # talosctl upgrade --nodes 10.20.30.40 --image ghcr.io/siderolabs/installer:v1.9.2
