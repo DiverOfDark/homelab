@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: jackett
   namespace: media
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:
@@ -19,6 +20,7 @@ kind: Service
 metadata:
   name: radarr
   namespace: media
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:
@@ -35,6 +37,7 @@ kind: Service
 metadata:
   name: sonarr
   namespace: media
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:
@@ -51,6 +54,7 @@ kind: Service
 metadata:
   name: jellyseerr
   namespace: media
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:
@@ -67,6 +71,7 @@ kind: Service
 metadata:
   name: emby
   namespace: media
+  labels: {}
 spec:
   internalTrafficPolicy: Cluster
   ports:

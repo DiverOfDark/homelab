@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: jackett
   namespace: media
+  labels: {}
 spec:
   progressDeadlineSeconds: 600
   strategy:

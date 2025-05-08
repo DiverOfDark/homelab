@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: smb-server
   namespace: media
+  labels: {}
 data:
   users.conf: |
     #username:UID:groupname:GID:password:homedir
@@ -50,6 +51,7 @@ apiVersion: apps/v1
 metadata:
   name: smb-server
   namespace: media
+  labels: {}
   annotations:
     reloader.stakater.com/auto: "true"
 spec:

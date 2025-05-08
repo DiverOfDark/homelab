@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: jellyseerr
   namespace: media
+  labels: {}
 spec:
   progressDeadlineSeconds: 600
   strategy:

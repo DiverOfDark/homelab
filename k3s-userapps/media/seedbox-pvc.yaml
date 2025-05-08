@@ -22,6 +22,7 @@ kind: PersistentVolumeClaim
 metadata:
   namespace: media
   name: rclone-seedbox
+  labels: {}
 spec:
   accessModes:
     - ReadWriteMany
