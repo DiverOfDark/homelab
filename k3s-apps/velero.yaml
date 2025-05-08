@@ -118,7 +118,7 @@ spec:
     id: 13502
   datasources:
     - inputName: DS_PROMETHEUS
-      datasourceName: prometheus
+      datasourceName: Prometheus
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
