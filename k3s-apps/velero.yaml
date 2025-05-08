@@ -50,7 +50,7 @@ spec:
         AWS_ACCESS_KEY_ID: "{{ .archer_s3_access_key }}"
         AWS_SECRET_ACCESS_KEY: "{{ .archer_s3_secret_key }}"
         RESTIC_PASSWORD: "{{ .encryption }}"
-        OAUTH_KEY: {{ .password }}
+        OAUTH_KEY: "{{ .password }}"
         SECURITY_PATH_DATABASE: "./data"
         DEFAULT_ADMIN_USERNAME: "admin"
         DEFAULT_ADMIN_PASSWORD: "admin"
