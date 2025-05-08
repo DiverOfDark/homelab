@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: actualbudget
   namespace: actualbudget
-  labels: {}
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -58,7 +57,6 @@ kind: Deployment
 metadata:
   name: actualbudget-api
   namespace: actualbudget
-  labels: {}
 spec:
   progressDeadlineSeconds: 600
   replicas: 1

@@ -11,7 +11,6 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jackett"
     gethomepage.dev/widget.type: "jackett"
     gethomepage.dev/widget.url: "http://jackett.media.svc.cluster.local"
-  labels: {}
   name: jackett
   namespace: media
 spec:
@@ -47,7 +46,6 @@ metadata:
     gethomepage.dev/widget.key: "$RADARR_API_KEY$"
     gethomepage.dev/widget.enableQueue: "true" # optional, defaults to false
     kirillorlov.pro/annotationsFromSecretName: plex-secret
-  labels: {}
   name: radarr
   namespace: media
 spec:
@@ -83,7 +81,6 @@ metadata:
     gethomepage.dev/widget.key: "$SONARR_API_KEY$"
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
     kirillorlov.pro/annotationsFromSecretName: plex-secret
-  labels: {}
   name: sonarr
   namespace: media
 spec:
@@ -118,7 +115,6 @@ metadata:
     gethomepage.dev/widget.url: http://jellyseerr.media.svc.cluster.local
     gethomepage.dev/widget.key: "$JELLYSEERR_TOKEN$"
     kirillorlov.pro/annotationsFromSecretName: plex-secret
-  labels: {}
   name: jellyseerr
   namespace: media
 spec:
@@ -149,7 +145,6 @@ metadata:
     gethomepage.dev/name: Emby
     gethomepage.dev/icon: emby.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=emby"
-  labels: {}
   name: emby
   namespace: media
 spec:

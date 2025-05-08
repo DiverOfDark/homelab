@@ -2,7 +2,6 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: fritz-smb
-  labels: {}
 provisioner: smb.csi.k8s.io
 parameters:
   # On Windows, "*.default.svc.cluster.local" could not be recognized by csi-proxy
@@ -31,7 +30,6 @@ kind: ExternalSecret
 metadata:
   name: fritz-smb-creds
   namespace: media
-  labels: {}
 spec:
   secretStoreRef:
     name: bitwarden-login
@@ -72,7 +70,6 @@ metadata:
     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
   name: pv-fritz-smb
   namespace: media
-  labels: {}
 spec:
   capacity:
     storage: 1Gi
@@ -105,7 +102,6 @@ apiVersion: v1
 metadata:
   name: pvc-fritz-smb
   namespace: media
-  labels: {}
 spec:
   accessModes:
     - ReadWriteMany
