@@ -23,7 +23,7 @@ spec:
           persistentVolumeClaim:
             claimName: actualbudget
       containers:
-        - image: 'actualbudget/actual-server:25.4.0'
+        - image: 'actualbudget/actual-server:25.5.0'
           imagePullPolicy: IfNotPresent
           name: actualbudget
           ports:
