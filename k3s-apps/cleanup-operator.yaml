@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cleanup-operator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.lwolf.org/
+    chart: kube-cleanup-operator
+    targetRevision: 1.0.4
+    helm:
+      valuesObject:
+        rbac:
+          create: true
+          global: true
+        args:
+          - --delete-successful-after=5m
+          - --delete-failed-after=120m
+          - --delete-pending-pods-after=60m
+          - --delete-evicted-pods-after=60m
+          - --delete-orphaned-pods-after=60m
+          - --legacy-mode=false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-cleanup-operator
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
