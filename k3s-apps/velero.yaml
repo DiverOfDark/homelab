@@ -269,7 +269,7 @@ spec:
   source:
     repoURL: https://helm.otwld.com/
     chart: velero-ui
-    targetRevision: 0.10.0
+    targetRevision: 0.11.1
     helm:
       valuesObject:
         configuration:
