@@ -12,7 +12,6 @@ spec:
       labels:
         app.kubernetes.io/name: unbound
     spec:
-      serviceAccountName: {{ include "unbound-chart.serviceAccountName" . }}
       containers:
         - name: unbound
           image: "klutchell/unbound:1.13.1"
