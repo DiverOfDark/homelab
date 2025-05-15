@@ -1,3 +1,32 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: "oauth-secret"
+  namespace: argocd
+spec:
+  secretStoreRef:
+    name: bitwarden-login
+    kind: ClusterSecretStore  # or ClusterSecretStore
+
+  refreshInterval: "10s"
+
+  target:
+    name: google-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        password: "{{ .userPassword }}"
+  data:
+    - secretKey: userPassword
+      remoteRef:
+        key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: password
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -72,7 +101,7 @@ spec:
                   name: Homelab
                   issuer: https://dex.kirillorlov.pro
                   clientId: argocd
-                  clientSecret: $argocd-initial-admin-secret:password
+                  clientSecret: $oauth-secret:password
                   requestedScopes: ["openid", "profile", "email", "groups"]
 
                 exec.enabled: true
