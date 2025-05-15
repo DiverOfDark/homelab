@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: unbound
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 2
   selector:
@@ -13,6 +15,13 @@ spec:
         app.kubernetes.io/name: unbound
     spec:
       containers:
+        - name: exporter
+          image: "ghcr.io/cyb3r-jak3/unbound-exporter:0.4.6"
+          imagePullPolicy: IfNotPresent
+          command: [ "-unbound.host=unix:///srv/unbound.ctl" ]
+          volumeMounts:
+          - name: "socket"
+            mountPath: "/srv"
         - name: unbound
           image: "klutchell/unbound:1.13.1"
           imagePullPolicy: IfNotPresent
@@ -27,6 +36,8 @@ spec:
           - name: "unbound-conf"
             mountPath: "/opt/unbound/etc/unbound/"
             readOnly: true
+          - name: "socket"
+            mountPath: "/srv"
           readinessProbe:
             tcpSocket:
               port: 5053
@@ -41,3 +52,5 @@ spec:
       - name: "unbound-conf"
         configMap:
           name: unbound
+      - name: "socket"
+        emptyDir: {}
