@@ -118,6 +118,11 @@ spec:
               redirectURIs:
                 - https://velero.kirillorlov.pro/login
               secretEnv: "OAUTH_SECRET"
+            - id: argocd
+              name: ArgoCD
+              redirectURIs:
+                - https://velero.kirillorlov.pro/login
+              secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
             type: kubernetes

@@ -68,6 +68,13 @@ spec:
               rbac:
                 policy.csv: "g, readonly, role:readonly"
               cm:
+                oidc.config: |
+                  name: Homelab
+                  issuer: https://dex.kirillorlov.pro
+                  clientId: argocd
+                  clientSecret: $argocd-initial-admin-secret:password
+                  requestedScopes: ["openid", "profile", "email", "groups"]
+
                 exec.enabled: true
                 accounts.readonly: apiKey
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
