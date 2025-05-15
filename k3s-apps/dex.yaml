@@ -121,7 +121,7 @@ spec:
             - id: argocd
               name: ArgoCD
               redirectURIs:
-                - https://velero.kirillorlov.pro/login
+                - https://argo.kirillorlov.pro/auth/callback
               secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
