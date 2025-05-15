@@ -20,6 +20,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: unbound-tcp
+  labels:
+    app.kubernetes.io/name: unbound
   annotations:
     metallb.universe.tf/allow-shared-ip: unbound
 spec:
@@ -30,5 +32,22 @@ spec:
       targetPort: dns-tcp
       protocol: TCP
       name: dns-tcp
+    - port: 9167
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
   selector:
     app.kubernetes.io/name: unbound
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: unbound
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unbound
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: metrics

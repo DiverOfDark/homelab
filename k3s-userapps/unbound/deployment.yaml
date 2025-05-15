@@ -22,6 +22,10 @@ spec:
           volumeMounts:
           - name: "socket"
             mountPath: "/srv"
+          - ports:
+            - name: "metrics"
+              containerPort: 9167
+              protocol: "TCP"
         - name: unbound
           image: "klutchell/unbound:1.13.1"
           imagePullPolicy: IfNotPresent
