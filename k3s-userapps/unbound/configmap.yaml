@@ -5,6 +5,7 @@ metadata:
 data:
   unbound.conf: |-
     server:
+      extended-statistics: yes
     # If no logfile is specified, syslog is used
     # logfile: "/var/log/unbound/unbound.log"
     logfile: "/dev/stdout"
