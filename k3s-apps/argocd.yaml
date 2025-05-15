@@ -11,7 +11,7 @@ spec:
   refreshInterval: "10s"
 
   target:
-    name: google-secret
+    name: oauth-secret
     creationPolicy: 'Owner'
     deletionPolicy: "Retain"
     template:
