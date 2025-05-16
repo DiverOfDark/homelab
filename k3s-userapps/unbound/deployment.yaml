@@ -27,7 +27,7 @@ spec:
             containerPort: 9167
             protocol: "TCP"
         - name: unbound
-          image: "klutchell/unbound:1.13.1"
+          image: "klutchell/unbound:1.23.0"
           imagePullPolicy: IfNotPresent
           ports:
           - name: "dns-udp"
