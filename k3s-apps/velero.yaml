@@ -41,7 +41,7 @@ spec:
                   action:
                     type: skip
 
-          - apiVersion: external-secrets.io/v1beta1
+          - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
             metadata:
               name: "velero-repo-secret"
@@ -67,7 +67,7 @@ spec:
                     decodingStrategy: None
                     metadataPolicy: None
                     property: encryption
-          - apiVersion: external-secrets.io/v1beta1
+          - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
             metadata:
               name: "velero-secret"
