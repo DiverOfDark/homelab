@@ -15,11 +15,6 @@ data:
       logfile: "/dev/stdout"
       verbosity: 3
     
-      # Strip HTTPS records configuration
-      module-config: "respip"
-      local-zone: "." nodefault
-      strip-https-only: yes
-
       interface: 0.0.0.0
       port: 5053
       do-ip4: yes
