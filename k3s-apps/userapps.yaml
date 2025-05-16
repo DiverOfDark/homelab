@@ -18,7 +18,7 @@ spec:
         - resources-finalizer.argocd.argoproj.io
     spec:
       destination:
-        namespace: argocd
+        namespace: "{{path.basename}}"
         server: https://kubernetes.default.svc
       project: default
       source:
