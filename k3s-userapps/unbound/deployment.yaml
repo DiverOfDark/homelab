@@ -1,11 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: unbound
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: unbound

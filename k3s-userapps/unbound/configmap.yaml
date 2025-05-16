@@ -15,7 +15,10 @@ data:
       logfile: "/dev/stdout"
       verbosity: 3
     
-    
+      # Strip HTTPS records configuration
+      module-config: "respip"
+      local-zone: "." nodefault
+      strip-https-only: yes
 
       interface: 0.0.0.0
       port: 5053
@@ -44,12 +47,7 @@ data:
   
       # Require DNSSEC data for trust-anchored zones, if such data is absent, the zone becomes BOGUS
       harden-dnssec-stripped: yes
-    
-      # Strip HTTPS records
-      module-config: "respip"
-      local-zone: "." nodefault
-      strip-https-only: yes
-    
+  
       # Don't use Capitalization randomization as it known to cause DNSSEC issues sometimes
       # see https://discourse.pi-hole.net/t/unbound-stubby-or-dnscrypt-proxy/9378 for further details
       use-caps-for-id: no
