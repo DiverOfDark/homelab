@@ -12,7 +12,6 @@ data:
 
       # If no logfile is specified, syslog is used
       # logfile: "/var/log/unbound/unbound.log"
-      logfile: "/dev/stdout"
       verbosity: 3
     
       interface: 0.0.0.0
