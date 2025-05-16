@@ -28,6 +28,9 @@ spec:
         - name: unbound
           image: "madnuttah/unbound:1.23.0-0"
           imagePullPolicy: IfNotPresent
+          env:
+            - name: "ENABLE_STATS"
+              value: "true"
           ports:
           - name: "dns-udp"
             containerPort: 5053
