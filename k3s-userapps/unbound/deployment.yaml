@@ -37,7 +37,7 @@ spec:
             protocol: "TCP"
           volumeMounts:
           - name: "unbound-conf"
-            mountPath: "/opt/unbound/etc/unbound/"
+            mountPath: "/usr/local/unbound/"
             readOnly: true
           - name: "socket"
             mountPath: "/srv"
