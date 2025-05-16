@@ -1,3 +1,25 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: database
+  namespace: harbor
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "16"
+  numberOfInstances: 2
+  volume:
+    size: "5Gi"
+
+  users:
+    harbor: [ ]
+  databases:
+    harbor: harbor
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -16,6 +38,25 @@ spec:
     targetRevision: 1.17.0
     helm:
       valuesObject:
+        database:
+          type: external
+          external:
+            host: "database.harbor.svc.cluster.local"
+            port: "5432"
+            username: "harbor"
+            #password: "password"
+            coreDatabase: "harbor"
+            # if using existing secret, the key must be "password"
+            existingSecret: "harbor.database.credentials.postgresql.acid.zalan.do"
+            # "disable" - No SSL
+            # "require" - Always SSL (skip verification)
+            # "verify-ca" - Always SSL (verify that the certificate presented by the
+            # server was signed by a trusted CA)
+            # "verify-full" - Always SSL (verify that the certification presented by the
+            # server was signed by a trusted CA and the server host name matches the one
+            # in the certificate)
+            sslmode: "require"
+
         externalURL: https://harbor.kirillorlov.pro
         expose:
           tls:
