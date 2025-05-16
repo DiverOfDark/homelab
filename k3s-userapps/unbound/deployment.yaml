@@ -5,6 +5,7 @@ metadata:
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: unbound
@@ -26,7 +27,7 @@ spec:
             containerPort: 9167
             protocol: "TCP"
         - name: unbound
-          image: "madnuttah/unbound:1.23.0-0"
+          image: "mvance/unbound:1.22.0"
           imagePullPolicy: IfNotPresent
           env:
             - name: "ENABLE_STATS"
@@ -40,7 +41,7 @@ spec:
             protocol: "TCP"
           volumeMounts:
           - name: "unbound-conf"
-            mountPath: "/usr/local/unbound/"
+            mountPath: "/opt/unbound/etc/unbound/"
             readOnly: true
           - name: "socket"
             mountPath: "/srv"
