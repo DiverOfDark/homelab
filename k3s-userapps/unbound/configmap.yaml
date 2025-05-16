@@ -58,8 +58,6 @@ data:
       private-address: fd00::/8
       private-address: fe80::/10
     
-      private-type: 65
-    
     remote-control:
       control-enable: yes
       control-interface: /srv/unbound.ctl

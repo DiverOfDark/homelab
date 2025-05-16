@@ -17,11 +17,13 @@ spec:
     helm:
       releaseName: pihole
       values: |
-        DNS1: "8.8.8.8"
-        DNS2: "1.1.1.1"        
+        DNS1: "192.168.179.251"
+        DNS2: "192.168.179.251"        
         replicaCount: 1
         dnsmasq:
           customSettings:
+            - server=/yggdrasil.kirillorlov.pro/#
+            - server=/yggdrasil-s.kirillorlov.pro/#
             - filter-AAAA
         antiaff:
           enabled: true
@@ -167,11 +169,13 @@ spec:
     helm:
       releaseName: pihole-dr
       values: |
-        DNS1: "8.8.8.8"
-        DNS2: "1.1.1.1"        
+        DNS1: "192.168.179.251"
+        DNS2: "192.168.179.251"        
         replicaCount: 1
         dnsmasq:
           customSettings:
+            - server=/yggdrasil.kirillorlov.pro/#
+            - server=/yggdrasil-s.kirillorlov.pro/#
             - filter-AAAA
         antiaff:
           enabled: true
