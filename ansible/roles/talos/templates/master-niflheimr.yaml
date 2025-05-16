@@ -10,7 +10,7 @@ machine:
     interfaces:
     - interface: enp2s0
       addresses:
-        - 192.168.178.12/24
+        - 192.168.178.12/23
       vip:
         ip: 192.168.179.2
       routes:
