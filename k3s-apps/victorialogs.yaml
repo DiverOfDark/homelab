@@ -16,8 +16,119 @@ spec:
     targetRevision: 0.9.8
     helm:
       valuesObject:
+        # -- Values for [vector helm chart](https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector)
         vector:
+          # -- Enable deployment of vector
           enabled: true
+          role: Agent
+          dataDir: /vector-data-dir
+          resources: { }
+          podMonitor:
+            enabled: true
+          args:
+            - -w
+            - --config-dir
+            - /etc/vector/
+          containerPorts:
+            - name: prom-exporter
+              containerPort: 9090
+              protocol: TCP
+            - name: kernel-logs
+              containerPort: 5051
+              hostPort: 5051
+              protocol: UDP
+            - name: logs
+              containerPort: 5050
+              hostPort: 5050
+              protocol: UDP
+          service:
+            enabled: false
+          existingConfigMaps:
+            - vl-config
+          # -- Forces custom configuration creation in a given namespace even if vector.enabled is false
+          customConfigNamespace: ""
+          customConfig:
+            data_dir: /vector-data-dir
+            api:
+              enabled: false
+              address: 0.0.0.0:8686
+              playground: true
+            sources:
+              k8s:
+                type: kubernetes_logs
+              internal_metrics:
+                type: internal_metrics
+              talos_kernel_logs:
+                address: 0.0.0.0:5050
+                type: socket
+                mode: udp
+                max_length: 102400
+                decoding:
+                  codec: json
+                host_key: __host
+
+              talos_service_logs:
+                address: 0.0.0.0:5051
+                type: socket
+                mode: udp
+                max_length: 102400
+                decoding:
+                  codec: json
+                host_key: __host
+
+            transforms:
+              parser:
+                type: remap
+                inputs: [ k8s ]
+                source: |
+                  .log = parse_json(.message) ?? .message
+                  del(.message)
+
+              parser_talos:
+                type: remap
+                inputs: [ talos_kernel_logs, talos_service_logs ]
+                source: |
+                  .log = parse_json(.message) ?? .message
+                  del(.message)
+            sinks:
+              exporter:
+                type: prometheus_exporter
+                address: 0.0.0.0:9090
+                inputs: [ internal_metrics ]
+              vlogs:
+                type: elasticsearch
+                inputs: [ parser ]
+                endpoints: << include "vlogs.es.urls" . >>
+                mode: bulk
+                api_version: v8
+                compression: gzip
+                healthcheck:
+                  enabled: false
+                request:
+                  headers:
+                    VL-Time-Field: timestamp
+                    VL-Stream-Fields: stream,kubernetes.pod_name,kubernetes.container_name,kubernetes.pod_namespace
+                    VL-Msg-Field: message,msg,_msg,log.msg,log.message,log
+                    AccountID: "0"
+                    ProjectID: "0"
+
+              talos_kernel:
+                type: elasticsearch
+                inputs:
+                  - parser_talos
+                endpoints: << include "vlogs.es.urls" . >>
+                api_version: v8
+                compression: gzip
+                batch:
+                  max_bytes: 1048576
+                request:
+                  headers:
+                    VL-Time-Field: timestamp,talos-time
+                    VL-Stream-Fields: talos-service,facility,user
+                    VL-Msg-Field: message,msg,_msg,log.msg,log.message,log
+                    AccountID: "0"
+                    ProjectID: "0"
+
         podDisruptionBudget:
           enabled: true
           minAvailable: 1
@@ -56,6 +167,13 @@ spec:
             enabled: true
         dashboards:
           enabled: true
+          grafanaOperator:
+            enabled: true
+            spec:
+              instanceSelector:
+                matchLabels:
+                  dashboards: "grafana"
+              allowCrossNamespaceImport: true
   syncPolicy:
     managedNamespaceMetadata:
       labels:

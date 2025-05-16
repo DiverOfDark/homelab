@@ -191,7 +191,8 @@ machine:
         #     busPath: /pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0 # Disk bus path.
 
         # # Allows for supplying extra kernel args via the bootloader.
-        # extraKernelArgs:
+        extraKernelArgs:
+            - talos.logging.kernel=udp://127.0.0.1:5051
         #     - talos.platform=metal
         #     - reboot=k
 
@@ -387,11 +388,11 @@ machine:
     #         - SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
 
     # # Configures the logging system.
-    # logging:
-    #     # Logging destination.
-    #     destinations:
-    #         - endpoint: tcp://1.2.3.4:12345 # Where to send logs. Supported protocols are "tcp" and "udp".
-    #           format: json_lines # Logs format.
+    logging:
+        # Logging destination.
+        destinations:
+            - endpoint: udp://127.0.0.1:5050 # Where to send logs. Supported protocols are "tcp" and "udp".
+              format: json_lines # Logs format.
 
     # # Configures the kernel.
     # kernel:
@@ -533,6 +534,7 @@ cluster:
 
     # A list of inline Kubernetes manifests.
     inlineManifests: []
+    #   - name: namespace-kube-system # Name of the manifest.
     #   - name: namespace-ci # Name of the manifest.
     #     contents: |- # Manifest contents as a string.
     #       apiVersion: v1

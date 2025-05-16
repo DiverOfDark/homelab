@@ -11,6 +11,17 @@ talos_manifests:
   - master-niflheimr.yaml
   - master-muspelheimr.yaml
 
+talos_hosts:
+  jotunheimr:
+    ip: 192.168.178.13
+    file: master-jotunheimr
+  niflheimr:
+    ip: 192.168.178.12
+    file: master-niflheimr
+  muspelheimr:
+    ip: 192.168.178.14
+    file: master-muspelheimr
+
 talos:
   token: !vault |
     $ANSIBLE_VAULT;1.1;AES256
