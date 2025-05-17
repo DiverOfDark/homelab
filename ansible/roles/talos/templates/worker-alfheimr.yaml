@@ -6,7 +6,6 @@ machine:
     hostname: alfheimr
     nameservers:
       - 192.168.179.254
-      - 192.168.178.1
     interfaces:
     - interface: enp2s0
       addresses:
