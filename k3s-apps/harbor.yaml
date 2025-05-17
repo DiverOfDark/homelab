@@ -28,6 +28,12 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  ignoreDifferences:
+    - group: '*'
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[]?.apiVersion
+        - .spec.volumeClaimTemplates[]?.kind
+      kind: StatefulSet
   destination:
     namespace: harbor
     server: https://kubernetes.default.svc
