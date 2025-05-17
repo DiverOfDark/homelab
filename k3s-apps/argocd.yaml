@@ -3,6 +3,8 @@ kind: ExternalSecret
 metadata:
   name: "oauth-secret"
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd
 spec:
   secretStoreRef:
     name: bitwarden-login
@@ -16,6 +18,9 @@ spec:
     deletionPolicy: "Retain"
     template:
       type: Opaque
+      metadata:
+        labels:
+          app.kubernetes.io/part-of: argocd
       data:
         password: "{{ .userPassword }}"
   data:
@@ -96,7 +101,9 @@ spec:
                 server.insecure: true
               rbac:
                 policy.csv: "g, readonly, role:readonly"
+                policy.default: "role:admin"
               cm:
+                admin.enabled: false
                 oidc.config: |
                   name: Homelab
                   issuer: https://dex.kirillorlov.pro
