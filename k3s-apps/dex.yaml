@@ -123,6 +123,11 @@ spec:
               redirectURIs:
                 - https://argo.kirillorlov.pro/auth/callback
               secretEnv: "OAUTH_SECRET"
+            - id: harbor
+              name: Harbor
+              redirectURIs:
+                - https://harbor.kirillorlov.pro/c/oidc/callback
+              secretEnv: "OAUTH_SECRET"
           issuer: https://dex.kirillorlov.pro
           storage:
             type: kubernetes
