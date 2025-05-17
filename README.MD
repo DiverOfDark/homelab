@@ -20,7 +20,7 @@ It is a multi-master Kubernetes cluster with high availability.
 
 | Node name    | IP             | Roles   | Device            | CPU                      | RAM  | Storage                | Price            |
 |--------------|----------------|---------|-------------------|--------------------------|------|------------------------|------------------|
-| Alfheimr     | 192.168.178.10 | Unused  | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD              | 45$  + SSD + RAM |
+| Alfheimr     | 192.168.178.10 | Worker  | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD              | 45$  + SSD + RAM |
 | Yggdrasil    | Offsite        | Backups | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 1024GB SSD             | 100$ + SSD + RAM |
 | Niflheimr    | 192.168.178.12 | Master  | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 160$             |
 | Jotunheimr   | 192.168.178.13 | Master  | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 115$             |

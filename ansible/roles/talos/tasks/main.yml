@@ -55,7 +55,7 @@
   loop: "{{ talos_manifests }}"
 
 - name: Template hosts
-  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/controlplane.yaml --patch @{{ working_dir }}/talos-manifests/{{ item.value.file }}.yaml --output {{ working_dir }}/talos-manifests/{{ item.value.file }}-full.yaml"
+  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/{{ item.value.kind }}.yaml --patch @{{ working_dir }}/talos-manifests/{{ item.value.file }}.yaml --output {{ working_dir }}/talos-manifests/{{ item.value.file }}-full.yaml"
   loop: "{{ talos_hosts | dict2items }}"
 
 - name: Apply config to hosts

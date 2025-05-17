@@ -190,7 +190,8 @@ machine:
         #     busPath: /pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0 # Disk bus path.
 
         # # Allows for supplying extra kernel args via the bootloader.
-        # extraKernelArgs:
+        extraKernelArgs:
+            - talos.logging.kernel=udp://127.0.0.1:5051
         #     - talos.platform=metal
         #     - reboot=k
 
@@ -198,7 +199,25 @@ machine:
         # extensions:
         #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
     # Used to configure the machine's container image registry mirrors.
-    registries: {}
+#    registries:
+#      mirrors:
+#        ghcr.io:
+#          endpoints:
+#            - https://harbor.kirillorlov.pro/v2/proxy-ghcr
+#          overridePath: true
+#        quay.io:
+#          endpoints:
+#            - https://harbor.kirillorlov.pro/v2/proxy-quay
+#          overridePath: true
+#        docker.io:
+#          endpoints:
+#            - https://harbor.kirillorlov.pro/v2/proxy-dockerhub
+#          overridePath: true
+#        registry.k8s.io:
+#          endpoints:
+#            - https://harbor.kirillorlov.pro/v2/proxy-registry-k8s
+#          overridePath: true
+
     # # Specifies mirror configuration for each registry host namespace.
     # mirrors:
     #     ghcr.io:
@@ -364,11 +383,11 @@ machine:
     #         - SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
 
     # # Configures the logging system.
-    # logging:
-    #     # Logging destination.
-    #     destinations:
-    #         - endpoint: tcp://1.2.3.4:12345 # Where to send logs. Supported protocols are "tcp" and "udp".
-    #           format: json_lines # Logs format.
+    logging:
+        # Logging destination.
+        destinations:
+            - endpoint: udp://127.0.0.1:5050 # Where to send logs. Supported protocols are "tcp" and "udp".
+              format: json_lines # Logs format.
 
     # # Configures the kernel.
     # kernel:
@@ -401,6 +420,7 @@ cluster:
     # Provides control plane specific configuration options.
     controlPlane:
         endpoint: "https://{{ cluster.ip }}:6443" # Endpoint is the canonical controlplane endpoint, which can be an IP address or a DNS hostname.
+    clusterName: "{{ cluster.name }}" # Configures the cluster's name.
     # Provides cluster specific network configuration options.
     network:
         dnsDomain: cluster.local # The domain used by Kubernetes DNS.
@@ -412,7 +432,7 @@ cluster:
             - 10.96.0.0/12
         
         cni:
-            name: none        
+          name: none
         # # The CNI used.
         # cni:
         #     name: custom # Name of CNI to use.
@@ -571,3 +591,8 @@ cluster:
 
     # # Allows running workload on control-plane nodes.
     allowSchedulingOnControlPlanes: true
+---
+apiVersion: v1alpha1
+kind: KmsgLogConfig
+name: remote-log # Name of the config document.
+url: udp://127.0.0.1:5051/ # The URL encodes the log destination.

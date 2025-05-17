@@ -1,0 +1,17 @@
+machine:
+  install:
+    disk: /dev/sdb
+    wipe: true
+  network:
+    hostname: alfheimr
+    nameservers:
+      - 192.168.179.254
+      - 192.168.178.1
+    interfaces:
+    - interface: enp2s0
+      addresses:
+        - 192.168.178.10/23
+      routes:
+        - network: 0.0.0.0/0 # The route's network (destination).
+          gateway: 192.168.178.1 # The route's gateway (if empty, creates link scope route).
+          metric: 1024 # The optional metric for the route.
