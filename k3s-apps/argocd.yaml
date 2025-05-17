@@ -49,7 +49,7 @@ spec:
   sources:
     - chart: argo-helm/argo-cd
       repoURL: ghcr.io/argoproj
-      targetRevision: 8.0.1
+      targetRevision: 8.0.3
       helm:
         valuesObject:
             global:
