@@ -47,7 +47,7 @@ spec:
                 name: bitwarden-cli
           env:
             - name: BW_CLI_VERSION
-              value: "2025.3.0"
+              value: "2025.4.0"
             - name: BW_HOST
               value: "https://vaultwarden.kirillorlov.pro/"
           ports:
