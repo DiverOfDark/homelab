@@ -5,7 +5,7 @@ metadata:
 spec:
   allowCrossNamespaceImport: true
   datasources:
-    - inputName: Prometheus
+    - inputName: DS_PROMETHEUS
       datasourceName: Prometheus
   instanceSelector:
     matchLabels:
