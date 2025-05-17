@@ -7,7 +7,7 @@ machine:
     token: "{{ talos.token }}" # The `token` is used by a machine to join the PKI of the cluster.
     # The root certificate authority of the PKI.
     ca:
-        crt: "{{ machine.ca.crt}}"
+        crt: "{{ machine.ca.crt }}"
         key: ""
     # Extra certificate subject alternative names for the machine's certificate.
     certSANs: []
@@ -28,8 +28,8 @@ machine:
         #     - 169.254.2.53
 
         # # The `extraArgs` field is used to provide additional flags to the kubelet.
-        # extraArgs:
-        #     key: value
+        extraArgs:
+            rotate-server-certificates: true
 
         # # The `extraMounts` field is used to add additional mounts to the kubelet container.
         # extraMounts:
@@ -196,8 +196,12 @@ machine:
         #     - reboot=k
 
         # # Allows for supplying additional system extension images to install on top of base Talos image.
-        # extensions:
-        #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
+        extensions:
+        # todo:
+        # - katacontainers (or firecracker?)
+        # - stargz-snapshotter
+
+
     # Used to configure the machine's container image registry mirrors.
 #    registries:
 #      mirrors:
@@ -440,6 +444,7 @@ cluster:
         #     urls:
         #         - https://docs.projectcalico.org/archive/v3.20/manifests/canal.yaml
     token: "{{ cluster.token }}" # The [bootstrap token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) used to join the cluster.
+    secretboxEncryptionSecret: "{{ cluster.secretbox }}" # A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).
     # The base64 encoded root certificate authority used by Kubernetes.
     ca:
         crt: "{{ cluster.ca.crt }}"
@@ -461,11 +466,6 @@ cluster:
 
     # # Decryption secret example (do not use in production!).
     # aescbcEncryptionSecret: z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM=
-
-    # # A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).
-
-    # # Decryption secret example (do not use in production!).
-    secretboxEncryptionSecret: "{{ cluster.secretbox }}"
 
     # # The base64 encoded aggregator certificate authority used by Kubernetes for front-proxy certificate generation.
 
