@@ -5,10 +5,10 @@ metadata:
 spec:
   allowCrossNamespaceImport: true
   datasources:
-    - inputName: DS_PROMETHEUS
+    - inputName: Prometheus
       datasourceName: Prometheus
   instanceSelector:
     matchLabels:
       dashboards: "grafana"
   grafanaCom:
-    id: 22562
+    id: 11705
