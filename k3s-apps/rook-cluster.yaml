@@ -32,6 +32,7 @@ spec:
             dataDirHostPath: /var/lib/rook-ceph
             dashboard:
               enabled: true
+              prometheusEndpoint: https://prometheus.kirillorlov.pro/
               ssl: false
             labels:
               all:
