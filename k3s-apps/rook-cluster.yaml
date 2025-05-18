@@ -1,4 +1,52 @@
 ---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: dashboard-cluster
+  namespace: rook-ceph
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 2842
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: dashboard-osd
+  namespace: rook-ceph
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 5336
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: dashboard-fs
+  namespace: rook-ceph
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 9340
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
