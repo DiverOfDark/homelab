@@ -18,6 +18,34 @@ spec:
     chart: cilium
     targetRevision: 1.17.3
     helm:
+      valuesObject:
+        clustermesh:
+          apiserver:
+            metrics:
+              serviceMonitor:
+                enabled: true
+        envoy:
+          prometheus:
+            serviceMonitor:
+              enabled: true
+        hubble:
+          relay:
+            prometheus:
+              enabled: true
+              serviceMonitor:
+                enabled: true
+          metrics:
+            serviceMonitor:
+              enabled: true
+        operator:
+          prometheus:
+            serviceMonitor:
+              enabled: true
+        prometheus:
+          enabled: true
+          metricsService: true
+          serviceMonitor:
+            enabled: true
       parameters:
         - name: ipam.mode
           value: kubernetes
