@@ -23,7 +23,7 @@ spec:
                 cpu: 50m
                 memory: 512Mi
           monitoring:
-            enabled: false
+            enabled: true
             createPrometheusRules: true
           cephClusterSpec:
             cephVersion:
