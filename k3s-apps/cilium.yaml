@@ -29,7 +29,27 @@ spec:
             serviceMonitor:
               enabled: true
         hubble:
+          ui:
+            enabled: true
+            ingress:
+              enabled: true
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+                gethomepage.dev/enabled: "true"
+                gethomepage.dev/href: "https://cilium.kirillorlov.pro"
+                gethomepage.dev/group: Infra
+                gethomepage.dev/name: Cilium Hubble
+                gethomepage.dev/icon: cilium.png
+
+              className: traefik
+              hosts:
+                - cilium.kirillorlov.pro
+              tls:
+                - secretName: cilium-hubble-ui-tls
+                  hosts:
+                    - cilium.kirillorlov.pro
           relay:
+            enabled: true
             prometheus:
               enabled: true
               serviceMonitor:
