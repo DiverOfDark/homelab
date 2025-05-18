@@ -24,6 +24,7 @@ spec:
           customSettings:
             - server=/yggdrasil.kirillorlov.pro/#
             - server=/yggdrasil-s.kirillorlov.pro/#
+            - server=/uptime.kirillorlov.pro/#
             - filter-AAAA
         antiaff:
           enabled: true
@@ -190,6 +191,7 @@ spec:
           customSettings:
             - server=/yggdrasil.kirillorlov.pro/#
             - server=/yggdrasil-s.kirillorlov.pro/#
+            - server=/uptime.kirillorlov.pro/#
             - filter-AAAA
         antiaff:
           enabled: true
