@@ -1,0 +1,23 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: lobechat
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "16"
+  numberOfInstances: 1
+  volume:
+    size: "1024Mi"
+
+  users:
+    rsstt: [ ]
+  databases:
+    lobechat: lobechat
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi

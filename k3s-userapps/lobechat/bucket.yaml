@@ -1,0 +1,7 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: bucket-s3
+spec:
+  bucketName: lobechat-bucket
+  storageClassName: ceph-bucket
