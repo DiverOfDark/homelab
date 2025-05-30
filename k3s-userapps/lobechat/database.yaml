@@ -1,7 +1,7 @@
 apiVersion: acid.zalan.do/v1
 kind: postgresql
 metadata:
-  name: lobechat
+  name: lobechat-db
 spec:
   teamId: "acid"
   postgresql:
