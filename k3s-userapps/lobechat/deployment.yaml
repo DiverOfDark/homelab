@@ -151,6 +151,9 @@ spec:
             - name: LLM_VISION_IMAGE_USE_BASE64
               value: '1'
 
+            - name: ENABLED_OLLAMA
+              value: '0'
+
             - name: S3_BUCKET
               valueFrom:
                 configMapKeyRef:
