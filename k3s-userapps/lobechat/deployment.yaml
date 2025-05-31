@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobechat
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: lobechat
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: lobechat
+    spec:
+      containers:
+        - image: 'lobehub/lobe-chat-database:1.88.19'
+          imagePullPolicy: IfNotPresent
+          name: lobechat
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  key: DATABASE_URL
+                  name: lobechat-db-secret
+            - name: S3_BUCKET
+              valueFrom:
+                configMapRef:
+                  name: bucket-s3
+                  key: BUCKET_NAME
+            - name: S3_ENABLE_PATH_STYLE
+              value: '1'
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_ACCESS_KEY_ID
+                  name: bucket-s3
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_ACCESS_KEY_ID
+                  name: bucket-s3
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: AWS_SECRET_ACCESS_KEY
+                  name: bucket-s3
+            - name: S3_SET_ACL
+              value: '0'
+            - name: S3_PUBLIC_DOMAIN
+              value: 'https://s3.kirillorlov.pro'
+            - name: S3_ENDPOINT
+              valueFrom:
+                configMapRef:
+                  name: bucket-s3
+                  key: BUCKET_HOST
+
+#          env:
+#            - 'NEXT_AUTH_SSO_PROVIDERS=casdoor'
+#            - 'KEY_VAULTS_SECRET='
+#            - 'NEXT_AUTH_SECRET='
+#            - 'LLM_VISION_IMAGE_USE_BASE64=1'
+#            - 'SEARXNG_URL=http://searxng:8080'
+
+## Proxy, if you need it
+## HTTP_PROXY=http://localhost:7890
+## HTTPS_PROXY=http://localhost:7890
+#
+## Other environment variables, as needed. You can refer to the environment variables configuration for the client version, making sure not to have ACCESS_CODE.
+## OPENAI_API_KEY=sk-xxxx
+## OPENAI_PROXY_URL=https://api.openai.com/v1
+## OPENAI_MODEL_LIST=...
+
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 3210
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 3210
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          ports:
+            - containerPort: 3210
+              protocol: TCP
+              name: "http"
