@@ -150,17 +150,15 @@ spec:
 ##                  name: oauth-secret
 ##                  key: OAUTH_SECRET
             - name: NEXT_AUTH_SSO_PROVIDERS
-              value: "zitadel"
-            - name: AUTH_ZITADEL_ID
-              value: "lobechat"
-            - name: AUTH_ZITADEL_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: oauth-secret
-                  key: OAUTH_SECRET
-            - name: AUTH_ZITADEL_ISSUER
-              #value: "https://dex.kirillorlov.pro/.well-known/openid-configuration"
-              value: "https://dex.kirillorlov.pro"
+              value: "logto"
+            - name: NEXTAUTH_URL
+              value: "https://ai-new.kirillorlov.pro/api/auth"
+            - name: AUTH_LOGTO_ID
+              value: "n3s7mbudw2v7sij9payk9"
+            - name: AUTH_LOGTO_SECRET
+              value: "HtwAIJG8Uv7SzTyPEcTpcV6O9sqGFXQm"
+            - name: AUTH_LOGTO_ISSUER
+              value: "https://logto.kirillorlov.pro/oidc"
 
 #          env:
 #            - 'SEARXNG_URL=http://searxng:8080'
