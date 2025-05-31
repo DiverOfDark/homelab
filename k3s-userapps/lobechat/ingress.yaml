@@ -26,3 +26,26 @@ spec:
   - hosts:
     - ai-new.kirillorlov.pro
     secretName: lobechat-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: casdoor
+spec:
+  rules:
+  - host: casdoor.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: casdoor
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - casdoor.kirillorlov.pro
+    secretName: lobechat-tls
