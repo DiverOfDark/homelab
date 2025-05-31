@@ -60,4 +60,4 @@ spec:
               name: "http"
             - containerPort: 3002
               protocol: TCP
-              name: "http"
+              name: "http-admin"
