@@ -1,0 +1,83 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: logto-db
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "17"
+  env:
+    - name: ALLOW_NOSSL
+      value: "true"
+  numberOfInstances: 1
+  volume:
+    size: "1024Mi"
+
+  users:
+    logto: [ ]
+  databases:
+    logto: logto
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+---
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: logto-secret-store
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: logto
+      server:
+        url: "https://kubernetes.default.svc:443"
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          namespace: kube-system
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: eso-external-secrets
+          namespace: eso
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: database-secret
+spec:
+  secretStoreRef:
+    name: logto-secret-store
+    kind: ClusterSecretStore  # or ClusterSecretStore
+
+  refreshInterval: "10s"
+
+  target:
+    name: logto-db-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@logto-db:5432/logto"
+  data:
+    - secretKey: user
+      remoteRef:
+        key: postgres.logto-db.credentials.postgresql.acid.zalan.do
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: username
+    - secretKey: pass
+      remoteRef:
+        key: postgres.logto-db.credentials.postgresql.acid.zalan.do
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: password
+
+---

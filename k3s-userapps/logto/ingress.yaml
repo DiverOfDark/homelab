@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://logto.kirillorlov.pro"
+    gethomepage.dev/group: "Infrastructure"
+    gethomepage.dev/name: LogTo
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=logto"
+    gethomepage.dev/icon: "logto"
+  name: logto
+spec:
+  rules:
+  - host: logto.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: logto
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - logto.kirillorlov.pro
+    secretName: logto-tls
