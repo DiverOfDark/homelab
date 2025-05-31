@@ -28,6 +28,7 @@ spec:
             - |
               echo "Starting Lobechat server..."
               set -e
+              sleep 30
               /bin/node /app/startServer.js
           env:
             - name: APP_URL
