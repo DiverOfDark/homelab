@@ -6,9 +6,13 @@ spec:
   internalTrafficPolicy: Cluster
   ports:
   - name: http
-    port: 80
+    port: 3001
     protocol: TCP
     targetPort: 3001
+  - name: http-admin
+    port: 3002
+    protocol: TCP
+    targetPort: 3002
   selector:
     app.kubernetes.io/pod: logto
   type: ClusterIP

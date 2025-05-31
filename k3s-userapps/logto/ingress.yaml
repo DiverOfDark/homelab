@@ -19,10 +19,33 @@ spec:
           service:
             name: logto
             port:
-              number: 80
+              number: 3001
         path: /
         pathType: Prefix
   tls:
   - hosts:
     - logto.kirillorlov.pro
+    secretName: logto-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: logto-admin
+spec:
+  rules:
+  - host: logto-admin.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: logto
+            port:
+              number: 3002
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - logto-admin.kirillorlov.pro
     secretName: logto-tls
