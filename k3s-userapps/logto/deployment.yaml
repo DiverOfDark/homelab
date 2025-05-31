@@ -21,7 +21,7 @@ spec:
           imagePullPolicy: IfNotPresent
           name: logto
           command: ["sh" ]
-          args: [ "-c", "npm run cli db seed -- --swe && npm start" ]
+          args: [ "-c", "npm run cli db seed -- --swe && npm run cli db alteration deploy next && npm start" ]
           env:
             - name: TRUST_PROXY_HEADER
               value: '1'
