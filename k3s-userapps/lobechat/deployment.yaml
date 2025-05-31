@@ -26,6 +26,35 @@ spec:
         metadataPolicy: None
         property: openai-api-key
 ---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: "oauth-secret"
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: bitwarden-login
+
+  refreshInterval: "10s"
+
+  target:
+    name: oauth-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        OAUTH_SECRET: '{{ .userPassword }}'
+  data:
+    - secretKey: userPassword
+      remoteRef:
+        key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: password
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -111,6 +140,23 @@ spec:
                 secretKeyRef:
                   name: openai-secret
                   key: OPENAI_API_KEY
+
+            - name: NEXT_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: OAUTH_SECRET
+            - name: NEXT_AUTH_SSO_PROVIDERS
+              value: "authenik"
+            - name: AUTH_AUTHENTIK_ID
+              value: "lobechat"
+            - name: AUTH_AUTHENTIK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: OAUTH_SECRET
+            - name: AUTH_AUTHENTIK_ISSUER
+              value: "https://dex.kirillorlov.pro/.well-known/openid-configuration"
 
 #          env:
 #            - 'SEARXNG_URL=http://searxng:8080'
