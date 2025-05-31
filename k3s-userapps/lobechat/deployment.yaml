@@ -81,7 +81,7 @@ spec:
             - name: APP_URL
               value: 'https://ai-new.kirillorlov.pro'
             - name: AUTH_URL
-              value: 'https://dex.kirillorlov.pro/auth'
+              value: 'https://ai-new.kirillorlov.pro/auth'
             - name: KEY_VAULTS_SECRET
               valueFrom:
                 configMapKeyRef:
