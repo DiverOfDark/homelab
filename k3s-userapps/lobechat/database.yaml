@@ -17,6 +17,7 @@ spec:
     lobechat: [ ]
   databases:
     lobechat: lobechat
+    casdoor: lobechat
   resources:
     requests:
       cpu: 100m
