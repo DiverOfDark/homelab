@@ -6,6 +6,9 @@ spec:
   teamId: "acid"
   postgresql:
     version: "17"
+  env:
+    - name: ALLOW_NOSSL
+      value: "true"
   numberOfInstances: 1
   volume:
     size: "1024Mi"
@@ -60,7 +63,7 @@ spec:
     template:
       type: Opaque
       data:
-        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db:5432/lobechat?sslmode=require"
+        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db:5432/lobechat"
   data:
     - secretKey: user
       remoteRef:
