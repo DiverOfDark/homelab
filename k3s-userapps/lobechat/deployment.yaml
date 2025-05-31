@@ -65,8 +65,6 @@ spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 1
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/pod: lobechat
