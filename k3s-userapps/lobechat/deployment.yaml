@@ -1,6 +1,62 @@
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
+  name: "lobechat-secret"
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: bitwarden-fields
+
+  refreshInterval: "10s"
+
+  target:
+    name: lobechat-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        NEXT_AUTH_SECRET: "{{ .NEXT_AUTH_SECRET }}"
+        NEXT_AUTH_SSO_PROVIDERS: "logto"
+        NEXTAUTH_URL: "https://ai.kirillorlov.pro/api/auth"
+        AUTH_LOGTO_ID: "{{ .AUTH_LOGTO_ID }}"
+        AUTH_LOGTO_SECRET: "{{ .AUTH_LOGTO_SECRET }}"
+        AUTH_LOGTO_ISSUER: "https://logto.kirillorlov.pro/oidc"
+        KEY_VAULTS_SECRET: '{{ .KEY_VAULTS_SECRET}}'
+  data:
+    - secretKey: KEY_VAULTS_SECRET
+      remoteRef:
+        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: KEY_VAULTS_SECRET
+
+    - secretKey: NEXT_AUTH_SECRET
+      remoteRef:
+        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: NEXT_AUTH_SECRET
+    - secretKey: AUTH_LOGTO_ID
+      remoteRef:
+        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: AUTH_LOGTO_ID
+    - secretKey: AUTH_LOGTO_SECRET
+      remoteRef:
+        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: AUTH_LOGTO_SECRET
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
   name: "openai-secret"
 spec:
   secretStoreRef:
@@ -44,7 +100,7 @@ spec:
     template:
       type: Opaque
       data:
-        OAUTH_SECRET: '{{ .userPassword }}'
+        ACCESS_CODE: '{{ .userPassword }}'
   data:
     - secretKey: userPassword
       remoteRef:
@@ -53,7 +109,6 @@ spec:
         decodingStrategy: None
         metadataPolicy: None
         property: password
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -77,39 +132,30 @@ spec:
         - image: 'lobehub/lobe-chat-database:1.88.19'
           imagePullPolicy: IfNotPresent
           name: lobechat
+          envFrom:
+            - secretRef:
+                name: openai-secret
+            - secretRef:
+                name: oauth-secret
+            - secretRef:
+                name: lobechat-db-secret
+            - secretRef:
+                name: lobechat-secret
           env:
             - name: APP_URL
-              value: 'https://ai-new.kirillorlov.pro'
+              value: 'https://ai.kirillorlov.pro'
             - name: AUTH_URL
-              value: 'https://ai-new.kirillorlov.pro/api/auth'
-            - name: KEY_VAULTS_SECRET
-              valueFrom:
-                configMapKeyRef:
-                  name: bucket-s3
-                  key: BUCKET_NAME
-            - name: LOBE_DB_NAME
-              value: lobechat
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres.lobechat-db.credentials.postgresql.acid.zalan.do
-                  key: password
-            - name: DATABASE_DRIVER
-              value: neon
+              value: 'https://ai.kirillorlov.pro/api/auth'
             - name: NEXT_PUBLIC_SERVICE_MODE
               value: server
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  key: DATABASE_URL
-                  name: lobechat-db-secret
+            - name: LLM_VISION_IMAGE_USE_BASE64
+              value: '1'
+
             - name: S3_BUCKET
               valueFrom:
                 configMapKeyRef:
                   name: bucket-s3
                   key: BUCKET_NAME
-            - name: S3_ENABLE_PATH_STYLE
-              value: '1'
             - name: S3_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
@@ -125,49 +171,14 @@ spec:
                 secretKeyRef:
                   key: AWS_SECRET_ACCESS_KEY
                   name: bucket-s3
+            - name: S3_ENABLE_PATH_STYLE
+              value: '1'
             - name: S3_SET_ACL
               value: '0'
             - name: S3_PUBLIC_DOMAIN
               value: 'https://ceph-s3.kirillorlov.pro/'
             - name: S3_ENDPOINT
               value: 'https://ceph-s3.kirillorlov.pro/'
-            - name: LLM_VISION_IMAGE_USE_BASE64
-              value: '1'
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: openai-secret
-                  key: OPENAI_API_KEY
-            - name: ACCESS_CODE
-              valueFrom:
-                secretKeyRef:
-                  name: oauth-secret
-                  key: OAUTH_SECRET
-            - name: NEXT_AUTH_SECRET
-              value: "doB2kdPvoZ3B1J4coebYbAXHkVDbX0an2wJyb7IakHY="
-##              valueFrom:
-##                secretKeyRef:
-##                  name: oauth-secret
-##                  key: OAUTH_SECRET
-            - name: NEXT_AUTH_SSO_PROVIDERS
-              value: "logto"
-            - name: NEXTAUTH_URL
-              value: "https://ai-new.kirillorlov.pro/api/auth"
-            - name: AUTH_LOGTO_ID
-              value: "n3s7mbudw2v7sij9payk9"
-            - name: AUTH_LOGTO_SECRET
-              value: "HtwAIJG8Uv7SzTyPEcTpcV6O9sqGFXQm"
-            - name: AUTH_LOGTO_ISSUER
-              value: "https://logto.kirillorlov.pro/oidc"
-
-#          env:
-#            - 'SEARXNG_URL=http://searxng:8080'
-
-## Proxy, if you need it
-## Other environment variables, as needed. You can refer to the environment variables configuration for the client version, making sure not to have ACCESS_CODE.
-## OPENAI_API_KEY=sk-xxxx
-## OPENAI_PROXY_URL=https://api.openai.com/v1
-## OPENAI_MODEL_LIST=...
 
           livenessProbe:
             httpGet:

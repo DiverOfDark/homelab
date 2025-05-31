@@ -106,7 +106,7 @@ spec:
             - id: librechat
               name: LibreChat
               redirectURIs:
-                  - https://ai.kirillorlov.pro/oauth/openid/callback
+                  - https://ai-old.kirillorlov.pro/oauth/openid/callback
               secretEnv: "OAUTH_SECRET"
             - id: grafana
               name: Grafana
