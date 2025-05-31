@@ -23,6 +23,13 @@ spec:
           imagePullPolicy: IfNotPresent
           name: lobechat
           env:
+            - name: APP_URL
+              value: 'https://ai-new.kirillorlov.pro'
+            - name: KEY_VAULTS_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  name: bucket-s3
+                  key: BUCKET_NAME
             - name: LOBE_DB_NAME
               value: lobechat
             - name: POSTGRES_PASSWORD
