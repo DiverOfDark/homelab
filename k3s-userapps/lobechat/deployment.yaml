@@ -1,3 +1,31 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: "openai-secret"
+  namespace: librechat
+spec:
+  secretStoreRef:
+    name: bitwarden-fields
+
+  refreshInterval: "10s"
+
+  target:
+    name: openai-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        OPENAI_API_KEY: '{{ .openai }}'
+  data:
+    - secretKey: openai
+      remoteRef:
+        key: a230b3d4-7b33-439f-b604-6016354a7865
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: openai-api-key
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,19 +102,20 @@ spec:
               value: 'https://ceph-s3.kirillorlov.pro/'
             - name: S3_ENDPOINT
               value: 'https://ceph-s3.kirillorlov.pro/'
-
+            - name: LLM_VISION_IMAGE_USE_BASE64
+              value: '1'
+            - name: NEXT_AUTH_SSO_PROVIDERS
+              value: 'oidc'
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: OPENAI_API_KEY
 
 #          env:
-#            - 'NEXT_AUTH_SSO_PROVIDERS=casdoor'
-#            - 'KEY_VAULTS_SECRET='
-#            - 'NEXT_AUTH_SECRET='
-#            - 'LLM_VISION_IMAGE_USE_BASE64=1'
 #            - 'SEARXNG_URL=http://searxng:8080'
 
 ## Proxy, if you need it
-## HTTP_PROXY=http://localhost:7890
-## HTTPS_PROXY=http://localhost:7890
-#
 ## Other environment variables, as needed. You can refer to the environment variables configuration for the client version, making sure not to have ACCESS_CODE.
 ## OPENAI_API_KEY=sk-xxxx
 ## OPENAI_PROXY_URL=https://api.openai.com/v1
