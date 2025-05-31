@@ -28,7 +28,7 @@ spec:
                   name: lobechat-db-secret
             - name: S3_BUCKET
               valueFrom:
-                configMapRef:
+                configMapKeyRef:
                   name: bucket-s3
                   key: BUCKET_NAME
             - name: S3_ENABLE_PATH_STYLE
@@ -54,7 +54,7 @@ spec:
               value: 'https://s3.kirillorlov.pro'
             - name: S3_ENDPOINT
               valueFrom:
-                configMapRef:
+                configMapKeyRef:
                   name: bucket-s3
                   key: BUCKET_HOST
 
