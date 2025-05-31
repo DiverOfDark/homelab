@@ -145,7 +145,7 @@ spec:
                   name: oauth-secret
                   key: OAUTH_SECRET
             - name: NEXT_AUTH_SSO_PROVIDERS
-              value: "authenik"
+              value: "authentik"
             - name: AUTH_AUTHENTIK_ID
               value: "lobechat"
             - name: AUTH_AUTHENTIK_SECRET
