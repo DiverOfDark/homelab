@@ -81,7 +81,7 @@ spec:
             - name: APP_URL
               value: 'https://ai-new.kirillorlov.pro'
             - name: AUTH_URL
-              value: 'https://ai-new.kirillorlov.pro/auth'
+              value: 'https://ai-new.kirillorlov.pro/api/auth'
             - name: KEY_VAULTS_SECRET
               valueFrom:
                 configMapKeyRef:
@@ -138,23 +138,29 @@ spec:
                 secretKeyRef:
                   name: openai-secret
                   key: OPENAI_API_KEY
-
+            - name: ACCESS_CODE
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: OAUTH_SECRET
             - name: NEXT_AUTH_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: oauth-secret
-                  key: OAUTH_SECRET
+              value: "doB2kdPvoZ3B1J4coebYbAXHkVDbX0an2wJyb7IakHY="
+##              valueFrom:
+##                secretKeyRef:
+##                  name: oauth-secret
+##                  key: OAUTH_SECRET
             - name: NEXT_AUTH_SSO_PROVIDERS
-              value: "authentik"
-            - name: AUTH_AUTHENTIK_ID
+              value: "zitadel"
+            - name: AUTH_ZITADEL_ID
               value: "lobechat"
-            - name: AUTH_AUTHENTIK_SECRET
+            - name: AUTH_ZITADEL_SECRET
               valueFrom:
                 secretKeyRef:
                   name: oauth-secret
                   key: OAUTH_SECRET
-            - name: AUTH_AUTHENTIK_ISSUER
-              value: "https://dex.kirillorlov.pro/.well-known/openid-configuration"
+            - name: AUTH_ZITADEL_ISSUER
+              #value: "https://dex.kirillorlov.pro/.well-known/openid-configuration"
+              value: "https://dex.kirillorlov.pro"
 
 #          env:
 #            - 'SEARXNG_URL=http://searxng:8080'
