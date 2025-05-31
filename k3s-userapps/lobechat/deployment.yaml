@@ -22,6 +22,13 @@ spec:
         - image: 'lobehub/lobe-chat-database:1.88.19'
           imagePullPolicy: IfNotPresent
           name: lobechat
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting Lobechat server..."
+              set -e
+              /bin/node /app/startServer.js
           env:
             - name: APP_URL
               value: 'https://ai-new.kirillorlov.pro'
