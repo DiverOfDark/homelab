@@ -60,7 +60,7 @@ spec:
     template:
       type: Opaque
       data:
-        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db.lobechat.svc.cluster.local:5432/lobechat"
+        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db:5432/lobechat?sslmode=require"
   data:
     - secretKey: user
       remoteRef:
