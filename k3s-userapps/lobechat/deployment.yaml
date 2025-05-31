@@ -23,6 +23,8 @@ spec:
           imagePullPolicy: IfNotPresent
           name: lobechat
           env:
+            - name: NEXT_PUBLIC_SERVICE_MODE
+              value: server
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
