@@ -48,4 +48,4 @@ spec:
   tls:
   - hosts:
     - casdoor.kirillorlov.pro
-    secretName: lobechat-tls
+    secretName: casdoor-tls
