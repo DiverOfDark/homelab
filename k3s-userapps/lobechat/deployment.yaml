@@ -44,6 +44,8 @@ spec:
                 secretKeyRef:
                   name: postgres.lobechat-db.credentials.postgresql.acid.zalan.do
                   key: password
+            - name: DATABASE_DRIVER
+              value: neon
             - name: NEXT_PUBLIC_SERVICE_MODE
               value: server
             - name: DATABASE_URL
