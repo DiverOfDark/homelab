@@ -9,7 +9,7 @@ spec:
   env:
     - name: ALLOW_NOSSL
       value: "true"
-  numberOfInstances: 1
+  numberOfInstances: 2
   volume:
     size: "1024Mi"
 

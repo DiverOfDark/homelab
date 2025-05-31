@@ -6,7 +6,7 @@ metadata:
 spec:
   teamId: "acid"
   postgresql:
-    version: "16"
+    version: "17"
   numberOfInstances: 1
   volume:
     size: "512Mi"
