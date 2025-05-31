@@ -42,7 +42,10 @@ spec:
             - name: driverName
               value: 'postgres'
             - name: dataSourceName
-              value: 'user=postgres password=${POSTGRES_PASSWORD} host=postgresql port=5432 sslmode=disable dbname=casdoor'
+              valueFrom:
+                secretKeyRef:
+                  name: lobechat-db-secret
+                  key: CASDOOR_DB_DATASOURCE
 #      volumes:
 #        - name: conf
 #          persistentVolumeClaim:
