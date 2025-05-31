@@ -23,6 +23,13 @@ spec:
           imagePullPolicy: IfNotPresent
           name: lobechat
           env:
+            - name: LOBE_DB_NAME
+              value: lobechat
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres.lobechat-db.credentials.postgresql.acid.zalan.do
+                  key: password
             - name: NEXT_PUBLIC_SERVICE_MODE
               value: server
             - name: DATABASE_URL
