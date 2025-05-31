@@ -22,8 +22,8 @@ spec:
         - image: 'lobehub/lobe-chat-database:1.88.19'
           imagePullPolicy: IfNotPresent
           name: lobechat
-          command:
-            - /bin/sh
+          command: [ "/bin/sh" ]
+          args:
             - -c
             - |
               echo "Starting Lobechat server..."
