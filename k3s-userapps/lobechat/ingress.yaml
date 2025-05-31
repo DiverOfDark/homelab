@@ -5,10 +5,10 @@ metadata:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://ai.kirillorlov.pro"
-    gethomepage.dev/group: "Infrastructure"
+    gethomepage.dev/group: "Apps"
     gethomepage.dev/name: Lobechat
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=lobechat"
-    gethomepage.dev/icon: "lobechat"
+    gethomepage.dev/icon: "https://lobechat.com/icons/icon-192x192.png"
   name: lobechat
 spec:
   rules:

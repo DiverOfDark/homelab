@@ -5,7 +5,7 @@ metadata:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://logto.kirillorlov.pro"
-    gethomepage.dev/group: "Infrastructure"
+    gethomepage.dev/group: "Infra"
     gethomepage.dev/name: LogTo
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=logto"
     gethomepage.dev/icon: "logto"
