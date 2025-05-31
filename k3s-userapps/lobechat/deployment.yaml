@@ -78,12 +78,10 @@ spec:
             - name: S3_SET_ACL
               value: '0'
             - name: S3_PUBLIC_DOMAIN
-              value: 'https://s3.kirillorlov.pro'
+              value: 'https://ceph-s3.kirillorlov.pro/'
             - name: S3_ENDPOINT
-              valueFrom:
-                configMapKeyRef:
-                  name: bucket-s3
-                  key: BUCKET_HOST
+              value: 'https://ceph-s3.kirillorlov.pro/'
+
 
 #          env:
 #            - 'NEXT_AUTH_SSO_PROVIDERS=casdoor'
