@@ -48,4 +48,4 @@ spec:
   tls:
   - hosts:
     - logto-admin.kirillorlov.pro
-    secretName: logto-tls
+    secretName: logto-admin-tls
