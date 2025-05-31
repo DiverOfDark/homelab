@@ -40,7 +40,7 @@ spec:
       paths:
       - backend:
           service:
-            name: casdoor
+            name: casdoor-svc
             port:
               number: 80
         path: /
