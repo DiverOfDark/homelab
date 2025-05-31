@@ -21,3 +21,60 @@ spec:
     limits:
       cpu: 500m
       memory: 500Mi
+---
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: lobechat-secret-store
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: lobechat
+      server:
+        url: "https://kubernetes.default.svc:443"
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          namespace: kube-system
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: eso-external-secrets
+          namespace: eso
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: database-secret
+spec:
+  secretStoreRef:
+    name: lobechat-secret-store
+    kind: ClusterSecretStore  # or ClusterSecretStore
+
+  refreshInterval: "10s"
+
+  target:
+    name: lobechat-db-secret
+    creationPolicy: 'Owner'
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db/lobechat"
+  data:
+    - secretKey: user
+      remoteRef:
+        key: lobechat.lobechat-db.credentials.postgresql.acid.zalan.do
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: username
+    - secretKey: pass
+      remoteRef:
+        key: lobechat.lobechat-db.credentials.postgresql.acid.zalan.do
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: password
+
+---
