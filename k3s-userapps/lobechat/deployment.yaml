@@ -133,8 +133,6 @@ spec:
               value: 'https://ceph-s3.kirillorlov.pro/'
             - name: LLM_VISION_IMAGE_USE_BASE64
               value: '1'
-            - name: NEXT_AUTH_SSO_PROVIDERS
-              value: 'oidc'
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
