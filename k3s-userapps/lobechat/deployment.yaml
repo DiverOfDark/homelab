@@ -27,7 +27,7 @@ spec:
             - -c
             - |
               echo "Starting Lobechat server..."
-              set -e
+              set 
               sleep 30
               /bin/node /app/startServer.js
           env:
