@@ -17,7 +17,6 @@ spec:
     lobechat: [ ]
   databases:
     lobechat: lobechat
-    casdoor: lobechat
   resources:
     requests:
       cpu: 100m
@@ -65,7 +64,6 @@ spec:
       type: Opaque
       data:
         DATABASE_URL: "postgres://{{ .user }}:{{ .pass }}@lobechat-db:5432/lobechat"
-        CASDOOR_DB_DATASOURCE: "user={{ .user }} password={{ .pass }} host=lobechat-db port=5432 sslmode=disable dbname=casdoor"
   data:
     - secretKey: user
       remoteRef:
