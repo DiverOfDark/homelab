@@ -189,8 +189,6 @@ spec:
                   activeCount: 2
                   activeStandby: true
                   resources:
-                    limits:
-                      memory: "4Gi"
                     requests:
                       cpu: "50m"
                       memory: "512Mi"
@@ -259,8 +257,6 @@ spec:
                 gateway:
                   port: 80
                   resources:
-                    limits:
-                      memory: "2Gi"
                     requests:
                       cpu: "100m"
                       memory: "512Mi"
