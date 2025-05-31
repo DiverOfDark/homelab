@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: casdoor-svc
+  labels:
+    app: casdoor
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+  selector:
+    app: casdoor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: casdoor-deployment
+  labels:
+    app: casdoor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: casdoor
+  template:
+    metadata:
+      labels:
+        app: casdoor
+    spec:
+      containers:
+        - name: casdoor-container
+          image: casbin/casdoor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+#          volumeMounts:
+#            - mountPath: /conf
+#              name: conf
+          env:
+            - name: RUNNING_IN_DOCKER
+              value: "true"
+            - name: driverName
+              value: 'postgres'
+            - name: dataSourceName
+              value: 'user=postgres password=${POSTGRES_PASSWORD} host=postgresql port=5432 sslmode=disable dbname=casdoor'
+#      volumes:
+#        - name: conf
+#          persistentVolumeClaim:
+#            claimName: casdoor-pvc
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  finalizers:
+#    - kubernetes.io/pvc-protection
+#  name: casdoor-pvc
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 128Mi
+#  storageClassName: "ceph-block"
