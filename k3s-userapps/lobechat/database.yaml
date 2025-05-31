@@ -64,14 +64,14 @@ spec:
   data:
     - secretKey: user
       remoteRef:
-        key: lobechat.lobechat-db.credentials.postgresql.acid.zalan.do
+        key: postgres.lobechat-db.credentials.postgresql.acid.zalan.do
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
         property: username
     - secretKey: pass
       remoteRef:
-        key: lobechat.lobechat-db.credentials.postgresql.acid.zalan.do
+        key: postgres.lobechat-db.credentials.postgresql.acid.zalan.do
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
