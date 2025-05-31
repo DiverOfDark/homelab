@@ -25,6 +25,10 @@ spec:
           env:
             - name: TRUST_PROXY_HEADER
               value: '1'
+            - name: ENDPOINT
+              value: 'https://logto.kirillorlov.pro'
+            - name: ADMIN_ENDPOINT
+              value: 'https://logto.kirillorlov.pro'
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
