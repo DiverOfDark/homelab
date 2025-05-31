@@ -5,6 +5,7 @@ metadata:
   namespace: librechat
 spec:
   secretStoreRef:
+    kind: ClusterSecretStore
     name: bitwarden-fields
 
   refreshInterval: "10s"
