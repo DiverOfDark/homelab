@@ -41,18 +41,18 @@ spec:
         property: NEXT_AUTH_SECRET
     - secretKey: AUTH_LOGTO_ID
       remoteRef:
-        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        key: 5c3db5d4-1c03-479d-abaf-c4fd58b2f324
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: AUTH_LOGTO_ID
+        property: LOBECHAT_APP_ID
     - secretKey: AUTH_LOGTO_SECRET
       remoteRef:
-        key: fc82a60b-089b-4067-ac92-af3b6508cf2d
+        key: 5c3db5d4-1c03-479d-abaf-c4fd58b2f324
         conversionStrategy: Default
         decodingStrategy: None
         metadataPolicy: None
-        property: AUTH_LOGTO_SECRET
+        property: LOBECHAT_APP_SECRET
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
