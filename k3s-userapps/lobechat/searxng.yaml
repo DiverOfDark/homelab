@@ -16,7 +16,7 @@ spec:
       labels:
         app.kubernetes.io/pod: searxng
     spec:
-        volumes:
+      volumes:
           - name: searxng-config
             configMap:
               name: searxng-config
