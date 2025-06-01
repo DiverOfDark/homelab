@@ -186,6 +186,9 @@ spec:
             - name: SEARXNG_URL
               value: 'https://search.kirillorlov.pro'
 
+            - name: FEATURE_FLAGS
+              value: "-welcome_suggest,+commercial_hide_github,+commercial_hide_docs,-check_updates,-knowledge_base,-clerk_sign_up"
+
           livenessProbe:
             httpGet:
               path: /

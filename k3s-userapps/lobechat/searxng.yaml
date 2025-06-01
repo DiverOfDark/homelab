@@ -27,6 +27,9 @@ spec:
           #env:
           #  - name: SEARXNG_SETTINGS_FILE
           #    value: '/etc/searxng/settings.yml'
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
           livenessProbe:
             tcpSocket:
               port: 8080
