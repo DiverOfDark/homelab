@@ -6,7 +6,7 @@ metadata:
     reloader.stakater.com/auto: "true"
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -35,20 +35,16 @@ spec:
                   key: DATABASE_URL
                   name: logto-db-secret
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 3001
-              scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
             failureThreshold: 10
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 3001
-              scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3

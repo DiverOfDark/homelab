@@ -118,7 +118,7 @@ metadata:
     reloader.stakater.com/auto: "true"
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 1
   selector:
     matchLabels:
