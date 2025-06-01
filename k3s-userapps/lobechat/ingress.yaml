@@ -53,6 +53,6 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - searxng.kirillorlov.pro
+    - search.kirillorlov.pro
     secretName: searxng-tls
 ---
