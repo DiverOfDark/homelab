@@ -183,6 +183,9 @@ spec:
             - name: S3_ENDPOINT
               value: 'https://ceph-s3.kirillorlov.pro/'
 
+            - name: SEARCH_PROVIDERS
+              value: 'searxng'
+
             - name: SEARXNG_URL
               value: 'https://search.kirillorlov.pro'
 
