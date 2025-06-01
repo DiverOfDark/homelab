@@ -48,6 +48,6 @@ spec:
               protocol: TCP
               name: "http"
           volumeMounts:
-            - mountPath: /etc/searxng
+            - mountPath: /etc/searxng/settings.yml
               name: searxng-config
               subPath: settings.yml
