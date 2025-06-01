@@ -75,6 +75,10 @@ locals {
       hostname = "dex.kirillorlov.pro"
       service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
     }, {
+      short = "logto"
+      hostname = "logto.kirillorlov.pro"
+      service  = "http://logto.logto.svc.cluster.local:3001"
+    }, {
       short = "ai"
       hostname = "ai.kirillorlov.pro"
       service  = "http://lobechat.lobechat.svc.cluster.local:3210"
