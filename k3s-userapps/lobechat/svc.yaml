@@ -12,3 +12,19 @@ spec:
   selector:
     app.kubernetes.io/pod: lobechat
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: searxng
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/pod: searxng
+  type: ClusterIP
+---
