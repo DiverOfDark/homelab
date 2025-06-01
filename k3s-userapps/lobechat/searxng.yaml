@@ -16,6 +16,10 @@ spec:
       labels:
         app.kubernetes.io/pod: searxng
     spec:
+        volumes:
+          - name: searxng-config
+            configMap:
+              name: searxng-config
       containers:
         - image: 'searxng/searxng:2025.5.25-7a5a499'
           imagePullPolicy: IfNotPresent
@@ -43,3 +47,7 @@ spec:
             - containerPort: 8080
               protocol: TCP
               name: "http"
+          volumeMounts:
+            - mountPath: /etc/searxng
+              name: searxng-config
+              subPath: settings.yml
