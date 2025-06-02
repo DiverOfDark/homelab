@@ -11,10 +11,6 @@ spec:
     - name: talos-api-access-talos-secrets
       path: /var/run/secrets/talos.dev
       ignoreUpdates: true
-  nodeSelector:
-    matchExpressions:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
   upgrade:
     image: ghcr.io/siderolabs/talosctl:v1.10.3
     args:
