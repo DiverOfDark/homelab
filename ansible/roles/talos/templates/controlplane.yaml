@@ -260,14 +260,15 @@ machine:
             port: 7445 # KubePrism port.
         
         # # Configure Talos API access from Kubernetes pods.
-        # kubernetesTalosAPIAccess:
-        #     enabled: true # Enable Talos API access from Kubernetes pods.
+        kubernetesTalosAPIAccess:
+             enabled: true # Enable Talos API access from Kubernetes pods.
         #     # The list of Talos API roles which can be granted for access from Kubernetes pods.
-        #     allowedRoles:
-        #         - os:reader
+             allowedRoles:
+                 - os:reader
+                 - os:admin
         #     # The list of Kubernetes namespaces Talos API access is available from.
-        #     allowedKubernetesNamespaces:
-        #         - kube-system
+             allowedKubernetesNamespaces:
+                 - system-upgrade
     
     # # Provides machine specific control plane configuration options.
 
