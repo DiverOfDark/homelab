@@ -15,6 +15,11 @@ spec:
     matchExpressions:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
+  tolerations:
+    - key: "lowcpu"
+      effect: "NoSchedule"
+      operator: "Equal"
+      value: "true"
   upgrade:
     image: ghcr.io/siderolabs/talosctl:v1.10.3
     args:
