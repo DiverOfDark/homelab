@@ -11,6 +11,14 @@ metadata:
   name: system-upgrade
   namespace: system-upgrade
 ---
+apiVersion: talos.dev/v1alpha1
+kind: ServiceAccount
+metadata:
+    name: talos-api-access-talos-secrets
+spec:
+    roles:
+        - os:admin
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,7 +43,8 @@ metadata:
   namespace: system-upgrade
 spec:
   strategy:
-    type: Recreate
+    type: RollingUpdate
+  replicas: 2
   selector:
     matchLabels:
       upgrade.cattle.io/controller: system-upgrade-controller
