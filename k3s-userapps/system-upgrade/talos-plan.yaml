@@ -17,6 +17,8 @@ spec:
       - key: kubernetes.io/hostname
         operator: Exists
   upgrade:
+    tolerations:
+      - { key: lowcpu, effect: NoSchedule, operator: Equal, value: true }
     image: ghcr.io/jfroy/tnu:0.4.2
     envs:
       - name: NODE_IP
