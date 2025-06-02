@@ -1,7 +1,7 @@
 apiVersion: upgrade.cattle.io/v1
 kind: Plan
 metadata:
-  name: kubernetes
+  name: talos
 spec:
   version: v1.10.0
   concurrency: 1
