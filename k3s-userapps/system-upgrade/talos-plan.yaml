@@ -3,8 +3,9 @@ kind: Plan
 metadata:
   name: kubernetes
 spec:
-  version: v1.33.1
+  version: v1.10.0
   concurrency: 1
+  postCompleteDelay: 2m
   exclusive: true
   serviceAccountName: system-upgrade
   secrets:
@@ -16,8 +17,8 @@ spec:
       - key: kubernetes.io/hostname
         operator: Exists
   upgrade:
-    image: ghcr.io/siderolabs/talosctl:v1.10.3
+    image: ghcr.io/jfroy/tnu:0.4.2
     args:
-      - --nodes=$(SYSTEM_UPGRADE_NODE_NAME)
-      - upgrade-k8s
-      - --to=$(SYSTEM_UPGRADE_PLAN_LATEST_VERSION)
+      - --node=$(SYSTEM_UPGRADE_NODE_NAME)
+      - --tag=$(SYSTEM_UPGRADE_PLAN_LATEST_VERSION)
+      - --powercycle
