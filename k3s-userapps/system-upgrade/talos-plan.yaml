@@ -3,7 +3,7 @@ kind: Plan
 metadata:
   name: talos
 spec:
-  version: v1.10.0
+  version: v1.10.3
   concurrency: 1
   postCompleteDelay: 2m
   exclusive: true
