@@ -10,12 +10,17 @@ talos_manifests:
   - master-jotunheimr.yaml
   - master-niflheimr.yaml
   - master-muspelheimr.yaml
-  - worker-alfheimr.yaml
+  #- worker-alfheimr.yaml
+  - worker-asgard.yaml
 
 talos_hosts:
-  alfheimr:
-    ip: 192.168.178.10
-    file: worker-alfheimr
+  #alfheimr:
+  #  ip: 192.168.178.10
+  #  file: worker-alfheimr
+  #  kind: worker
+  asgard:
+    ip: 192.168.178.11
+    file: worker-asgard
     kind: worker
   jotunheimr:
     ip: 192.168.178.13

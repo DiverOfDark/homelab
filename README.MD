@@ -18,10 +18,11 @@ It is a multi-master Kubernetes cluster with high availability.
 
 ## Hardware
 
-| Node name    | IP             | Roles   | Device            | CPU                      | RAM  | Storage                | Price            |
-|--------------|----------------|---------|-------------------|--------------------------|------|------------------------|------------------|
-| Alfheimr     | 192.168.178.10 | Worker  | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 256GB SSD              | 45$  + SSD + RAM |
-| Yggdrasil    | Offsite        | Backups | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 1024GB SSD             | 100$ + SSD + RAM |
-| Niflheimr    | 192.168.178.12 | Master  | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 160$             |
-| Jotunheimr   | 192.168.178.13 | Master  | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 115$             |
-| Muspelheimr  | 192.168.178.14 | Master  | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME | 100$             |
+| Node name    | IP                     | Roles   | Device            | CPU                      | RAM  | Storage                 |
+|--------------|------------------------|---------|-------------------|--------------------------|------|-------------------------|
+| Alfheimr     | &lt;Decommissioned&gt; | Worker  | HP T620           | AMD GX-415 4*1.5Ghz core | 16Gb | 8GB SDIO                |
+| Asgard       | 192.168.178.11         | Worker  | Asrock Z690 RS    | i5 12400 6*4.4Ghz core   | 64GB | 256GB SSD + 1024GB NVME |
+| Yggdrasil    | Offsite                | Backups | ThinkCenter M710q | i3 6100T 4*3.2GHz core   | 16GB | 1024GB SSD              |
+| Niflheimr    | 192.168.178.12         | Master  | Firebat AM02      | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME  |
+| Jotunheimr   | 192.168.178.13         | Master  | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME  |
+| Muspelheimr  | 192.168.178.14         | Master  | SOYO M2PLUS       | N100 4*3.4Ghz cores      | 16GB | 512GB SSD + 512GB NVME  |

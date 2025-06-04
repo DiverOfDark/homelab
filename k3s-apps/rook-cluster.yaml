@@ -124,6 +124,9 @@ spec:
                 - name: "jotunheimr"
                   devices:
                     - name: "nvme0n1"
+                - name: "asgard"
+                  devices:
+                    - name: "nvme0n1"
           ingress:
             dashboard:
               annotations:
