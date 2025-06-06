@@ -24,7 +24,7 @@ spec:
   drain:
     force: true
   upgrade:
-    image: ghcr.io/jfroy/tnu:0.4.2
+    image: ghcr.io/jfroy/tnu:0.4.3
     envs:
       - name: NODE_IP
         valueFrom:
