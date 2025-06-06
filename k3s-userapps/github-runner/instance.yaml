@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-instance
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.11.0
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+
+        ## githubConfigUrl is the GitHub url for where you want to configure runners
+        ## ex: https://github.com/myorg/myrepo or https://github.com/myorg
+        githubConfigUrl: "https://github.com/diverofdark/homelab"
+
+        githubConfigSecret: github-config-secret
+
+        containerMode:
+          type: "kubernetes"
+          kubernetesModeWorkVolumeClaim:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: "ceph-block"
+            resources:
+              requests:
+                storage: 10Gi
+
+        maxRunners: 5
+        minRunners: 1
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner-instance"
+
+
+        template:
+          spec:
+            restartPolicy: Never
+            initContainers:
+              - name: init-k8s-volume-permissions
+                image: ghcr.io/actions/actions-runner:latest
+                command: [ "sudo", "chown", "-R", "runner", "/home/runner/_work" ]
+                volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: [ "/home/runner/run.sh" ]
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
