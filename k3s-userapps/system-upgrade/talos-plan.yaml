@@ -16,11 +16,6 @@ spec:
     matchExpressions:
       - key: kubernetes.io/hostname
         operator: Exists
-  tolerations:
-    - key: "lowcpu"
-      effect: "NoSchedule"
-      operator: "Equal"
-      value: "true"
   drain:
     force: true
   upgrade:
