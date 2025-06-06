@@ -1,14 +1,19 @@
 customization:
+    extraKernelArgs:
+        - talos.platform=metal
+        - talos.logging.kernel=udp://127.0.0.1:5051
+        - cpufreq.default_governor=conservative
     systemExtensions:
         officialExtensions:
             - siderolabs/amd-ucode
+            - siderolabs/intel-ucode
+            - siderolabs/binfmt-misc
             - siderolabs/amdgpu
             - siderolabs/i915
-            - siderolabs/intel-ucode
             - siderolabs/util-linux-tools
-            # not available for 1.9.0:
-            #- siderolabs/ctr
-            #- siderolabs/nvme-cli
-            # todo:
-            # - stargazer 
-            # - katacontainers
+            - siderolabs/ctr
+            - siderolabs/gvisor
+            - siderolabs/kata-containers
+            - siderolabs/stargz-snapshotter
+            - siderolabs/nvme-cli
+            - siderolabs/thunderbolt

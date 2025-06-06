@@ -194,7 +194,7 @@ machine:
         extraKernelArgs:
             - talos.logging.kernel=udp://127.0.0.1:5051
             - talos.platform=metal
-        #     - reboot=k
+             - cpufreq.default_governor=conservative
 
         # # Allows for supplying additional system extension images to install on top of base Talos image.
         extensions:

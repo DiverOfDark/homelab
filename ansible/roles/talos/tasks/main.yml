@@ -62,19 +62,6 @@
   ansible.builtin.command: "{{ working_dir }}/talosctl --talosconfig={{ working_dir }}/talos-manifests/talosconfig apply-config -n {{ item.value.ip }} -e {{ item.value.ip }} --file {{ working_dir }}/talos-manifests/{{ item.value.file }}-full.yaml"
   loop: "{{ talos_hosts | dict2items }}"
 
-### will be done through rancher's kube-upgrade-controller
-## todo -> for each node -> get current talos version and upgrade if needed, e.g.
-# talosctl upgrade --nodes 10.20.30.40 --image ghcr.io/siderolabs/installer:v1.9.2
-
-## todo -> get k8s version and upgrade if needed, e.g. (need to run just once - all cluster will be upgraded)
-# talosctl --nodes <controlplane node> upgrade-k8s --to 1.32.0
-
-# talosctl apply-config --insecure -n 192.168.0.2 --file controlplane.yaml
-#  talosctl -n 192.168.0.2 get disks --insecure
-
-# install:
-#  disk: /dev/sda # The disk used for installations.
-
 # talosctl -e 192.168.0.2 -n 192.168.0.200 containers
 # talosctl --talosconfig=./talosconfig --nodes 192.168.0.2 -e 192.168.0.2 version
 

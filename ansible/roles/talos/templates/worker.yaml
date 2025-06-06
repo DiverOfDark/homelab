@@ -192,8 +192,8 @@ machine:
         # # Allows for supplying extra kernel args via the bootloader.
         extraKernelArgs:
             - talos.logging.kernel=udp://127.0.0.1:5051
-        #     - talos.platform=metal
-        #     - reboot=k
+            - talos.platform=metal
+            - cpufreq.default_governor=conservative
 
         # # Allows for supplying additional system extension images to install on top of base Talos image.
         extensions:
