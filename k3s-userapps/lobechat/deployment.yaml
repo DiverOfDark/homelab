@@ -129,7 +129,7 @@ spec:
         app.kubernetes.io/pod: lobechat
     spec:
       containers:
-        - image: 'lobehub/lobe-chat-database:1.90.1'
+        - image: 'lobehub/lobe-chat-database:1.92.0'
           imagePullPolicy: IfNotPresent
           name: lobechat
           envFrom:
