@@ -21,6 +21,8 @@ spec:
       effect: "NoSchedule"
       operator: "Equal"
       value: "true"
+  drain:
+    force: true
   upgrade:
     image: ghcr.io/jfroy/tnu:0.4.2
     envs:
