@@ -58,10 +58,6 @@ spec:
               mountPropagation: HostToContainer
             - name: host-run-k8s-cni-cncf-io
               mountPath: /run/k8s.cni.cncf.io
-
-            - name: host-run-netns
-              hostPath:
-                path: /var/run/netns/
             - name: host-run-netns
               mountPath: /run/netns
               mountPropagation: HostToContainer
