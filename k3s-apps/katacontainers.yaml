@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     chart: kata-deploy
-    repoURL: ghcr.io/kata-containers/kata-deploy-charts/kata-deploy
+    repoURL: ghcr.io/kata-containers/kata-deploy-charts
     targetRevision: 3.17.0
     helm:
       valuesObject:
