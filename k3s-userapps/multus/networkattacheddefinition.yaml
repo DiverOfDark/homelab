@@ -19,3 +19,21 @@ spec:
         "gateway": "192.168.1.1"
       }
     }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: bridge-conf
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/br0
+spec:
+  config: >
+    {
+        "cniVersion": "0.3.0",
+        "name": "br0-l2",
+        "plugins": [{
+            "type": "bridge",
+            "bridge": "br0",
+            "ipam": {}
+        }]
+    }
