@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reloader
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kata-containers
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: kata-deploy
+    repoURL: ghcr.io/kata-containers/kata-deploy-charts/kata-deploy
+    targetRevision: 3.17.0
+    helm:
+      valuesObject:
+        env:
+          defaultShim: 'fc'
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
