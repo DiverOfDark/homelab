@@ -80,6 +80,8 @@ spec:
       containers:
         - name: smb-server
           image: dockurr/samba:4.21.6
+          securityContext:
+            privileged: true
           env:
             - name: "NAME"
               value: "share"
