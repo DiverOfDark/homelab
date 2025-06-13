@@ -22,7 +22,7 @@ spec:
           persistentVolumeClaim:
             claimName: jellyseerr
       containers:
-        - image: 'ghcr.io/fallenbagel/jellyseerr:2.5.2'
+        - image: 'ghcr.io/fallenbagel/jellyseerr:2.6.0'
           imagePullPolicy: IfNotPresent
           name: jellyseerr
           env:
