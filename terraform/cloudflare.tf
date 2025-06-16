@@ -81,7 +81,7 @@ locals {
     }, {
       short = "ai"
       hostname = "ai.kirillorlov.pro"
-      service  = "http://lobechat.lobechat.svc.cluster.local:3210"
+      service  = "http://lobechat.lobechat.svc.cluster.local:80"
     }, {
       short = "search"
       hostname = "search.kirillorlov.pro"
