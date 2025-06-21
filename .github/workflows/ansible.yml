@@ -46,11 +46,9 @@ jobs:
           path: ansible/.venv
 
       - name: Setup Ansible settings
-        env:
-          VAULT_PASSWORD:
-            ${{ secrets.VAULT_PASSWORD }}
         run: |
-          echo ${VAULT_PASSWORD} > ansible/vault-password
+          echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           
           echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
           echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
