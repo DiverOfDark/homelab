@@ -20,7 +20,8 @@ jobs:
 
       - name: Setup ca-certificates
         run: |
-          apt-get install -y ca-certificates
+          apt update 
+          apt install -y ca-certificates
           update-ca-certificates
 
       - name: Restore cached virtualenv
