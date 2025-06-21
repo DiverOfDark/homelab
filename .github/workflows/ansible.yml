@@ -19,9 +19,11 @@ jobs:
           python-version: '3.13.5'
 
       - name: Setup packages
+        env:
+         DEBIAN_FRONTEND: noninteractive
         run: |
           apt update 
-          apt install -y ca-certificates curl ssh
+          apt install -y -q ca-certificates curl ssh
 
       - name: Restore cached virtualenv
         uses: actions/cache/restore@v4
