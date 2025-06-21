@@ -26,6 +26,7 @@ spec:
       valuesObject:
         crds:
           upgradeJob:
+            forceConflicts: true
             enabled: true
 
         prometheus-node-exporter:
