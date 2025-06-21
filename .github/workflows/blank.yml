@@ -10,10 +10,10 @@ jobs:
   ansible_check:
     runs-on: github-runner-instance
     container: ubuntu:noble
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
+        id: setup_python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.5'
@@ -32,6 +32,7 @@ jobs:
           python -m pip install -r requirements.txt
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
 
       - name: Saved cached virtualenv
         uses: actions/cache/save@v4
@@ -42,11 +43,10 @@ jobs:
       - name: Check syntax Ansible
         run: |
           cd ansible
-          export ANSIBLE_CONFIG=ansible.cfg
           ansible-playbook playbook.yaml -i inventory.yaml --syntax-check
           
       - name: Dry-run Ansible playbook
         run: |
           cd ansible
-          export ANSIBLE_CONFIG=ansible.cfg
-          echo ${VAULT_PASSWORD} | setsid ansible-playbook playbook.yaml -i inventory.yaml --ask-vault-password --check --diff
+          echo ${VAULT_PASSWORD} > vault-password
+          ansible-playbook playbook.yaml -i inventory.yaml --check --diff
