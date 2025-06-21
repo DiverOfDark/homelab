@@ -35,6 +35,7 @@
     when: not talosctl_stat.stat.exists or installed_talosctl_version != talosctl_version
 
 - name: Template manifests
+  check_mode: false
   ansible.builtin.template:
     src: "installer-customization.yaml"
     dest: "{{ working_dir }}/installer-customization.yaml"
@@ -51,6 +52,7 @@
     talos_factory_id: "{{ talos_factory_output.stdout | from_json | json_query('id') }}"
 
 - name: Template manifests
+  check_mode: false
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ working_dir }}/{{ item }}"
@@ -58,6 +60,7 @@
   loop: "{{ talos_manifests }}"
 
 - name: Template hosts
+  check_mode: false
   ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/{{ item.value.kind }}.yaml --patch @{{ working_dir }}/{{ item.value.file }}.yaml --output {{ working_dir }}/{{ item.value.file }}-full.yaml"
   loop: "{{ talos_hosts | dict2items }}"
 
