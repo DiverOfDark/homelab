@@ -47,7 +47,7 @@ jobs:
       - name: Setup Ansible settings
         run: |
           echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
-          mkdir ~/.ssh
+          mkdir ~/.ssh || true
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           
