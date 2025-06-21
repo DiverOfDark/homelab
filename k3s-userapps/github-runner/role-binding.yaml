@@ -35,10 +35,9 @@ subjects:
     namespace: github-runner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: secret-admin
-  namespace: github-runner
+  name: terraform-kubernetes
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
@@ -48,7 +47,7 @@ rules:
     verbs: ["*"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: secret-admin
   namespace: github-runner
@@ -58,5 +57,5 @@ subjects:
     namespace: github-runner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: secret-admin
+  kind: ClusterRole
+  name: terraform-kubernetes
