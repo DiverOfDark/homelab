@@ -33,6 +33,18 @@ jobs:
           echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
           echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
           echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
+          
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_AGGREGATORCA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_ETCD_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SECRET }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SECRETBOX }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SERVICEACCOUNT }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_TOKEN }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CONFIG_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_MACHINE_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_TALOS_TOKEN }}"
+
 
       - name: Check syntax Ansible
         run: |
@@ -72,6 +84,17 @@ jobs:
           echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
           echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
           echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
+
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_AGGREGATORCA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_ETCD_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SECRET }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SECRETBOX }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_SERVICEACCOUNT }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CLUSTER_TOKEN }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_CONFIG_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_MACHINE_CA_KEY }}"
+          echo "::add-mask::${{ ANSIBLE_VAULT_TALOS_TOKEN }}"
 
       - name: Apply Ansible playbook
         if: github.ref == 'refs/heads/master'
