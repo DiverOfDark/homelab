@@ -25,9 +25,9 @@ spec:
             storageClassName: "ceph-filesystem"
             resources:
               requests:
-                storage: 10Gi
+                storage: 5Gi
 
-        maxRunners: 5
+        maxRunners: 15
         minRunners: 1
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
