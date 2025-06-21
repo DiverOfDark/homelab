@@ -2,7 +2,7 @@
 talosctl_version: "v1.10.0"  # Replace with the desired version
 
 # renovate: image=registry.k8s.io/kube-apiserver
-kube_version: "v1.33.0"  # Replace with the desired version
+kube_version: "v1.33.2"  # Replace with the desired version
 
 working_dir: /tmp/talos
 

@@ -482,7 +482,7 @@ cluster:
 
     # # API server specific configuration options.
     # apiServer:
-    #     image: registry.k8s.io/kube-apiserver:v1.29.0 # The container image used in the API server manifest.
+    #     image: registry.k8s.io/kube-apiserver:v1.33.2 # The container image used in the API server manifest.
     #     # Extra arguments to supply to the API server.
     #     extraArgs:
     #         feature-gates: ServerSideApply=true
