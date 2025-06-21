@@ -29,6 +29,12 @@
         "registry.k8s.io/kube-controller-manager**",
         "registry.k8s.io/kube-apiserver**"
       ]
+    },
+    {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true
     }
   ],
   "customManagers": [
@@ -60,12 +66,4 @@
   "labels": [
     "automerge"
   ],
-  "packageRules": [
-    {
-      "matchUpdateTypes": [
-        "patch"
-      ],
-      "automerge": true
-    }
-  ]
 }
