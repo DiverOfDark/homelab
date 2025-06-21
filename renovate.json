@@ -50,7 +50,7 @@
         "/(^|/).*\\.y[a?]ml$/"
       ],
       "matchStrings": [
-        "image: (?<depName>.*?):(?<currentValue>[\\w+\\.\\-]*)"
+        "image: [\"']?(?<depName>.*?):(?<currentValue>[\\w+\\.\\-]*)"
       ]
     }
   ],
