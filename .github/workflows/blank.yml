@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ansible_check:
+  ansible:
     runs-on: github-runner-instance
     container: ubuntu:noble
     steps:
@@ -65,3 +65,9 @@ jobs:
         run: |
           cd ansible
           ansible-playbook playbook.yaml --check --diff
+
+      - name: Apply Ansible playbook
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cd ansible
+          ansible-playbook playbook.yaml --diff
