@@ -35,7 +35,7 @@ jobs:
     container: ghcr.io/opentofu/opentofu:latest
     if: github.ref == 'refs/heads/master'
     environment:
-      name: github-releases
+      name: Homelab
     steps:
       - uses: actions/checkout@v4
       - name: OpenTofu plan
@@ -49,5 +49,5 @@ jobs:
         run: |
           cd terraform
           tofu init
-          tofu plan
+          tofu apply
           
