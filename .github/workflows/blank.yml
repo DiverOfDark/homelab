@@ -7,16 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  Ansible Check:
     runs-on: github-runner-instance
-    container: alpine
+    container: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install Ansible
         run: |
           cd ansible
