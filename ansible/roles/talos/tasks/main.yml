@@ -5,8 +5,7 @@
       path: "{{ working_dir }}"
       state: directory
       mode: "0755"
-    check_mode: yes
-    always_run: yes
+    check_mode: false
 
   - name: Check if talosctl exists
     ansible.builtin.stat:
@@ -18,7 +17,7 @@
     register: talosctl_version_output
     when: talosctl_stat.stat.exists
     changed_when: false
-    check_mode: yes
+    check_mode: false
     ignore_errors: true
 
   - name: Set talos installed version
@@ -32,7 +31,7 @@
       force: yes
       dest: "{{ working_dir }}/talosctl"
       mode: '0755'
-    check_mode: yes
+    check_mode: false
     when: not talosctl_stat.stat.exists or installed_talosctl_version != talosctl_version
 
 - name: Template manifests
@@ -44,7 +43,7 @@
 - name: Post installer-customization.yaml to Talos factory schematics
   ansible.builtin.command:
     cmd: "curl -X POST --data-binary @{{ working_dir }}/installer-customization.yaml https://factory.talos.dev/schematics"
-  check_mode: yes
+  check_mode: false
   register: talos_factory_output
 
 - name: Save Talos factory output ID to a variable
