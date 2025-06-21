@@ -41,7 +41,7 @@ jobs:
 
       - name: Setup Ansible settings
         run: |
-          echo ${VAULT_PASSWORD} > vault-password
+          echo ${VAULT_PASSWORD} > ansible/vault-password
           
           echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
           echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
