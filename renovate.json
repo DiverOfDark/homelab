@@ -5,15 +5,15 @@
     "docker:enableMajor"
   ],
   "argocd": {
-    "fileMatch": [
-      "\\.yaml$",
-      "\\.yml$"
+    "managerFilePatterns": [
+      "/\\.yaml$/",
+      "/\\.yml$/"
     ]
   },
   "kubernetes": {
-    "fileMatch": [
-      "\\.yaml$",
-      "\\.yml$"
+    "managerFilePatterns": [
+      "/\\.yaml$/",
+      "/\\.yml$/"
     ]
   },
   "prHourlyLimit": 10,
