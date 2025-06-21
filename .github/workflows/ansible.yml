@@ -50,7 +50,7 @@ jobs:
         run: |
           echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
           mkdir ~/.ssh || true
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           
           echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
