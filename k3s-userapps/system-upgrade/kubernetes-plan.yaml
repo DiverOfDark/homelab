@@ -3,6 +3,7 @@ kind: Plan
 metadata:
   name: kubernetes
 spec:
+  # renovate: image=registry.k8s.io/kube-apiserver
   version: v1.33.1
   concurrency: 1
   exclusive: true

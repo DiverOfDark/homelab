@@ -16,6 +16,29 @@
       "/\\.yml$/"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "datasourceTemplate": "docker",
+      "managerFilePatterns": [
+        "/(^|/)main\\.yml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate: image=(?<depName>.*?)\\s+talosctl_version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)",
+        "#\\s*renovate: image=(?<depName>.*?)\\s+[\\w]*version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "docker",
+      "managerFilePatterns": [
+        "/(^|/).*\\.y[a?]ml$/"
+      ],
+      "matchStrings": [
+        "image: (?<depName>.*?):(?<currentValue>[\\w+\\.\\-]*)"
+      ]
+    }
+  ],
   "prHourlyLimit": 10,
   "prConcurrentLimit": 50,
   "automerge": false,
