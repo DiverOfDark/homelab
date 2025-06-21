@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: '3.13.5'
 
+      - name: Setup ca-certificates
+        run: |
+          sudo apt-get install -y ca-certificates
+          sudo update-ca-certificates
+
       - name: Restore cached virtualenv
         uses: actions/cache/restore@v4
         with:
