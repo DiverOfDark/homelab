@@ -12,7 +12,7 @@ terraform {
   }
 
   backend "kubernetes" {
-    namespace         = "semaphoreui"
+    namespace         = "github-runner"
     secret_suffix     = "state"
     config_path       = "~/.kube/config"
     in_cluster_config = true
