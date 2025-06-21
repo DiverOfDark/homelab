@@ -39,7 +39,6 @@
         "/(^|/).*\\.y[a]?ml$/"
       ],
       "matchStrings": [
-        "#\\s*renovate: image=(?<depName>.*?)\\s+talosctl_version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)",
         "#\\s*renovate: image=(?<depName>.*?)\\s+[\\w]*version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
       ]
     },
