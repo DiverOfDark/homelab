@@ -36,7 +36,7 @@
       "customType": "regex",
       "datasourceTemplate": "docker",
       "managerFilePatterns": [
-        "/(^|/)main\\.yml$/"
+        "/(^|/)main\\.y[a]?ml$/"
       ],
       "matchStrings": [
         "#\\s*renovate: image=(?<depName>.*?)\\s+talosctl_version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)",
