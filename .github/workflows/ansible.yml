@@ -10,45 +10,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  ansible:
-    name: Run Ansible Playbook
+  dry-run:
+    name: Dry-Run Ansible Playbook
     runs-on: github-runner-instance
     container: ubuntu:noble
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        id: setup_python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13.5'
-
       - name: Setup packages
         env:
          DEBIAN_FRONTEND: noninteractive
         run: |
           apt update 
-          apt install -y -q ca-certificates curl ssh
-
-      - name: Restore cached virtualenv
-        uses: actions/cache/restore@v4
-        with:
-          key: venv-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('ansible/requirements.txt') }}
-          path: ansible/.venv
-
-      - name: Install dependencies
-        run: |
-          cd ansible
-          python -m venv .venv
-          . .venv/bin/activate
-          python -m pip install -r requirements.txt
-          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
-
-      - name: Saved cached virtualenv
-        uses: actions/cache/save@v4
-        with:
-          key: venv-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('ansible/requirements.txt') }}
-          path: ansible/.venv
+          apt install -y -q ca-certificates curl ssh ansible ansible-mitogen
 
       - name: Setup Ansible settings
         run: |
@@ -70,6 +43,35 @@ jobs:
         run: |
           cd ansible
           ansible-playbook playbook.yaml --check --diff
+
+          
+
+  apply:
+    name: Apply Ansible Playbook
+    runs-on: github-runner-instance
+    container: ubuntu:noble
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: Homelab
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup packages
+        env:
+         DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt update 
+          apt install -y -q ca-certificates curl ssh ansible ansible-mitogen
+
+      - name: Setup Ansible settings
+        run: |
+          echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
+          mkdir ~/.ssh || true
+          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
+          echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
+          echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
 
       - name: Apply Ansible playbook
         if: github.ref == 'refs/heads/master'
