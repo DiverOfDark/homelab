@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Ansible Check:
+  ansible_check:
     runs-on: github-runner-instance
     container: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
