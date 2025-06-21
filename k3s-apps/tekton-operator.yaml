@@ -17,6 +17,7 @@ spec:
     helm:
       valuesObject:
         installCRDs: true
+        controllers: "tektonconfig,tektonpipeline,tektontrigger,tektonhub,tektonchain,tektonresult,tektondashboard,manualapprovalgate" #,tektonpruner
         service:
           createServiceMonitor: true
   syncPolicy:
