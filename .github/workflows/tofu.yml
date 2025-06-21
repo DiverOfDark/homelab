@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  tofu:
+  plan:
+    name: Plan OpenTofu
     runs-on: github-runner-instance
     container: ghcr.io/opentofu/opentofu:latest
     steps:

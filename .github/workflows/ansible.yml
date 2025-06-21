@@ -11,6 +11,7 @@ on:
 
 jobs:
   ansible:
+    name: Run Ansible Playbook
     runs-on: github-runner-instance
     container: ubuntu:noble
     steps:
