@@ -1,5 +1,11 @@
 - name: Ensure talosctl of correct version
   block: 
+  - name: Ensure talos-manifests/ exists
+    ansible.builtin.file:
+      path: "{{ working_dir }}"
+      state: directory
+      mode: "0755"
+
   - name: Check if talosctl exists
     ansible.builtin.stat:
       path: "{{ working_dir }}/talosctl"
@@ -26,21 +32,15 @@
       mode: '0755'
     when: not talosctl_stat.stat.exists or installed_talosctl_version != talosctl_version
 
-- name: Ensure talos-manifests/ exists
-  ansible.builtin.file:
-    path: "{{ working_dir }}/talos-manifests/"
-    state: directory
-    mode: "0755"
-
 - name: Template manifests
   ansible.builtin.template:
     src: "installer-customization.yaml"
-    dest: "{{ working_dir }}/talos-manifests/installer-customization.yaml"
+    dest: "{{ working_dir }}/installer-customization.yaml"
     mode: "0644"
   
 - name: Post installer-customization.yaml to Talos factory schematics
   ansible.builtin.command:
-    cmd: "curl -X POST --data-binary @{{ working_dir }}/talos-manifests/installer-customization.yaml https://factory.talos.dev/schematics"
+    cmd: "curl -X POST --data-binary @{{ working_dir }}/installer-customization.yaml https://factory.talos.dev/schematics"
   check_mode: no
   register: talos_factory_output
 
@@ -51,16 +51,16 @@
 - name: Template manifests
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "{{ working_dir }}/talos-manifests/{{ item }}"
+    dest: "{{ working_dir }}/{{ item }}"
     mode: "0644"
   loop: "{{ talos_manifests }}"
 
 - name: Template hosts
-  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/talos-manifests/{{ item.value.kind }}.yaml --patch @{{ working_dir }}/talos-manifests/{{ item.value.file }}.yaml --output {{ working_dir }}/talos-manifests/{{ item.value.file }}-full.yaml"
+  ansible.builtin.command: "{{ working_dir }}/talosctl machineconfig patch {{ working_dir }}/{{ item.value.kind }}.yaml --patch @{{ working_dir }}/{{ item.value.file }}.yaml --output {{ working_dir }}/{{ item.value.file }}-full.yaml"
   loop: "{{ talos_hosts | dict2items }}"
 
 - name: Apply config to hosts
-  ansible.builtin.command: "{{ working_dir }}/talosctl --talosconfig={{ working_dir }}/talos-manifests/talosconfig apply-config -n {{ item.value.ip }} -e {{ item.value.ip }} --file {{ working_dir }}/talos-manifests/{{ item.value.file }}-full.yaml"
+  ansible.builtin.command: "{{ working_dir }}/talosctl --talosconfig={{ working_dir }}/talosconfig apply-config -n {{ item.value.ip }} -e {{ item.value.ip }} --file {{ working_dir }}/{{ item.value.file }}-full.yaml"
   loop: "{{ talos_hosts | dict2items }}"
 
 # talosctl -e 192.168.0.2 -n 192.168.0.200 containers
