@@ -21,8 +21,8 @@ spec:
         containerMode:
           type: "kubernetes"
           kubernetesModeWorkVolumeClaim:
-            accessModes: ["ReadWriteOnce"]
-            storageClassName: "ceph-block"
+            accessModes: ["ReadWriteMany"]
+            storageClassName: "ceph-filesystem"
             resources:
               requests:
                 storage: 10Gi
