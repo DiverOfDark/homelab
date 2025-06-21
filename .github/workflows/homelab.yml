@@ -1,4 +1,4 @@
-name: Ansible Playbook CI
+name: Homelab CI/CD
 
 on:
   push:
