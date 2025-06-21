@@ -32,7 +32,6 @@ jobs:
           python -m pip install -r requirements.txt
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
-          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
 
       - name: Saved cached virtualenv
         uses: actions/cache/save@v4
@@ -40,13 +39,18 @@ jobs:
           key: venv-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('ansible/requirements.txt') }}
           path: ansible/.venv
 
+      - name: Setup Ansible settings
+        run: |
+          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
+          echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
+          echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
+
       - name: Check syntax Ansible
         run: |
           cd ansible
-          ansible-playbook playbook.yaml -i inventory.yaml --syntax-check
+          ansible-playbook playbook.yaml --syntax-check
           
       - name: Dry-run Ansible playbook
         run: |
           cd ansible
-          echo ${VAULT_PASSWORD} > vault-password
-          ansible-playbook playbook.yaml -i inventory.yaml --check --diff
+          ansible-playbook playbook.yaml --check --diff
