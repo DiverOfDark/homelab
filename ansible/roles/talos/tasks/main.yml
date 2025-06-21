@@ -41,6 +41,7 @@
 - name: Post installer-customization.yaml to Talos factory schematics
   ansible.builtin.command:
     cmd: "curl -X POST --data-binary @{{ working_dir }}/talos-manifests/installer-customization.yaml https://factory.talos.dev/schematics"
+  check_mode: no
   register: talos_factory_output
 
 - name: Save Talos factory output ID to a variable
