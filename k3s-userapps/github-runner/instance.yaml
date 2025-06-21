@@ -16,7 +16,7 @@ spec:
         ## ex: https://github.com/myorg/myrepo or https://github.com/myorg
         githubConfigUrl: "https://github.com/diverofdark/homelab"
 
-        githubConfigSecret: github-config-secret
+        githubConfigSecret: github-secret
 
         containerMode:
           type: "kubernetes"
