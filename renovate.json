@@ -24,10 +24,10 @@
         "docker"
       ],
       "matchPackageNames": [
-        "registry.k8s.io/kube-scheduler",
-        "registry.k8s.io/kube-proxy",
-        "registry.k8s.io/kube-controller-manager",
-        "registry.k8s.io/kube-apiserver"
+        "registry.k8s.io/kube-scheduler**",
+        "registry.k8s.io/kube-proxy**",
+        "registry.k8s.io/kube-controller-manager**",
+        "registry.k8s.io/kube-apiserver**"
       ]
     }
   ],
