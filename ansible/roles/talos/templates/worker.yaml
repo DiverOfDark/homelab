@@ -535,7 +535,7 @@ cluster:
 
     # # Scheduler server specific configuration options.
     # scheduler:
-    #     image: registry.k8s.io/kube-scheduler:v1.29.0 # The container image used in the scheduler manifest.
+    #     image: registry.k8s.io/kube-scheduler:v1.33.2 # The container image used in the scheduler manifest.
     #     # Extra arguments to supply to the scheduler.
     #     extraArgs:
     #         feature-gates: AllBeta=true
