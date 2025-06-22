@@ -7,6 +7,12 @@ spec:
   profile: all
   chain:
     disabled: false
+    artifacts.taskrun.format: in-toto
+    artifacts.taskrun.storage: oci
+    artifacts.oci.storage: oci
+    artifacts.oci.format: simplesigning
+    artifacts.pipelinerun.format: in-toto
+    artifacts.pipelinerun.storage: oci
   pipeline:
     await-sidecar-readiness: true
     coschedule: workspaces
