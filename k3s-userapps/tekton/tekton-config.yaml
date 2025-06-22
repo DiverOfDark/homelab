@@ -76,6 +76,7 @@ spec:
     disabled: false
 
     db_host: database.tekton-pipelines.svc.cluster.local
+    dn_name: tekton
     db_port: 5432
     db_sslmode: prefer
     #db_sslmode: verify-full
