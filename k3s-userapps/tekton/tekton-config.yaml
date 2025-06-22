@@ -81,7 +81,7 @@ spec:
     #db_sslmode: verify-full
     #db_sslrootcert: /etc/tls/db/ca.crt
     db_enable_auto_migration: true
-    db_secret_name: tekton.database.credentials.postgresql.acid.zalan.do
+    db_secret_name: postgres.database.credentials.postgresql.acid.zalan.do
     db_secret_user_key: username
     db_secret_password_key: password
     is_external_db: true
