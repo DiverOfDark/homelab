@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     chart: stackbahn
-    repoURL: https://github.com/DiverOfDark/stackbahn.git
+    repoURL: git@github.com:DiverOfDark/stackbahn.git
     path: helm
     targetRevision: HEAD
     helm:
