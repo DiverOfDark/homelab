@@ -15,7 +15,7 @@ metadata:
 spec:
   provider:
     kubernetes:
-      remoteNamespace: tekton
+      remoteNamespace: tekton-pipelines
       server:
         url: "https://kubernetes.default.svc:443"
         caProvider:
