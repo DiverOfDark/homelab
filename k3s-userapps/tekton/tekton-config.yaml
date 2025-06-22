@@ -77,7 +77,7 @@ spec:
 
     db_host: database
     db_port: 5342
-    db_sslmode: disable
+    db_sslmode: prefer
     #db_sslmode: verify-full
     #db_sslrootcert: /etc/tls/db/ca.crt
     db_enable_auto_migration: true
