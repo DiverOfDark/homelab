@@ -17,6 +17,9 @@ spec:
     helm:
       valuesObject:
         installCRDs: true
+        operator:
+          autoInstallComponents: false
+          defaultTargetNamespace: tekton
         service:
           createServiceMonitor: true
   syncPolicy:
