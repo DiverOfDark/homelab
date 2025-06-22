@@ -73,7 +73,7 @@ spec:
     options:
       disabled: false
   result:
-    disabled: true
+    disabled: false
 
     db_host: database
     db_port: 5342
