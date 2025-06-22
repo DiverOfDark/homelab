@@ -15,7 +15,6 @@ spec:
     tekton: [ ]
   databases:
     tekton: tekton
-    tekton_results: tekton
   resources:
     requests:
       cpu: 100m
