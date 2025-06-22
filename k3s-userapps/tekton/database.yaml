@@ -1,0 +1,21 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: database
+  namespace: tekton-pipelines
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "17"
+  numberOfInstances: 2
+  volume:
+    size: "5Gi"
+
+  users:
+    tekton: [ ]
+  databases:
+    tekton: tekton
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi

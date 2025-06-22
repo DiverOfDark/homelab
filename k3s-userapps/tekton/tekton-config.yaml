@@ -69,12 +69,12 @@ spec:
     options:
       disabled: false
   dashboard:
-    readonly: true
+    readonly: false
     options:
       disabled: false
   result:
     disabled: true
-    is_external_db: false
+    is_external_db: true
     options: {}
     performance:
       disable-ha: false
