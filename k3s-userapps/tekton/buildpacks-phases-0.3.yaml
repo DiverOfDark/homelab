@@ -446,7 +446,7 @@ spec:
           mountPath: /layers
 
     - name: results
-      image: registry.access.redhat.com/ubi8/python-311@sha256:43605cb2491ef2297a7acf4b4bf0b7f54f0c91b96daf12ae41c49cc7f192b153
+      image: registry.access.redhat.com/ubi8/python-311@sha256:b2eea10aec9bd663aa37b180b2244be44a130f3c5c2a9bc53648492b285d431c
       script: |
         #!/usr/bin/env python3
 
