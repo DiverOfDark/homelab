@@ -85,6 +85,7 @@ spec:
     db_secret_user_key: username
     db_secret_password_key: password
     is_external_db: true
+    log_level: debug
     secret_name: tekton-s3-secret
     options: {}
     performance:
