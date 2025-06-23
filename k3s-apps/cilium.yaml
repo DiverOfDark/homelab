@@ -35,6 +35,10 @@ spec:
     targetRevision: 1.17.5
     helm:
       valuesObject:
+        socketLB:
+          hostNamespaceOnly: true
+        routingMode: native
+        kubeProxyReplacement: true
         clustermesh:
           apiserver:
             metrics:
