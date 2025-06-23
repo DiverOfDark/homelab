@@ -37,7 +37,7 @@ spec:
       valuesObject:
         socketLB:
           hostNamespaceOnly: true
-        routingMode: native
+        #routingMode: native
         kubeProxyReplacement: true
         clustermesh:
           apiserver:
