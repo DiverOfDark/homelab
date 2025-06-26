@@ -6,7 +6,7 @@ terraform {
       #version = "5.0.0-alpha1"
     }
     kubernetes = {
-      source  = "registry.terraform.io/hashicorp/kubernetes"
+      source  = "registry.opentofu.org/hashicorp/kubernetes"
       version = "2.37.1"
     }
   }
