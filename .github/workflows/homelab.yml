@@ -143,5 +143,5 @@ jobs:
         run: |
           cd terraform
           tofu init
-          tofu apply
+          tofu apply -auto-approve
           
