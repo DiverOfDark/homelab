@@ -102,7 +102,7 @@ spec:
             registry:
               storageClass: ceph-filesystem
               accessMode: ReadWriteMany
-              size: 30Gi
+              size: 60Gi
             jobservice:
               jobLog:
                 storageClass: ceph-filesystem
