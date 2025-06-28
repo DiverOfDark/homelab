@@ -48,6 +48,9 @@ spec:
               - name: runner
                 image: ghcr.io/actions/actions-runner:latest
                 command: [ "/home/runner/run.sh" ]
+            volumes:
+              - name: work
+                emptyDir: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: github-runner
