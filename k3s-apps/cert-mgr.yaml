@@ -77,7 +77,7 @@ spec:
   source:
     chart: trust-manager
     repoURL: https://charts.jetstack.io
-    targetRevision: v0.17.1
+    targetRevision: v0.18.0
     helm:
       releaseName: trust-manager
       valuesObject:
