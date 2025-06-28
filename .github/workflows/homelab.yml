@@ -58,6 +58,9 @@ jobs:
 
   ansible-apply:
     name: Apply Ansible Playbook
+    concurrency:
+      group: ansible-apply
+      cancel-in-progress: true
     needs:
       - ansible-dry-run
     runs-on: github-runner-instance
@@ -119,9 +122,12 @@ jobs:
         run: |
           cd terraform
           tofu init
-          tofu plan
+          tofu plan -lock=false
 
   tofu-apply:
+    concurrency:
+      group: tofu-apply
+      cancel-in-progress: true
     needs:
       - tofu-plan
     name: Apply OpenTofu
