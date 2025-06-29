@@ -145,6 +145,7 @@ spec:
 
                 exec.enabled: true
                 accounts.readonly: apiKey
+                application.resourceTrackingMethod: "annotation+label"
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
