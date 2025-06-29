@@ -34,6 +34,7 @@ metadata:
   name: grafanadashboard-from-configmap
   namespace: cloudnative-pg
 spec:
+  allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
       dashboards: "grafana"
