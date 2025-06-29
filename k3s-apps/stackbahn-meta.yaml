@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: argoapps
+    path: argoapp
     repoURL: git@github.com:DiverOfDark/stackbahn.git
     targetRevision: HEAD
   syncPolicy:
