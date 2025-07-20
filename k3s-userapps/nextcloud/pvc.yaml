@@ -12,3 +12,17 @@ spec:
     requests:
       storage: 165Gi
   storageClassName: "ceph-filesystem"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kavita-config
+  namespace: nextcloud
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: "ceph-filesystem"
+---

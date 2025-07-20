@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kavita
-  namespace: kavita
+  namespace: nextcloud
 spec:
   progressDeadlineSeconds: 600
   strategy:
@@ -21,9 +21,9 @@ spec:
         - name: kavita-config
           persistentVolumeClaim:
             claimName: kavita-config
-        - name: kavita-media
+        - name: nextcloud
           persistentVolumeClaim:
-            claimName: kavita-media
+            claimName: nextcloud
       containers:
         - image: 'ghcr.io/kareadita/kavita:0.8.7'
           imagePullPolicy: Always
@@ -38,15 +38,8 @@ spec:
           volumeMounts:
             - mountPath: /kavita/config
               name: kavita-config
-            - mountPath: /manga
-              name: kavita-media
-              subPath: manga
-            - mountPath: /comics
-              name: kavita-media
-              subPath: comics
-            - mountPath: /books
-              name: kavita-media
-              subPath: books
+            - mountPath: /nextcloud
+              name: nextcloud
           livenessProbe:
             httpGet:
               path: /

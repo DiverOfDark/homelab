@@ -14,3 +14,18 @@ spec:
     app.kubernetes.io/pod: nextcloud
   type: ClusterIP
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kavita
+  namespace: nextcloud
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    app.kubernetes.io/pod: kavita
+  type: ClusterIP
+
