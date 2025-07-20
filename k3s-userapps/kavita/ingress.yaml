@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://kavita.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Kavita
+    gethomepage.dev/icon: kavita.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=kavita"
+    gethomepage.dev/description: "Digital Library for Manga, Comics & Books"
+  name: kavita
+  namespace: kavita
+spec:
+  rules:
+  - host: kavita.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: kavita
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - kavita.kirillorlov.pro
+    secretName: kavita-tls
+
