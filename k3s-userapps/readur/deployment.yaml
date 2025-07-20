@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: readur
+  namespace: readur
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: readur
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: readur
+    spec:
+      volumes:
+        - name: readur-uploads
+          persistentVolumeClaim:
+            claimName: readur-uploads
+        - name: readur-watch
+          persistentVolumeClaim:
+            claimName: readur-watch
+      containers:
+        - image: 'ghcr.io/readur/readur:2.4.2'
+          imagePullPolicy: IfNotPresent
+          name: readur
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+              name: "http"
+          envFrom:
+            - secretRef:
+                name: readur-secret
+            - secretRef:
+                name: readur-db-credentials
+          volumeMounts:
+            - mountPath: /app/uploads
+              name: readur-uploads
+            - mountPath: /app/watch
+              name: readur-watch
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+

@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://readur.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Readur
+    gethomepage.dev/icon: https://github.com/readur/readur/blob/7667b38c8dce402ac7583fb5ee39dea4802219e9/frontend/public/readur-64.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=readur"
+    gethomepage.dev/description: "Document Processing & OCR Platform"
+  name: readur
+  namespace: readur
+spec:
+  rules:
+  - host: readur.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: readur
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - readur.kirillorlov.pro
+    secretName: readur-tls
+

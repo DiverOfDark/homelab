@@ -1,0 +1,27 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: readur-db
+  namespace: readur
+spec:
+  teamId: "acid"
+  postgresql:
+    version: "17"
+  env:
+    - name: ALLOW_NOSSL
+      value: "true"
+  numberOfInstances: 1
+  volume:
+    size: "5Gi"
+
+  users:
+    readur: [ ]
+  databases:
+    readur: readur
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
