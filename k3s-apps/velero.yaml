@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://vmware-tanzu.github.io/helm-charts
     chart: velero
-    targetRevision: 10.0.8
+    targetRevision: 10.0.10
     helm:
       valuesObject:
         extraObjects:
