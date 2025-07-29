@@ -32,7 +32,7 @@ spec:
   source:
     repoURL: https://helm.cilium.io/
     chart: cilium
-    targetRevision: 1.17.5
+    targetRevision: 1.18.0
     helm:
       valuesObject:
         socketLB:
