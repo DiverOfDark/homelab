@@ -75,7 +75,7 @@ spec:
             createPrometheusRules: true
           cephClusterSpec:
             cephVersion:
-              image: quay.io/ceph/ceph:v19.2.2
+              image: quay.io/ceph/ceph:v19.2.3
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
             dashboard:
