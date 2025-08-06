@@ -22,7 +22,7 @@ spec:
       kind: Ingress
   source:
     repoURL: ghcr.io/grafana/helm-charts
-    targetRevision: v5.18.0
+    targetRevision: v5.19.4
     chart: grafana-operator
     helm:
       valuesObject:
