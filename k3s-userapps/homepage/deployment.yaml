@@ -19,7 +19,7 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud
       containers:
-        - image: 'ghcr.io/diverofdark/about/website:latest'
+        - image: 'ghcr.io/diverofdark/about/website:0.0.2'
           imagePullPolicy: IfNotPresent
           name: homepage
           ports:
