@@ -19,22 +19,17 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud
       containers:
-        - image: 'klakegg/hugo:0.111.3-asciidoctor'
+        - image: 'ghcr.io/diverofdark/about/website:latest'
           imagePullPolicy: IfNotPresent
           name: homepage
-          args: [ "server", "-b", "https://kirillorlov.pro/", "--appendPort=false", "--log" ]
           ports:
-            - containerPort: 1313
+            - containerPort: 3000
               protocol: TCP
               name: "http"
-          volumeMounts:
-            - mountPath: /src
-              name: nextcloud
-              subPath: data/i@kirillorlov.pro/files/website
           livenessProbe:
             httpGet:
               path: /
-              port: 1313
+              port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -43,7 +38,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 1313
+              port: 3000
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
