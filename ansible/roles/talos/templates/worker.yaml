@@ -482,7 +482,7 @@ cluster:
 
     # # API server specific configuration options.
     # apiServer:
-    #     image: registry.k8s.io/kube-apiserver:v1.33.3 # The container image used in the API server manifest.
+    #     image: registry.k8s.io/kube-apiserver:v1.33.4 # The container image used in the API server manifest.
     #     # Extra arguments to supply to the API server.
     #     extraArgs:
     #         feature-gates: ServerSideApply=true
@@ -519,7 +519,7 @@ cluster:
 
     # # Controller manager server specific configuration options.
     # controllerManager:
-    #     image: registry.k8s.io/kube-controller-manager:v1.33.3 # The container image used in the controller manager manifest.
+    #     image: registry.k8s.io/kube-controller-manager:v1.33.4 # The container image used in the controller manager manifest.
     #     # Extra arguments to supply to the controller manager.
     #     extraArgs:
     #         feature-gates: ServerSideApply=true
@@ -527,7 +527,7 @@ cluster:
     # # Kube-proxy server-specific configuration options
     # proxy:
     #     disabled: false # Disable kube-proxy deployment on cluster bootstrap.
-    #     image: registry.k8s.io/kube-proxy:v1.33.3 # The container image used in the kube-proxy manifest.
+    #     image: registry.k8s.io/kube-proxy:v1.33.4 # The container image used in the kube-proxy manifest.
     #     mode: ipvs # proxy mode of kube-proxy.
     #     # Extra arguments to supply to kube-proxy.
     #     extraArgs:
@@ -535,7 +535,7 @@ cluster:
 
     # # Scheduler server specific configuration options.
     # scheduler:
-    #     image: registry.k8s.io/kube-scheduler:v1.33.3 # The container image used in the scheduler manifest.
+    #     image: registry.k8s.io/kube-scheduler:v1.33.4 # The container image used in the scheduler manifest.
     #     # Extra arguments to supply to the scheduler.
     #     extraArgs:
     #         feature-gates: AllBeta=true
