@@ -37,6 +37,14 @@ data:
             widget:
               type: fritzbox
               url: http://192.168.178.1/
+        - Pihole:
+            href: http://192.168.178.2/
+            icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/pi-hole.svg
+            description: DNS Adblocker
+            widget:
+              type: pihole
+              url: http://192.168.178.2
+              version: "6"
         - Minio:
             href: https://yggdrasil.kirillorlov.pro/minio/ui/login
             icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/minio.svg
