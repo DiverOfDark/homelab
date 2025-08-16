@@ -37,7 +37,7 @@ spec:
         # - --policy=upsert-only
         - --provider=pihole
         - --pihole-api-version=6
-        - --pihole-server=http://pihole-web.pihole
+        - --pihole-server=http://192.168.178.2
         - --source=crd
         - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
         - --crd-source-kind=DNSEndpoint
