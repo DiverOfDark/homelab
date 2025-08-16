@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://n8n.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: n8n
+    gethomepage.dev/icon: n8n.png
+    gethomepage.dev/pod-selector: "app=n8n"
+    gethomepage.dev/description: "Workflow automation"
+  name: n8n
+  namespace: n8n
+spec:
+  tls:
+  - hosts:
+    - n8n.kirillorlov.pro
+    secretName: n8n-tls
+  rules:
+  - host: n8n.kirillorlov.pro
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: n8n
+            port:
+              number: 5678
+

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+      - name: n8n
+        image: n8nio/n8n:1.107.2
+        ports:
+        - containerPort: 5678
+        env:
+        - name: N8N_HOST
+          value: "n8n.kirillorlov.pro"
+        - name: N8N_PROTOCOL
+          value: "https"
+        - name: N8N_PORT
+          value: "5678"
+        - name: WEBHOOK_URL
+          value: "https://n8n.kirillorlov.pro/"
+        - name: GENERIC_TIMEZONE
+          value: "Europe/Berlin"
+        volumeMounts:
+        - name: n8n-data
+          mountPath: /home/node/.n8n
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: n8n-data
+        persistentVolumeClaim:
+          claimName: n8n-data
+
