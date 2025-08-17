@@ -83,10 +83,6 @@ locals {
       hostname = "ai.kirillorlov.pro"
       service  = "http://lobechat.lobechat.svc.cluster.local:80"
     }, {
-      short = "stackbahn"
-      hostname = "stackbahn.kirillorlov.pro"
-      service  = "http://stackbahn-app.stackbahn.svc.cluster.local:80"
-    }, {
       short = "search"
       hostname = "search.kirillorlov.pro"
       service  = "http://searxng.lobechat.svc.cluster.local:80"
