@@ -9,7 +9,7 @@ spec:
     version: "17"
   numberOfInstances: 1
   volume:
-    size: "512Mi"
+    size: "5Gi"
 
   users:
     rsstt: [ ]

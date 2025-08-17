@@ -11,7 +11,7 @@ spec:
       value: "true"
   numberOfInstances: 2
   volume:
-    size: "1024Mi"
+    size: "5Gi"
 
   users:
     lobechat: [ ]
