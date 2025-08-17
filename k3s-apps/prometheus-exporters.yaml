@@ -32,6 +32,7 @@ spec:
     targetRevision: 0.15.4
     helm:
       valuesObject:
+        hostNetwork: true
         serviceMonitor:
           enabled: true
         prometheusRules:
