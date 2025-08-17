@@ -44,12 +44,12 @@ spec:
         - name: DB_POSTGRESDB_USER
           valueFrom:
             secretKeyRef:
-              name: n8n.n8n-db.credentials.postgresql.acid.zalando.do
+              name: n8n.n8n-db.credentials.postgresql.acid.zalan.do
               key: username
         - name: DB_POSTGRESDB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: n8n.n8n-db.credentials.postgresql.acid.zalando.do
+              name: n8n.n8n-db.credentials.postgresql.acid.zalan.do
               key: password
         volumeMounts:
         - name: n8n-data
