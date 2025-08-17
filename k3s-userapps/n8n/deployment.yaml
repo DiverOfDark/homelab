@@ -33,9 +33,27 @@ spec:
           value: "https://n8n.kirillorlov.pro/"
         - name: GENERIC_TIMEZONE
           value: "Europe/Berlin"
+        - name: DB_TYPE
+          value: "postgresdb"
+        - name: DB_POSTGRESDB_DATABASE
+          value: "n8n"
+        - name: DB_POSTGRESDB_HOST
+          value: "n8n-db.n8n.svc.cluster.local"
+        - name: DB_POSTGRESDB_PORT
+          value: "5432"
+        - name: DB_POSTGRESDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: n8n.n8n-db.credentials.postgresql.acid.zalando.do
+              key: username
+        - name: DB_POSTGRESDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: n8n.n8n-db.credentials.postgresql.acid.zalando.do
+              key: password
         volumeMounts:
         - name: n8n-data
-          mountPath: /home/node/.n8n
+          mountPath: /root/.n8n
         resources:
           requests:
             memory: "512Mi"
