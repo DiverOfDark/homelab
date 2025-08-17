@@ -32,25 +32,6 @@ spec:
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
           namespace: "github-runner-instance"
-
-
-        template:
-          spec:
-            restartPolicy: Never
-            initContainers:
-              - name: init-k8s-volume-permissions
-                image: ghcr.io/actions/actions-runner:latest
-                command: [ "sudo", "chown", "-R", "runner", "/home/runner/_work" ]
-                volumeMounts:
-                  - name: work
-                    mountPath: /home/runner/_work
-            containers:
-              - name: runner
-                image: ghcr.io/actions/actions-runner:latest
-                command: [ "/home/runner/run.sh" ]
-            volumes:
-              - name: work
-                emptyDir: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: github-runner
