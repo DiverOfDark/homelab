@@ -27,7 +27,7 @@ spec:
               requests:
                 storage: 5Gi
 
-        maxRunners: 15
+        maxRunners: 5
         minRunners: 1
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
