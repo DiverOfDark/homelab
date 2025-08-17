@@ -13,13 +13,13 @@ talos_manifests:
   - master-jotunheimr.yaml
   - master-niflheimr.yaml
   - master-muspelheimr.yaml
-  - worker-asgard.yaml
+  - master-asgard.yaml
 
 talos_hosts:
   asgard:
     ip: 192.168.178.11
-    file: worker-asgard
-    kind: worker
+    file: master-asgard
+    kind: controlplane
   jotunheimr:
     ip: 192.168.178.13
     file: master-jotunheimr
@@ -28,10 +28,10 @@ talos_hosts:
     ip: 192.168.178.12
     file: master-niflheimr
     kind: controlplane
-  muspelheimr:
-    ip: 192.168.178.14
-    file: master-muspelheimr
-    kind: controlplane
+#  muspelheimr:
+#    ip: 192.168.178.14
+#    file: master-muspelheimr
+#    kind: controlplane
 
 talos:
   token: !vault |
