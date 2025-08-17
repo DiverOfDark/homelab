@@ -94,6 +94,10 @@ locals {
       short = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
+    }, {
+      short = "n8n"
+      hostname = "n8n.kirillorlov.pro"
+      service  = "http://n8n.n8n.svc.cluster.local:5678"
     }
   ]
 }
