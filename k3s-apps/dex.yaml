@@ -58,7 +58,7 @@ spec:
   source:
     chart: dex
     repoURL: https://charts.dexidp.io
-    targetRevision: 0.23.0
+    targetRevision: 0.23.1
     helm:
       valuesObject:
         envVars:
