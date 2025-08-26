@@ -16,7 +16,7 @@ spec:
         app.kubernetes.io/pod: caddy
     spec:
       containers:
-        - image: 'caddy:2.10.0'
+        - image: 'caddy:2.10.2'
           imagePullPolicy: IfNotPresent
           name: caddy
           ports:
