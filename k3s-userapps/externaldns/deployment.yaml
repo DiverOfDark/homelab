@@ -32,7 +32,6 @@ spec:
         # - --source=service
         - --source=ingress
         - --source=traefik-proxy
-        - --traefik-disable-legacy
         - --registry=noop
         # - --policy=upsert-only
         - --provider=pihole
