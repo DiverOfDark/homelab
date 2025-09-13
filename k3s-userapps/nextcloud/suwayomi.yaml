@@ -89,6 +89,7 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         fsGroup: 0
+        fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: suwayomi-downloads
           persistentVolumeClaim:
