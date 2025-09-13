@@ -22,7 +22,6 @@ spec:
     helm:
       releaseName: cert-manager
       valuesObject:
-        podDnsPolicy: "None"
         clusterResourceNamespace: cert-manager
         replicaCount: 2
         cainjector:
