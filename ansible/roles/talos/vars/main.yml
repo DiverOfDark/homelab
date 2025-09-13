@@ -28,10 +28,10 @@ talos_hosts:
     ip: 192.168.178.12
     file: master-niflheimr
     kind: controlplane
-#  muspelheimr:
-#    ip: 192.168.178.14
-#    file: master-muspelheimr
-#    kind: controlplane
+  muspelheimr:
+    ip: 192.168.178.14
+    file: master-muspelheimr
+    kind: controlplane
 
 talos:
   token: !vault |
