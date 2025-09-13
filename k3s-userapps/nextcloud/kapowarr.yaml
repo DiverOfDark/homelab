@@ -92,7 +92,7 @@ spec:
               mountPath: /app/db
             - name: kapowarr-temp-downloads
               mountPath: /app/temp_downloads
-            - name: kapowarr-root-folder
+            - name: nextcloud
               mountPath: /nextcloud
           env:
             - name: TZ
