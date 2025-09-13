@@ -87,7 +87,6 @@ spec:
     spec:
       securityContext:
         runAsUser: 0
-        runAsGroup: 0
       volumes:
         - name: suwayomi-downloads
           persistentVolumeClaim:
