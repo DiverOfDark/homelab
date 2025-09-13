@@ -85,11 +85,6 @@ spec:
       labels:
         app.kubernetes.io/pod: suwayomi-server
     spec:
-      securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
-        fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: suwayomi-downloads
           persistentVolumeClaim:
