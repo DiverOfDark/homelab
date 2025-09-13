@@ -92,7 +92,7 @@ spec:
             - name: suwayomi-files
               mountPath: /root/.local/share/Tachidesk
             - name: nextcloud
-              subPath: /data/i@kirillorlov.pro/files/Manga
+              subPath: data/i@kirillorlov.pro/files/Manga
               mountPath: /root/.local/share/Tachidesk/downloads/mangas
           env:
             - name: TZ
