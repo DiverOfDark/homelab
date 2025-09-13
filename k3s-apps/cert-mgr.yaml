@@ -23,10 +23,6 @@ spec:
       releaseName: cert-manager
       valuesObject:
         podDnsPolicy: "None"
-        podDnsConfig:
-          nameservers:
-            - "1.1.1.1"
-            - "8.8.8.8"
         clusterResourceNamespace: cert-manager
         replicaCount: 2
         cainjector:
