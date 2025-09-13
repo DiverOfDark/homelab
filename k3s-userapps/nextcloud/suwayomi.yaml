@@ -8,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 50Gi
   storageClassName: "ceph-filesystem"
 ---
 apiVersion: v1
@@ -21,7 +21,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 50Gi
   storageClassName: "ceph-filesystem"
 ---
 apiVersion: networking.k8s.io/v1
