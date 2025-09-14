@@ -91,9 +91,14 @@ spec:
           volumeMounts:
             - name: suwayomi-files
               mountPath: /root/.local/share/Tachidesk
+            - name: suwayomi-files
+              mountPath: /home/suwayomi/.local/share/Tachidesk
             - name: nextcloud
               subPath: data/i@kirillorlov.pro/files/Manga
               mountPath: /root/.local/share/Tachidesk/downloads/mangas
+            - name: nextcloud
+              subPath: data/i@kirillorlov.pro/files/Manga
+              mountPath: /home/suwayomi/.local/share/Tachidesk/downloads/mangas
           env:
             - name: TZ
               value: Europe/Berlin
