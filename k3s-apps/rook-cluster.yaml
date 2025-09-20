@@ -76,6 +76,7 @@ spec:
           cephClusterSpec:
             cephVersion:
               image: quay.io/ceph/ceph:v20.1.0
+              allowUnsupported: true
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
             dashboard:
