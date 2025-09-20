@@ -52,7 +52,7 @@ spec:
   source:
     chart: mariadb-operator-crds
     repoURL: https://helm.mariadb.com/mariadb-operator
-    targetRevision: 25.8.3
+    targetRevision: 25.8.4
     helm:
       valuesObject: {}
   syncPolicy:
