@@ -11,7 +11,7 @@ spec:
       value: "true"
   numberOfInstances: 2
   volume:
-    size: "5Gi"
+    size: "15Gi"
 
   users:
     logto: [ ]
