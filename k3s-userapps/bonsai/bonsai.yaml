@@ -148,7 +148,7 @@ spec:
           serviceAccountName: patch-deployment-sa
           containers:
           - name: patch-deployment
-            image: bitnami/kubectl:latest
+            image: alpine/kubectl:latest
             command:
             - /bin/sh
             - -c
