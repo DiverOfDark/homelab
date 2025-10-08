@@ -17,7 +17,7 @@ spec:
         app.kubernetes.io/pod: logto
     spec:
       containers:
-        - image: 'svhd/logto:1.31.0'
+        - image: 'svhd/logto:1.32.0'
           imagePullPolicy: IfNotPresent
           name: logto
           command: ["sh" ]
