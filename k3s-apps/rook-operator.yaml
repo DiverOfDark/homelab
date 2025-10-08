@@ -26,7 +26,7 @@ spec:
   sources:
     - chart: rook-ceph
       repoURL: https://charts.rook.io/release
-      targetRevision: v1.18.3
+      targetRevision: v1.18.4
       helm:
         valuesObject:
          allowLoopDevices: true
