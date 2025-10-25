@@ -25,7 +25,7 @@ spec:
           persistentVolumeClaim:
             claimName: nextcloud
       containers:
-        - image: 'ghcr.io/kareadita/kavita:0.8.7'
+        - image: 'ghcr.io/kareadita/kavita:0.8.8'
           imagePullPolicy: Always
           name: kavita
           ports:
