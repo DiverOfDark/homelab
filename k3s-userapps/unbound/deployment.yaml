@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: exporter
-          image: "ghcr.io/cyb3r-jak3/unbound-exporter:0.4.6"
+          image: "ghcr.io/cyb3r-jak3/unbound-exporter:0.5.0"
           imagePullPolicy: IfNotPresent
           args: [ "-unbound.host=unix:///srv/unbound.ctl" ]
           volumeMounts:
