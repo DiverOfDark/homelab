@@ -93,6 +93,8 @@ spec:
               mgr:
                 requests:
                   cpu: 50m
+                limits:
+                  memory: 2Gi
               mgr-sidecar:
                 requests:
                   cpu: 50m
