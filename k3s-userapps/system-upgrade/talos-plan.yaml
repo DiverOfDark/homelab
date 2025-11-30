@@ -17,8 +17,6 @@ spec:
     matchExpressions:
       - key: kubernetes.io/hostname
         operator: Exists
-  drain:
-    force: true
   upgrade:
     image: ghcr.io/jfroy/tnu:0.4.4
     envs:
