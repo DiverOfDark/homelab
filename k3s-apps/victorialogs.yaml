@@ -22,7 +22,9 @@ spec:
           enabled: true
           role: Agent
           dataDir: /vector-data-dir
-          resources: { }
+          resources:
+            limits:
+              memory: 4Gi
           podMonitor:
             enabled: true
           args:
