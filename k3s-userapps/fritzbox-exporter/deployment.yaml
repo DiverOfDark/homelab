@@ -18,7 +18,7 @@ spec:
           args:
             - "--config"
             - "/etc/fritz/config.yaml"
-          image: "pdreker/fritz_exporter:2.6.0"
+          image: "pdreker/fritz_exporter:2.6.1"
           ports:
             - name: metrics
               containerPort: 9787
