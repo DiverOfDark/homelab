@@ -1,5 +1,5 @@
 # renovate: image=ghcr.io/siderolabs/talosctl
-talosctl_version: "v1.11.5"  # Replace with the desired version
+talosctl_version: "v1.12.0"  # Replace with the desired version
 
 # renovate: image=registry.k8s.io/kube-apiserver
 kube_version: "v1.34.3"  # Replace with the desired version
