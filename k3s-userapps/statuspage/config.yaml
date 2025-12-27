@@ -49,21 +49,7 @@ data:
             href: https://yggdrasil.kirillorlov.pro/minio/ui/login
             icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/minio.svg
             description: Backup storage
-    
-    - 3D Printer:
-        - Voron:
-            href: http://voron2.kirillorlov.pro/
-            icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/voron.svg"
-            description: 3d Printer
-            widget:
-              type: moonraker
-              url: http://voron2.kirillorlov.pro
-        - Knomi:
-            href: http://knomi.fritz.box/
-            description: Knomi display
-        - Knomi V2:
-            href: http://knomi2.fritz.box/
-            description: Knomi V2 display
+
   widgets.yaml: |
     - kubernetes:
         cluster:
