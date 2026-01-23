@@ -59,11 +59,13 @@ spec:
   sources:
     - chart: rook-ceph-cluster
       repoURL: https://charts.rook.io/release
-      targetRevision: v1.19.0
+      targetRevision: v1.18.8
       helm:
         valuesObject:
           cephImage:
+            repository: quay.io/ceph/ceph
             tag: v20.2.0
+            imagePullPolicy: IfNotPresent
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
           toolbox:
