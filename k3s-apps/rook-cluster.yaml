@@ -62,6 +62,8 @@ spec:
       targetRevision: v1.19.0
       helm:
         valuesObject:
+          cephImage:
+            tag: v20.2.0
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
           toolbox:
@@ -74,9 +76,6 @@ spec:
             enabled: true
             createPrometheusRules: true
           cephClusterSpec:
-            cephVersion:
-              image: quay.io/ceph/ceph:v20.2.0
-              allowUnsupported: true
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
             dashboard:
