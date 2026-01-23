@@ -11,6 +11,10 @@ spec:
     targetRevision: 11.3.2
     helm:
       valuesObject:
+        kubectl:
+          image:
+            repository: public.ecr.aws/bitnami/kubectl
+
         extraObjects:
           - apiVersion: v1
             kind: ConfigMap
