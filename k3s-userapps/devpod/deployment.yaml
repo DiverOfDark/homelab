@@ -83,6 +83,9 @@ spec:
           mountPath: /root/.config
           subPath: .config
         - name: workspace
+          mountPath: /root/.local
+          subPath: .local
+        - name: workspace
           mountPath: /root/.cargo
           subPath: .cargo
         - name: workspace
