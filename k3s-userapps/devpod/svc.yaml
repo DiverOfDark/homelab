@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: devpod
+  namespace: devpod
+spec:
+  selector:
+    app: devpod
+  ports:
+  - name: opencode
+    port: 4096
+    targetPort: 4096
+    protocol: TCP
+  - name: vibe
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: code-server
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP

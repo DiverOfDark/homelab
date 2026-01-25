@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devpod
+  namespace: devpod
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: devpod
+  template:
+    metadata:
+      labels:
+        app: devpod
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      nodeSelector:
+        kubernetes.io/hostname: asgard
+      containers:
+      # Docker-in-Docker sidecar
+      - name: dind
+        image: docker:27-dind
+        securityContext:
+          privileged: true
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        - name: DOCKER_DRIVER
+          value: overlay2
+        volumeMounts:
+        - name: docker-storage
+          mountPath: /var/lib/docker
+        - name: docker-sock
+          mountPath: /var/run
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "8Gi"
+            cpu: "2000m"
+      # Main devpod container
+      - name: devpod
+        image: ralph-dev-pod:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4096
+          name: opencode
+          protocol: TCP
+        - containerPort: 3000
+          name: vibe
+          protocol: TCP
+        - containerPort: 8080
+          name: code-server
+          protocol: TCP
+        env:
+        - name: ENABLE_VIBE_UI
+          value: "true"
+        - name: ENABLE_CODE_SERVER
+          value: "true"
+        - name: CODE_SERVER_AUTH
+          value: "none"
+        - name: DOCKER_HOST
+          value: "unix:///var/run/docker.sock"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: docker-sock
+          mountPath: /var/run
+        # Cache directories mounted from workspace PVC subdirs
+        - name: workspace
+          mountPath: /root/.cache
+          subPath: .cache
+        - name: workspace
+          mountPath: /root/.ssh
+          subPath: .ssh
+        - name: workspace
+          mountPath: /root/.config
+          subPath: .config
+        - name: workspace
+          mountPath: /root/.cargo
+          subPath: .cargo
+        - name: workspace
+          mountPath: /root/go
+          subPath: .go
+        - name: workspace
+          mountPath: /root/.npm
+          subPath: .npm
+        - name: workspace
+          mountPath: /root/.m2
+          subPath: .m2
+        - name: workspace
+          mountPath: /root/.gradle
+          subPath: .gradle
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4096
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4096
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: devpod-workspace
+      - name: docker-storage
+        persistentVolumeClaim:
+          claimName: devpod-docker
+      - name: docker-sock
+        emptyDir: {}
