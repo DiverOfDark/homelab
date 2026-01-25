@@ -48,7 +48,7 @@ spec:
       containers:
       # Docker-in-Docker sidecar
       - name: dind
-        image: docker:27-dind
+        image: docker:29-dind
         securityContext:
           privileged: true
         env:
