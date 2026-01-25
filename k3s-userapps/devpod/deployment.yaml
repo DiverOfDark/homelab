@@ -46,7 +46,7 @@ spec:
             cpu: "2000m"
       # Main devpod container
       - name: devpod
-        image: ralph-dev-pod:latest
+        image: harbor.kirillorlov.pro/library/ralph:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 4096

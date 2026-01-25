@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   name: devpod
   labels:
-    name: devpod
+    pod-security.kubernetes.io/enforce: privileged
