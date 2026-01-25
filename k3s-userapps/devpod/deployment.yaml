@@ -107,13 +107,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /
-            port: 4096
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
-            port: 4096
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 5
       volumes:
