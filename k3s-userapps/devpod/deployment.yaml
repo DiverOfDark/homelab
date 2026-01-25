@@ -71,7 +71,7 @@ spec:
       # Main devpod container
       - name: devpod
         image: harbor.kirillorlov.pro/library/ralph:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 4096
           name: opencode
