@@ -21,6 +21,30 @@ spec:
         fsGroup: 0
       nodeSelector:
         kubernetes.io/hostname: asgard
+      initContainers:
+      # Copy /root from image to PVC if not already populated
+      - name: init-root
+        image: harbor.kirillorlov.pro/library/ralph:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          if [ ! -f "/workspace/.root-initialized" ]; then
+            echo "Initializing /root from image to PVC..."
+
+            # Copy all contents from /root to /workspace
+            cp -a /root/. /workspace/ 2>/dev/null || true
+
+            # Mark as initialized
+            touch /workspace/.root-initialized
+            echo "Root directory initialized successfully"
+          else
+            echo "Root directory already initialized, skipping"
+          fi
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
       containers:
       # Docker-in-Docker sidecar
       - name: dind
@@ -74,32 +98,7 @@ spec:
           mountPath: /var/run
         # Cache directories mounted from workspace PVC subdirs
         - name: workspace
-          mountPath: /root/.cache
-          subPath: .cache
-        - name: workspace
-          mountPath: /root/.ssh
-          subPath: .ssh
-        - name: workspace
-          mountPath: /root/.config
-          subPath: .config
-        - name: workspace
-          mountPath: /root/.local
-          subPath: .local
-        - name: workspace
-          mountPath: /root/.cargo
-          subPath: .cargo
-        - name: workspace
-          mountPath: /root/go
-          subPath: .go
-        - name: workspace
-          mountPath: /root/.npm
-          subPath: .npm
-        - name: workspace
-          mountPath: /root/.m2
-          subPath: .m2
-        - name: workspace
-          mountPath: /root/.gradle
-          subPath: .gradle
+          mountPath: /root
         resources:
           requests:
             memory: "2Gi"
