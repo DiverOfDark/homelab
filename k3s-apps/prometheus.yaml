@@ -148,7 +148,7 @@ spec:
               gethomepage.dev/widget.url: http://prometheus-operated.prometheus.svc.cluster.local:9090 
 
     repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 81.2.1
+    targetRevision: 81.2.2
   syncPolicy:
     managedNamespaceMetadata:
       labels:
