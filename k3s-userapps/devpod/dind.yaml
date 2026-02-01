@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dind
+  namespace: devpod
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dind
+  template:
+    metadata:
+      labels:
+        app: dind
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: asgard
+      containers:
+      - name: dind
+        image: docker:27-dind
+        securityContext:
+          privileged: true
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        - name: DOCKER_DRIVER
+          value: overlay2
+        ports:
+        - containerPort: 2375
+          name: docker
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: docker-storage
+          mountPath: /var/lib/docker
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: devpod-workspace
+      - name: docker-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dind
+  namespace: devpod
+spec:
+  selector:
+    app: dind
+  ports:
+  - port: 2375
+    targetPort: 2375
+    name: docker
+  type: ClusterIP

@@ -5,21 +5,8 @@ metadata:
   namespace: devpod
 spec:
   accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 50Gi
-  storageClassName: ceph-filesystem
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: devpod-docker
-  namespace: devpod
-spec:
-  accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany  # RWX - shared across all pods
   resources:
     requests:
       storage: 100Gi
-  storageClassName: ceph-block
+  storageClassName: ceph-filesystem

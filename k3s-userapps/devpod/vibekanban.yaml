@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vibekanban
+  namespace: devpod
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vibekanban
+  template:
+    metadata:
+      labels:
+        app: vibekanban
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: asgard
+      containers:
+      - name: vibekanban
+        image: harbor.kirillorlov.pro/library/ralph-vibekanban:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: DOCKER_HOST
+          value: "tcp://dind:2375"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: devpod-workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vibekanban
+  namespace: devpod
+spec:
+  selector:
+    app: vibekanban
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  type: ClusterIP

@@ -8,7 +8,7 @@ metadata:
     gethomepage.dev/group: Dev Tools
     gethomepage.dev/name: DevPod
     gethomepage.dev/icon: code.png
-    gethomepage.dev/pod-selector: "app=devpod"
+    gethomepage.dev/pod-selector: "app=opencode"
     gethomepage.dev/description: "AI Development Environment"
   name: devpod-opencode
   namespace: devpod
@@ -25,7 +25,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: devpod
+            name: opencode
             port:
               number: 4096
 ---
@@ -39,7 +39,7 @@ metadata:
     gethomepage.dev/group: Dev Tools
     gethomepage.dev/name: VibeKanban
     gethomepage.dev/icon: kanban.png
-    gethomepage.dev/pod-selector: "app=devpod"
+    gethomepage.dev/pod-selector: "app=vibekanban"
     gethomepage.dev/description: "Multi-agent Task Orchestration"
   name: devpod-vibe
   namespace: devpod
@@ -56,7 +56,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: devpod
+            name: vibekanban
             port:
               number: 3000
 ---
@@ -70,7 +70,7 @@ metadata:
     gethomepage.dev/group: Dev Tools
     gethomepage.dev/name: Code Server
     gethomepage.dev/icon: vscode.png
-    gethomepage.dev/pod-selector: "app=devpod"
+    gethomepage.dev/pod-selector: "app=codeserver"
     gethomepage.dev/description: "Web-based VS Code"
   name: devpod-code
   namespace: devpod
@@ -87,6 +87,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: devpod
+            name: codeserver
             port:
               number: 8080

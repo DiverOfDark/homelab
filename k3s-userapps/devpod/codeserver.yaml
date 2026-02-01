@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: codeserver
+  namespace: devpod
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: codeserver
+  template:
+    metadata:
+      labels:
+        app: codeserver
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: asgard
+      initContainers:
+      - name: init-config
+        image: harbor.kirillorlov.pro/library/ralph-codeserver:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          if [ ! -f "/workspace/.codeserver-config-initialized" ]; then
+            echo "Initializing code-server config from image to PVC..."
+            mkdir -p /workspace/.codeserver-config
+            # code-server uses /home/coder/.local/share/code-server
+            if [ -d "/home/coder/.local" ]; then
+              cp -a /home/coder/.local/. /workspace/.codeserver-config/.local/ 2>/dev/null || true
+            fi
+            if [ -d "/home/coder/.config" ]; then
+              cp -a /home/coder/.config/. /workspace/.codeserver-config/.config/ 2>/dev/null || true
+            fi
+            touch /workspace/.codeserver-config-initialized
+            echo "code-server config initialized"
+          else
+            echo "code-server config already initialized"
+          fi
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+      containers:
+      - name: codeserver
+        image: harbor.kirillorlov.pro/library/ralph-codeserver:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DOCKER_HOST
+          value: "tcp://dind:2375"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: workspace
+          mountPath: /home/coder/.local
+          subPath: .codeserver-config/.local
+        - name: workspace
+          mountPath: /home/coder/.config
+          subPath: .codeserver-config/.config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: devpod-workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: codeserver
+  namespace: devpod
+spec:
+  selector:
+    app: codeserver
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: ClusterIP
