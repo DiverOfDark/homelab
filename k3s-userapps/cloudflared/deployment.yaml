@@ -33,7 +33,7 @@ spec:
                 secretKeyRef:
                   key: tunnelToken
                   name: cloudflare-api-token-secret
-          image: 'cloudflare/cloudflared:2026.1.2'
+          image: 'cloudflare/cloudflared:2026.2.0'
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 1
