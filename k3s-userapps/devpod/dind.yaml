@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: asgard
       containers:
       - name: dind
-        image: docker:27-dind
+        image: docker:29-dind
         securityContext:
           privileged: true
         env:
