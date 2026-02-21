@@ -71,5 +71,6 @@ spec:
               package_upgrade: true
               packages:
                 - qemu-guest-agent
+                - prometheus-node-exporter
               runcmd:
                 - systemctl enable --now qemu-guest-agent
