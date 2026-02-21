@@ -1,0 +1,52 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: claw
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: claw
+    spec:
+      domain:
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+        resources:
+          requests:
+            memory: 8Gi
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: claw-root
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              users:
+                - name: diverofdark
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  groups: sudo
+                  shell: /bin/bash
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz5Mz8hwMB+mmNPB3g8NLUNq5SoWzoXRxOlSDQKpaGcPJCJaemXf3BVMFHdy/6pBnsrsD/aaA80ouJd40cu6jEdwy/9Z6VD65N8feNzV2xcdRoHUdAHyjyICkipX8kBTvhU4RznoGQFhunqwORuAhE4+7pEXyRHd/PUfKreYAXVuMGmh1Cs5WHmNLPje1VBdg4BgL9kSZbCkKlUsAp5KeAzvRHnJaCNAUkARDD4Bjdcm36uyctIg06AEMpun6GcEmMGSLoCwjl8S4SUCYbNbXK4mPmrGKS2Vm+tSbc3VH7JZwynHC8HQcAFiuQcXXM/j7UxWCyr8huvPTKILRIaZQZ g33k@ARCHER
+              package_update: true
+              package_upgrade: true
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - systemctl enable --now qemu-guest-agent

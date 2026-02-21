@@ -1,0 +1,15 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: claw-root
+spec:
+  source:
+    http:
+      url: https://cloudfront.debian.net/cdimage/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 100Gi
+    storageClassName: ceph-block
