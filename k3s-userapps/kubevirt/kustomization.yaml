@@ -6,6 +6,13 @@ resources:
   - https://github.com/kubevirt/kubevirt/releases/download/v1.7.0/kubevirt-cr.yaml
 patches:
   - target:
+      kind: namespace
+      name: kubevirt
+    patch: |-
+      metadata:
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+  - target:
       kind: KubeVirt
       name: kubevirt
     patch: |-
