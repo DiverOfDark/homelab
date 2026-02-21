@@ -4,6 +4,21 @@ metadata:
   name: claw
 spec:
   runStrategy: Always
+  dataVolumeTemplates:
+    - metadata:
+        name: claw-root
+      spec:
+        pvc:
+          accessModes: ReadWriteMany
+          storageClassName: ceph-block
+          volumeMode: Block
+        storage:
+          resources:
+            requests:
+              storage: 100Gi
+        source:
+          http:
+            url: https://cloudfront.debian.net/cdimage/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
   template:
     metadata:
       labels:
@@ -13,6 +28,7 @@ spec:
         cpu:
           cores: 4
         devices:
+          rng: { }
           disks:
             - name: rootdisk
               disk:

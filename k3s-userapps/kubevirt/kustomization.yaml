@@ -26,3 +26,9 @@ patches:
         name: kubevirt
         annotations:
           argocd.argoproj.io/sync-wave: "1"
+      spec:
+        configuration:
+          developerConfiguration:
+            featureGates:
+            - ExpandDisks
+            - IncrementalBackup
