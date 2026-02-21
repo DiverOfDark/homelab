@@ -18,7 +18,7 @@ spec:
               storage: 100Gi
         source:
           http:
-            url: https://cloudfront.debian.net/cdimage/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
+            url: https://cloudfront.debian.net/cdimage/cloud/trixie/latest/debian-13-generic-amd64.qcow2
   template:
     metadata:
       labels:
@@ -34,10 +34,10 @@ spec:
             - name: rootdisk
               disk:
                 bus: virtio
-            - name: cloudinitdisk
+            - name: swapdisk
               disk:
                 bus: virtio
-            - name: swapdisk
+            - name: cloudinitdisk
               disk:
                 bus: virtio
           interfaces:
@@ -72,5 +72,16 @@ spec:
               packages:
                 - qemu-guest-agent
                 - prometheus-node-exporter
+                - btop
+                - fastfetch
+              write_files:
+                - path: /etc/update-mot.d/01-fastfetch
+                  permissions: '0755'
+                  owner: root:root
+                  content: |
+                    #!/bin/sh
+                    fastfetch --pipe false
+              
               runcmd:
                 - systemctl enable --now qemu-guest-agent
+                - systemctl enable --now prometheus-node-exporter
