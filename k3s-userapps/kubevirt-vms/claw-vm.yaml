@@ -13,7 +13,6 @@ spec:
             - ReadWriteMany
           storageClassName: ceph-block
           volumeMode: Block
-        storage:
           resources:
             requests:
               storage: 100Gi
