@@ -27,6 +27,7 @@ spec:
       domain:
         cpu:
           cores: 4
+          model: host-passthrough
         devices:
           rng: { }
           disks:
@@ -34,6 +35,9 @@ spec:
               disk:
                 bus: virtio
             - name: cloudinitdisk
+              disk:
+                bus: virtio
+            - name: swapdisk
               disk:
                 bus: virtio
           interfaces:
@@ -49,6 +53,9 @@ spec:
         - name: rootdisk
           dataVolume:
             name: claw-root
+        - name: swapdisk
+          emptyDisk:
+            capacity: 16Gi
         - name: cloudinitdisk
           cloudInitNoCloud:
             userData: |-

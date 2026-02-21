@@ -311,7 +311,12 @@ machine:
     # # Allows the addition of user specified files.
 
     # # MachineFiles usage example.
-    # files:
+    files:
+      - content: |
+          [plugins."io.containerd.cri.v1.runtime"]
+            device_ownership_from_security_context = true
+        path: /etc/cri/conf.d/20-customization.part
+        op: create
     #     - content: '...' # The contents of the file.
     #       permissions: 0o666 # The file's permissions in octal.
     #       path: /tmp/file.txt # The path of the file.
