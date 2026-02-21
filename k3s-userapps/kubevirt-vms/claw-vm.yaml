@@ -75,7 +75,7 @@ spec:
                 - btop
                 - fastfetch
               write_files:
-                - path: /etc/update-mot.d/01-fastfetch
+                - path: /etc/update-motd.d/01-fastfetch
                   permissions: '0755'
                   owner: root:root
                   content: |
