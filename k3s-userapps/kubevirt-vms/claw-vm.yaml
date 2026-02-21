@@ -9,7 +9,8 @@ spec:
         name: claw-root
       spec:
         pvc:
-          accessModes: ReadWriteMany
+          accessModes:
+            - ReadWriteMany
           storageClassName: ceph-block
           volumeMode: Block
         storage:
