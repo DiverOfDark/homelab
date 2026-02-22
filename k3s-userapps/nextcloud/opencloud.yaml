@@ -28,6 +28,8 @@ spec:
           env:
             - name: TZ
               value: "Europe/Berlin"
+            - name: WEB_HTTP_ADDR
+              value: "0.0.0.0:9140"
             - name: PROXY_TLS
               value: "false"
             - name: OC_URL
