@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: opencloud
 spec:
+  revisionHistoryLimit: 1
   replicas: 1
   strategy:
     type: Recreate
