@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phos
+  namespace: phos
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: phos
+  template:
+    metadata:
+      labels:
+        app: phos
+    spec:
+      containers:
+        - name: phos
+          image: ghcr.io/diverofdark/phos:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: RUST_LOG
+              value: "info"
+            - name: PHOS_LIBRARY_PATH
+              value: "/app/library"
+            - name: PHOS_STATIC_DIR
+              value: "/app/static"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: library
+              mountPath: /app/library
+            - name: models
+              mountPath: /app/models
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: phos-data
+        - name: library
+          persistentVolumeClaim:
+            claimName: phos-library
+        - name: models
+          persistentVolumeClaim:
+            claimName: phos-data
+          subPath: models
