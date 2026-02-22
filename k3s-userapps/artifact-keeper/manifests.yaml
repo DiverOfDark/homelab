@@ -4,7 +4,7 @@ metadata:
   name: artifact-keeper-db
   namespace: artifact-keeper
 spec:
-  instances: 1
+  instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:16
   storage:
     size: 10Gi
@@ -132,6 +132,13 @@ spec:
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: artifact-keeper
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: backend
           image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.0-rc.3
