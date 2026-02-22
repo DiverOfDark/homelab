@@ -126,6 +126,9 @@ spec:
       labels:
         app: artifact-keeper
     spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: backend
           image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.0-rc.3
