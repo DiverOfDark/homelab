@@ -192,7 +192,8 @@ metadata:
     gethomepage.dev/href: "https://artifacts.kirillorlov.pro"
     gethomepage.dev/group: Infra
     gethomepage.dev/name: ArtifactKeeper
-    gethomepage.dev/icon: artifact-keeper.png
+    gethomepage.dev/icon: "https://artifactkeeper.com/favicon.png"
+    gethomepage.dev/pod-selector: "app=artifact-keeper"
 spec:
   rules:
     - host: artifacts.kirillorlov.pro

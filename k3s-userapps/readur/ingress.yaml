@@ -7,7 +7,7 @@ metadata:
     gethomepage.dev/href: "https://readur.kirillorlov.pro"
     gethomepage.dev/group: Apps
     gethomepage.dev/name: Readur
-    gethomepage.dev/icon: https://github.com/readur/readur/blob/7667b38c8dce402ac7583fb5ee39dea4802219e9/frontend/public/readur-64.png
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/216796041?s=48&v=4
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=readur"
     gethomepage.dev/description: "Document Processing & OCR Platform"
   name: readur
