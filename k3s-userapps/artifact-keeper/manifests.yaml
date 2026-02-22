@@ -40,6 +40,33 @@ spec:
     requests:
       storage: 5Gi
 ---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifact-keeper-secrets
+  namespace: artifact-keeper
+spec:
+  secretStoreRef:
+    name: bitwarden-login
+    kind: ClusterSecretStore
+  refreshInterval: "10s"
+  target:
+    name: artifact-keeper-secrets
+    creationPolicy: "Owner"
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        JWT_SECRET: "{{`{{ .password }}`}}"
+  data:
+    - secretKey: password
+      remoteRef:
+        key: d0b4b6d0-a664-49aa-bc21-1963ace90120
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        property: password
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -99,9 +126,12 @@ spec:
       labels:
         app: artifact-keeper
     spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: backend
-          image: ghcr.io/artifact-keeper/artifact-keeper-backend:latest
+          image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.0-rc.3
           ports:
             - containerPort: 8080
           env:
@@ -118,13 +148,18 @@ spec:
               value: "artifact-keeper-dev-key"
             - name: RUST_LOG
               value: "info"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: JWT_SECRET
           volumeMounts:
             - name: storage
               mountPath: /data/storage
         - name: frontend
-          image: ghcr.io/artifact-keeper/artifact-keeper-web:latest
+          image: ghcr.io/artifact-keeper/artifact-keeper-web:1.1.0-rc.3
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           env:
             - name: BACKEND_URL
               value: "http://localhost:8080"
@@ -140,8 +175,8 @@ metadata:
   namespace: artifact-keeper
 spec:
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 3000
+      targetPort: 3000
       name: http
   selector:
     app: artifact-keeper

@@ -1,0 +1,84 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mediamanager-db
+  namespace: media
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.4
+  storage:
+    size: 5Gi
+    storageClass: ceph-block
+  bootstrap:
+    initdb:
+      database: mediamanager
+      owner: mediamanager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediamanager
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mediamanager
+  template:
+    metadata:
+      labels:
+        app: mediamanager
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: mediamanager
+          image: ghcr.io/maxdorninger/mediamanager/mediamanager:dev-2026.02.22-601
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: CONFIG_DIR
+              value: "/app/config"
+            - name: MEDIAMANAGER_DATABASE__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: host
+            - name: MEDIAMANAGER_DATABASE__PORT
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: port
+            - name: MEDIAMANAGER_DATABASE__USER
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: username
+            - name: MEDIAMANAGER_DATABASE__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: password
+            - name: MEDIAMANAGER_DATABASE__DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: dbname
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: media
+              mountPath: /data
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: mediamanager-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: video

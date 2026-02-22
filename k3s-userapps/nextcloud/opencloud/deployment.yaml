@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencloud
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opencloud
+  template:
+    metadata:
+      labels:
+        app: opencloud
+    spec:
+      containers:
+        - name: opencloud
+          image: opencloudeu/opencloud:5.1.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
+          ports:
+            - containerPort: 9200
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: OCIS_URL
+              value: "https://opencloud.kirillorlov.pro"
+            - name: PROXY_HTTP_ADDR
+              value: "0.0.0.0:9200"
+            - name: OCIS_INSECURE
+              value: "true"
+            - name: IDM_CREATE_DEMO_USERS
+              value: "false"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/ocis
+            - name: data
+              mountPath: /var/lib/ocis
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: opencloud-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: opencloud-data
