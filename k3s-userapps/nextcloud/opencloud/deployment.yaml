@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud:1.0.0
+          image: opencloudeu/opencloud:5.1.0
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
