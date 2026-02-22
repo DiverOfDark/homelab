@@ -15,6 +15,9 @@ spec:
       labels:
         app: phos
     spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: phos
           image: ghcr.io/diverofdark/phos:latest
