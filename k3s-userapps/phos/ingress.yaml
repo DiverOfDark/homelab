@@ -7,7 +7,7 @@ metadata:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://phos.kirillorlov.pro"
-    gethomepage.dev/group: Media
+    gethomepage.dev/group: Apps
     gethomepage.dev/name: Phos
     gethomepage.dev/icon: phos.png
     gethomepage.dev/pod-selector: "app=phos"
