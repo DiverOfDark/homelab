@@ -57,7 +57,7 @@ spec:
     template:
       type: Opaque
       data:
-        JWT_SECRET: "{{ .password }}"
+        JWT_SECRET: "{{`{{ .password }}`}}"
   data:
     - secretKey: password
       remoteRef:
