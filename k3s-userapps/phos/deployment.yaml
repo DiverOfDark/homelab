@@ -48,4 +48,3 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: phos-data
-          subPath: models
