@@ -31,6 +31,9 @@ spec:
       labels:
         app: mediamanager
     spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: mediamanager
           image: ghcr.io/maxdorninger/mediamanager/mediamanager:dev-2026.02.22-601
@@ -71,7 +74,7 @@ spec:
             - name: config
               mountPath: /app/config
             - name: media
-              mountPath: /mnt/media
+              mountPath: /data
       volumes:
         - name: config
           persistentVolumeClaim:
