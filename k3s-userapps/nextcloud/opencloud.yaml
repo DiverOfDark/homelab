@@ -22,13 +22,14 @@ spec:
         - name: opencloud
           image: opencloudeu/opencloud:4.0.3
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c", "[ -f /etc/opencloud/opencloud.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
             - containerPort: 8080
               name: http
           env:
             - name: TZ
               value: "Europe/Berlin"
+            - name: OC_INITIAL_ADMIN_PASSWORD
+              value: "password"
             - name: WEB_HTTP_ADDR
               value: "0.0.0.0:8080"
             - name: PROXY_TLS
