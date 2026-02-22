@@ -13,3 +13,15 @@ spec:
   selector:
     app.kubernetes.io/pod: nextcloud
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencloud
+spec:
+  ports:
+    - port: 80
+      targetPort: 9200
+      name: http
+  selector:
+    app: opencloud
