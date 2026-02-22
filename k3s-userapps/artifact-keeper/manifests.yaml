@@ -119,7 +119,7 @@ metadata:
   name: artifact-keeper
   namespace: artifact-keeper
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: artifact-keeper
