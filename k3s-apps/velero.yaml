@@ -295,6 +295,10 @@ spec:
             - hosts:
                 - velero.kirillorlov.pro
               secretName: velero-tls
+        livenessProbe:
+          enabled: false
+        readinessProbe:
+          enabled: false
         env:
           - name: OAUTH_AUTH_ENABLED
             value: "true"
