@@ -77,7 +77,7 @@ spec:
   selector:
     app.kubernetes.io/pod: emby
   type: ClusterIP
-------
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -101,7 +101,7 @@ spec:
     - port: 5432
       targetPort: 5432
   selector:
-    app: riven-db
+    cnpg.io/cluster: riven-db
 ---
 apiVersion: v1
 kind: Service

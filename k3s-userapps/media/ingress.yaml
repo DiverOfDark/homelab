@@ -163,51 +163,63 @@ spec:
   - hosts:
     - emby.kirillorlov.pro
     secretName: emby-tls
-------
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: riven
-  namespace: media
-  annotations:
-    cert-manager.io/cluster-issuer: acme-issuer
-spec:
-  rules:
-    - host: riven.kirillorlov.pro
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: riven
-                port:
-                  name: http
-  tls:
-    - hosts:
-        - riven.kirillorlov.pro
-      secretName: riven-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: mediamanager
-  namespace: media
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://riven.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Riven
+    gethomepage.dev/icon: riven.png
+    gethomepage.dev/pod-selector: "app=riven"
+  name: riven
+  namespace: media
 spec:
   rules:
-    - host: mediamanager.kirillorlov.pro
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mediamanager
-                port:
-                  name: http
+  - host: riven.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: riven
+            port:
+              name: http
+        path: /
+        pathType: Prefix
   tls:
-    - hosts:
-        - mediamanager.kirillorlov.pro
-      secretName: mediamanager-tls
+  - hosts:
+    - riven.kirillorlov.pro
+    secretName: riven-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://mediamanager.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: MediaManager
+    gethomepage.dev/icon: mediamanager.png
+    gethomepage.dev/pod-selector: "app=mediamanager"
+  name: mediamanager
+  namespace: media
+spec:
+  rules:
+  - host: mediamanager.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: mediamanager
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - mediamanager.kirillorlov.pro
+    secretName: mediamanager-tls
