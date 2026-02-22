@@ -23,7 +23,7 @@ spec:
           image: ghcr.io/diverofdark/phos:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            - containerPort: 33000
               name: http
           env:
             - name: TZ

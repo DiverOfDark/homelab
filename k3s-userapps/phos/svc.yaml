@@ -5,8 +5,8 @@ metadata:
   namespace: phos
 spec:
   ports:
-    - port: 80
-      targetPort: 3000
+    - port: 33000
+      targetPort: 33000
       name: http
   selector:
     app: phos
