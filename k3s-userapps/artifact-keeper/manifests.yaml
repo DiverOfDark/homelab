@@ -40,6 +40,32 @@ spec:
     requests:
       storage: 5Gi
 ---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifact-keeper-secrets
+  namespace: artifact-keeper
+spec:
+  secretStoreRef:
+    name: bitwarden-login
+    kind: ClusterSecretStore
+  refreshInterval: "10s"
+  target:
+    name: artifact-keeper-secrets
+    creationPolicy: "Owner"
+    deletionPolicy: "Retain"
+    template:
+      type: Opaque
+      data:
+        JWT_SECRET: "{{ .password }}"
+  data:
+    - secretKey: password
+      remoteRef:
+        key: artifactkeeper_jwt
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -118,6 +144,11 @@ spec:
               value: "artifact-keeper-dev-key"
             - name: RUST_LOG
               value: "info"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: JWT_SECRET
           volumeMounts:
             - name: storage
               mountPath: /data/storage
