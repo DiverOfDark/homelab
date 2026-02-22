@@ -1,3 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: riven-db
+  namespace: media
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  storage:
+    size: 5Gi
+    storageClass: ceph-block
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,7 +37,10 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: RIVEN_DATABASE_HOST
-              value: "postgresql+psycopg2://riven:riven@riven-db/riven"
+              valueFrom:
+                secretKeyRef:
+                  name: riven-db-app
+                  key: uri
             - name: RIVEN_FORCE_ENV
               value: "true"
           volumeMounts:
@@ -40,36 +55,3 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: video
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: riven-db
-  namespace: media
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: riven-db
-  template:
-    metadata:
-      labels:
-        app: riven-db
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:17-alpine
-          env:
-            - name: POSTGRES_USER
-              value: "riven"
-            - name: POSTGRES_PASSWORD
-              value: "riven"
-            - name: POSTGRES_DB
-              value: "riven"
-          volumeMounts:
-            - name: db-data
-              mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: db-data
-          persistentVolumeClaim:
-            claimName: riven-db
