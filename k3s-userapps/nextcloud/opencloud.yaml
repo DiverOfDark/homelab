@@ -28,6 +28,8 @@ spec:
           env:
             - name: TZ
               value: "Europe/Berlin"
+            - name: PROXY_TLS
+              value: "false"
             - name: OC_URL
               value: "https://opencloud.kirillorlov.pro"
             - name: OC_LOG_LEVEL
