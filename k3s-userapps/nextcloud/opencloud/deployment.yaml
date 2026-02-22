@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud-rolling:latest
-          imagePullPolicy: Always
-          command: ["/bin/sh", "-c", "opencloud init --force-overwrite --insecure true || true; opencloud server"]
+          image: opencloudeu/opencloud:1.0.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
             - containerPort: 9200
               name: http
