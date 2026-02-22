@@ -30,6 +30,7 @@ machine:
         # # The `extraArgs` field is used to provide additional flags to the kubelet.
         extraArgs:
             rotate-server-certificates: true
+            max-pods: 200
 
         # # The `extraMounts` field is used to add additional mounts to the kubelet container.
         # extraMounts:
