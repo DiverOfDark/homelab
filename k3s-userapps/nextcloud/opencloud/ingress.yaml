@@ -18,7 +18,7 @@ metadata:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://opencloud.kirillorlov.pro"
-    gethomepage.dev/group: Storage
+    gethomepage.dev/group: Apps
     gethomepage.dev/name: OpenCloud
     gethomepage.dev/icon: opencloud.png
     gethomepage.dev/pod-selector: "app=opencloud"
