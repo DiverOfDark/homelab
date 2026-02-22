@@ -128,7 +128,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/artifact-keeper/artifact-keeper-backend:latest
+          image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.0-rc.3
           ports:
             - containerPort: 8080
           env:
@@ -154,7 +154,7 @@ spec:
             - name: storage
               mountPath: /data/storage
         - name: frontend
-          image: ghcr.io/artifact-keeper/artifact-keeper-web:latest
+          image: ghcr.io/artifact-keeper/artifact-keeper-web:1.1.0-rc.3
           ports:
             - containerPort: 80
           env:
