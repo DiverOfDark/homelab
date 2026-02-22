@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: riven
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: riven
+  template:
+    metadata:
+      labels:
+        app: riven
+    spec:
+      containers:
+        - name: riven
+          image: spoked/riven:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: RIVEN_DATABASE_HOST
+              value: "postgresql+psycopg2://riven:riven@riven-db/riven"
+            - name: RIVEN_FORCE_ENV
+              value: "true"
+          volumeMounts:
+            - name: data
+              mountPath: /riven/data
+            - name: media
+              mountPath: /mnt/media
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: riven-data
+        - name: media
+          persistentVolumeClaim:
+            claimName: video
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: riven-db
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: riven-db
+  template:
+    metadata:
+      labels:
+        app: riven-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - name: POSTGRES_USER
+              value: "riven"
+            - name: POSTGRES_PASSWORD
+              value: "riven"
+            - name: POSTGRES_DB
+              value: "riven"
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: riven-db

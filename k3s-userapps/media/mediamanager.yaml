@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediamanager
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mediamanager
+  template:
+    metadata:
+      labels:
+        app: mediamanager
+    spec:
+      containers:
+        - name: mediamanager
+          image: ghcr.io/maxdorninger/mediamanager/mediamanager:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: CONFIG_DIR
+              value: "/app/config"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: media
+              mountPath: /mnt/media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: mediamanager-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: video

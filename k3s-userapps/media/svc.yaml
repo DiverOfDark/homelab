@@ -77,4 +77,41 @@ spec:
   selector:
     app.kubernetes.io/pod: emby
   type: ClusterIP
+------
+apiVersion: v1
+kind: Service
+metadata:
+  name: riven
+  namespace: media
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: riven
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: riven-db
+  namespace: media
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: riven-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediamanager
+  namespace: media
+spec:
+  ports:
+    - port: 80
+      targetPort: 8000
+      name: http
+  selector:
+    app: mediamanager
