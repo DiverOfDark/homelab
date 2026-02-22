@@ -1,0 +1,176 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: artifact-keeper-db
+  namespace: artifact-keeper
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  storage:
+    size: 10Gi
+    storageClass: ceph-block
+  bootstrap:
+    initdb:
+      database: artifact_registry
+      owner: registry
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artifact-storage
+  namespace: artifact-keeper
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ceph-block
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meilisearch-data
+  namespace: artifact-keeper
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ceph-block
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meilisearch
+  namespace: artifact-keeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meilisearch
+  template:
+    metadata:
+      labels:
+        app: meilisearch
+    spec:
+      containers:
+        - name: meilisearch
+          image: getmeili/meilisearch:v1.12
+          ports:
+            - containerPort: 7700
+          env:
+            - name: MEILI_MASTER_KEY
+              value: "artifact-keeper-dev-key" # Should be in secret
+            - name: MEILI_ENV
+              value: "production"
+          volumeMounts:
+            - name: data
+              mountPath: /meili_data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: meilisearch-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meilisearch
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 7700
+  selector:
+    app: meilisearch
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifact-keeper
+  namespace: artifact-keeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artifact-keeper
+  template:
+    metadata:
+      labels:
+        app: artifact-keeper
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/artifact-keeper/artifact-keeper-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-db-app
+                  key: uri
+            - name: STORAGE_PATH
+              value: "/data/storage"
+            - name: MEILISEARCH_URL
+              value: "http://meilisearch:7700"
+            - name: MEILISEARCH_API_KEY
+              value: "artifact-keeper-dev-key"
+            - name: RUST_LOG
+              value: "info"
+          volumeMounts:
+            - name: storage
+              mountPath: /data/storage
+        - name: frontend
+          image: ghcr.io/artifact-keeper/artifact-keeper-web:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_URL
+              value: "http://localhost:8080"
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: artifact-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifact-keeper
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+  selector:
+    app: artifact-keeper
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: artifact-keeper
+  namespace: artifact-keeper
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://artifacts.kirillorlov.pro"
+    gethomepage.dev/group: Infrastructure
+    gethomepage.dev/name: ArtifactKeeper
+    gethomepage.dev/icon: artifact-keeper.png
+spec:
+  rules:
+    - host: artifacts.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - artifacts.kirillorlov.pro
+      secretName: artifact-keeper-tls
