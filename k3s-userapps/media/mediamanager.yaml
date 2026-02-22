@@ -42,36 +42,31 @@ spec:
               value: "Europe/Berlin"
             - name: CONFIG_DIR
               value: "/app/config"
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: mediamanager-db-app
-                  key: uri
-            - name: PGHOST
+            - name: MEDIAMANAGER_DATABASE__HOST
               valueFrom:
                 secretKeyRef:
                   name: mediamanager-db-app
                   key: host
-            - name: PGPORT
+            - name: MEDIAMANAGER_DATABASE__PORT
               valueFrom:
                 secretKeyRef:
                   name: mediamanager-db-app
                   key: port
-            - name: PGDATABASE
-              valueFrom:
-                secretKeyRef:
-                  name: mediamanager-db-app
-                  key: dbname
-            - name: PGUSER
+            - name: MEDIAMANAGER_DATABASE__USER
               valueFrom:
                 secretKeyRef:
                   name: mediamanager-db-app
                   key: username
-            - name: PGPASSWORD
+            - name: MEDIAMANAGER_DATABASE__PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mediamanager-db-app
                   key: password
+            - name: MEDIAMANAGER_DATABASE__DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mediamanager-db-app
+                  key: dbname
           volumeMounts:
             - name: config
               mountPath: /app/config
