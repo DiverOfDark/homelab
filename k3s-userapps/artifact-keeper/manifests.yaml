@@ -21,7 +21,7 @@ metadata:
   namespace: artifact-keeper
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   storageClassName: ceph-filesystem
   resources:
     requests:
