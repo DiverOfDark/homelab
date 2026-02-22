@@ -20,7 +20,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud:4.0.3
+          image: opencloudeu/opencloud-rolling:5.1.0
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c", "[ -f /etc/opencloud/opencloud.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
