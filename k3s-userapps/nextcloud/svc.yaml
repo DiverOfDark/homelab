@@ -21,7 +21,7 @@ metadata:
 spec:
   ports:
     - port: 80
-      targetPort: 9140
+      targetPort: 9200
       name: http
   selector:
     app: opencloud
