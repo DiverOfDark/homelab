@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: phos
+  namespace: phos
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://phos.kirillorlov.pro"
+    gethomepage.dev/group: Media
+    gethomepage.dev/name: Phos
+    gethomepage.dev/icon: phos.png
+    gethomepage.dev/pod-selector: "app=phos"
+spec:
+  rules:
+    - host: phos.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: phos
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - phos.kirillorlov.pro
+      secretName: phos-tls
