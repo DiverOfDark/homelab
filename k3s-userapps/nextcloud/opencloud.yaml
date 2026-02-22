@@ -45,14 +45,13 @@ spec:
             - name: IDM_CREATE_DEMO_USERS
               value: "false"
           volumeMounts:
-            - name: config
+            - name: data
               mountPath: /etc/opencloud
+              subPath: config
             - name: data
               mountPath: /var/lib/opencloud
+              subPath: data
       volumes:
-        - name: config
-          persistentVolumeClaim:
-            claimName: opencloud-config
         - name: data
           persistentVolumeClaim:
             claimName: opencloud-data
