@@ -18,7 +18,7 @@ spec:
         - name: opencloud
           image: opencloudeu/opencloud:4.0.3
           imagePullPolicy: IfNotPresent
-          #command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
+          command: ["/bin/sh", "-c", "[ -f /etc/opencloud/opencloud.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
             - containerPort: 9200
               name: http
