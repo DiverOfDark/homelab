@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner-listener
+  namespace: github-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner-listener
+  template:
+    metadata:
+      labels:
+        app: github-runner-listener
+    spec:
+      serviceAccountName: github-runner-listener
+      containers:
+        - name: listener
+          image: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set:0.13.1
+          command:
+            - /github-runner-scale-set
+          env:
+            - name: GITHUB_CONFIG_URL
+              value: "https://github.com/diverofdark/homelab"
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-secret
+                  key: github_token
+            - name: GITHUB_RUNNER_SCALE_SET_NAME
+              value: "homelab-runners"
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: github-runner-listener
+  namespace: github-runner
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: github-runner-listener
+  namespace: github-runner
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/status"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: github-runner-listener
+  namespace: github-runner
+subjects:
+  - kind: ServiceAccount
+    name: github-runner-listener
+    namespace: github-runner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: github-runner-listener
