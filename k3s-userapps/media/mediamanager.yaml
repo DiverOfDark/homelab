@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: mediamanager
-          image: ghcr.io/maxdorninger/mediamanager/mediamanager:latest
+          image: ghcr.io/maxdorninger/mediamanager/mediamanager:v1.12.1
           ports:
             - containerPort: 8000
               name: http
