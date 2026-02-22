@@ -18,26 +18,28 @@ spec:
         - name: opencloud
           image: opencloudeu/opencloud:4.0.3
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
+          #command: ["/bin/sh", "-c", "[ -f /etc/ocis/ocis.yaml ] || opencloud init --insecure true; opencloud server"]
           ports:
             - containerPort: 9200
               name: http
           env:
             - name: TZ
               value: "Europe/Berlin"
-            - name: OCIS_URL
+            - name: OC_URL
               value: "https://opencloud.kirillorlov.pro"
-            - name: PROXY_HTTP_ADDR
-              value: "0.0.0.0:9200"
-            - name: OCIS_INSECURE
+            - name: OC_LOG_LEVEL
+              value: "info"
+            - name: OC_LOG_COLOR
+              value: "true"
+            - name: OC_LOG_PRETTY
               value: "true"
             - name: IDM_CREATE_DEMO_USERS
               value: "false"
           volumeMounts:
             - name: config
-              mountPath: /etc/ocis
+              mountPath: /etc/opencloud
             - name: data
-              mountPath: /var/lib/ocis
+              mountPath: /var/lib/opencloud
       volumes:
         - name: config
           persistentVolumeClaim:
