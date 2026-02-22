@@ -73,6 +73,7 @@ metadata:
   name: meilisearch
   namespace: artifact-keeper
 spec:
+  revisionHistoryLimit: 1
   strategy:
     type: Recreate
   replicas: 1
