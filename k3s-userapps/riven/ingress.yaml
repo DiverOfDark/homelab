@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: riven
+  namespace: riven
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+spec:
+  rules:
+    - host: riven.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: riven
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - riven.kirillorlov.pro
+      secretName: riven-tls
