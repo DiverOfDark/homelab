@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://openclaw.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Openclaw
+    gethomepage.dev/icon: "https://openclaw.ai/apple-touch-icon.png"
+    gethomepage.dev/pod-selector: "kubevirt.io/domain=claw"
+  name: openclaw
+spec:
+  rules:
+    - host: openclaw.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: claw
+                port:
+                  number: 18789
+  tls:
+    - hosts:
+        - openclaw.kirillorlov.pro
+      secretName: openclaw-tls

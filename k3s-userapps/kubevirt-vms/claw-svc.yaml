@@ -12,3 +12,7 @@ spec:
       port: 22
       targetPort: 22
       protocol: TCP
+    - name: openclaw
+      port: 18789
+      targetPort: 18789
+      protocol: TCP

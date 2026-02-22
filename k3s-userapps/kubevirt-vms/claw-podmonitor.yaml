@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: claw-metrics
+spec:
+  selector:
+    matchLabels:
+      kubevirt.io/domain: claw
+  podMetricsEndpoints:
+    - path: /metrics
+      targetPort: 9100
