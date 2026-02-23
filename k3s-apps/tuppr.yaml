@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tuppr
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/home-operations/charts
+    chart: tuppr
+    targetRevision: 0.1.0
+    helm:
+      valuesObject:
+        env:
+          - name: TALOSCONFIG
+            value: "/var/run/secrets/talos.dev/talosconfig"
+        volumes:
+          - name: talos-secrets
+            secret:
+              secretName: talos-api-access-talos-secrets
+        volumeMounts:
+          - name: talos-secrets
+            mountPath: /var/run/secrets/talos.dev
+            readOnly: true
+        controller:
+          logLevel: info
+        monitoring:
+          serviceMonitor:
+            enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: system-upgrade
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
