@@ -1,0 +1,52 @@
+apiVersion: operator.victoriametrics.com/v1
+kind: VLCluster
+metadata:
+  name: victoria-logs
+  namespace: victorialogs
+spec:
+  vlinsert:
+    replicaCount: 2
+  vlselect:
+    replicaCount: 2
+  vlstorage:
+    retentionPeriod: 7d
+    retentionMaxDiskSpaceUsageBytes: 15GB
+    replicaCount: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          resources:
+            requests:
+              storage: 10Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: victoria-logs
+  namespace: victorialogs
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://vlogs.kirillorlov.pro"
+    gethomepage.dev/group: Infra
+    gethomepage.dev/name: Victoria Logs
+    gethomepage.dev/icon: https://docs.victoriametrics.com/icons/favicon.svg
+    gethomepage.dev/pod-selector: "app.kubernetes.io/instance=victoria-logs"
+spec:
+  ingressClassName: "traefik"
+  rules:
+    - host: vlogs.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vlclusterlb-victoria-logs
+                port:
+                  number: 8427
+  tls:
+    - hosts:
+        - vlogs.kirillorlov.pro
+      secretName: vmselect-ingress-tls
