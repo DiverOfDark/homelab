@@ -10,20 +10,9 @@ spec:
   source:
     repoURL: ghcr.io/home-operations/charts
     chart: tuppr
-    targetRevision: 0.1.0
+    targetRevision: 0.0.73
     helm:
       valuesObject:
-        env:
-          - name: TALOSCONFIG
-            value: "/var/run/secrets/talos.dev/talosconfig"
-        volumes:
-          - name: talos-secrets
-            secret:
-              secretName: talos-api-access-talos-secrets
-        volumeMounts:
-          - name: talos-secrets
-            mountPath: /var/run/secrets/talos.dev
-            readOnly: true
         controller:
           logLevel: info
         monitoring:
