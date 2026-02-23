@@ -25,9 +25,7 @@ spec:
     helm:
       valuesObject:
         crds:
-          upgradeJob:
-            forceConflicts: true
-            enabled: true
+          enabled: false
 
         prometheus-node-exporter:
           tolerations: 
