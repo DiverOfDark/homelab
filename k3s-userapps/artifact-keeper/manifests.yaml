@@ -88,6 +88,7 @@ spec:
       containers:
         - name: meilisearch
           image: getmeili/meilisearch:v1.36
+          args: ["--experimental-dumpless-upgrade"]
           ports:
             - containerPort: 7700
           env:
