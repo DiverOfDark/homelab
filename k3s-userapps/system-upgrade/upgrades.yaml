@@ -5,7 +5,7 @@ metadata:
   namespace: system-upgrade
 spec:
   talos:
-    # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
     version: v1.12.4
   policy:
     rebootMode: powercycle
@@ -26,4 +26,4 @@ metadata:
 spec:
   kubernetes:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-    version: v1.34.0
+    version: v1.34.1
