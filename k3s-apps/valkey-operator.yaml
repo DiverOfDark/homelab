@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: valkey-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: valkey-operator
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: valkey-operator
+    repoURL: https://valkey-io.github.io/valkey-operator/
+    targetRevision: 0.0.10
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
