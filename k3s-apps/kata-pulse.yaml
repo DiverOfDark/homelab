@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kata-pulse
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: kata-pulse
+    repoURL: oci://ghcr.io/diverofdark/kata-pulse/kata-pulse-chart
+    targetRevision: 1.0.10
+    helm:
+      releaseName: kata-pulse
+      valuesObject:
+        podMonitor:
+          interval: 60s
+        config:
+          cpuJiffyConversionFactor: 100000
+        tolerations:
+          - key: node.kubernetes.io/unschedulable
+            operator: Exists
+            effect: NoSchedule
+          - key: node.kubernetes.io/unreachable
+            operator: Exists
+            effect: NoExecute
+            tolerationSeconds: 300
+          - key: node.kubernetes.io/not-ready
+            operator: Exists
+            effect: NoExecute
+            tolerationSeconds: 300
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=false
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
