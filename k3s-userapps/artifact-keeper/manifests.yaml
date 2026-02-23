@@ -88,10 +88,11 @@ spec:
       containers:
         - name: meilisearch
           image: getmeili/meilisearch:v1.36
-          args: ["--experimental-dumpless-upgrade"]
           ports:
             - containerPort: 7700
           env:
+            - name: MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE
+              value: "true"
             - name: MEILI_MASTER_KEY
               value: "artifact-keeper-dev-key" # Should be in secret
             - name: MEILI_ENV
