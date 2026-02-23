@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-metrics-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: victoria-metrics-operator
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: victoria-metrics-operator
+    repoURL: https://victoriametrics.github.io/helm-charts/
+    targetRevision: 0.58.1
+    helm:
+      valuesObject:
+        operator:
+          disable_prometheus_converter: true
+          prometheus_converter_add_argocd_ignore_annotations: true
+          enable_converter_ownership: true
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
