@@ -65,7 +65,7 @@ spec:
           cephImage:
             repository: quay.io/ceph/ceph
             tag: v20.2.0
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
           toolbox:
