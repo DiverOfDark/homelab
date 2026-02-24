@@ -12,7 +12,7 @@ spec:
       port: 22
       targetPort: 22
       protocol: TCP
-    - name: openclaw
-      port: 18789
-      targetPort: 18789
+    - name: caddy
+      port: 18790
+      targetPort: 18790
       protocol: TCP

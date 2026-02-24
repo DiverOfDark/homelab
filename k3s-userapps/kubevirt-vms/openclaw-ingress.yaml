@@ -21,7 +21,7 @@ spec:
               service:
                 name: claw
                 port:
-                  number: 18789
+                  name: caddy
   tls:
     - hosts:
         - openclaw.kirillorlov.pro
