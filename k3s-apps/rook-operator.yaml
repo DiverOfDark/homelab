@@ -31,6 +31,7 @@ spec:
         valuesObject:
          allowLoopDevices: true
          csi:
+           imagePullPolicy: Always
            csiCephFSPluginResource: |
              - name : driver-registrar
                resource:
