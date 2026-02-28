@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.zitadel.com
+    targetRevision: 9.2.4
+    chart: zitadel
+    helm:
+      valuesObject:
+        zitadel:
+          masterkey: "a-32-byte-long-secret-key-change-me"
+          configmapConfig:
+            ExternalSecure: true
+            ExternalDomain: "auth.kirillorlov.pro"
+            Database:
+              Postgres:
+                Host: "zitadel-db-rw.zitadel.svc.cluster.local"
+                Port: 5432
+                Database: "zitadel"
+                User:
+                  Username: "zitadel"
+                Admin:
+                  Username: "postgres"
+          secretConfig:
+            Database:
+              Postgres:
+                User:
+                  Password: "" # Will be injected via env
+                Admin:
+                  Password: "" # Will be injected via env
+
+        # Configure the PostgreSQL subchart to be disabled since we use CNPG
+        postgresql:
+          enabled: false
+
+        # Ingress configuration (assuming Traefik)
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/name: "Zitadel"
+            gethomepage.dev/description: "Identity Provider"
+            gethomepage.dev/group: "Infrastructure"
+            gethomepage.dev/icon: "zitadel"
+            gethomepage.dev/href: "https://auth.kirillorlov.pro"
+          hosts:
+            - host: auth.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: zitadel-tls
+              hosts:
+                - auth.kirillorlov.pro
+
+        # Additional environment variables from our CNPG ExternalSecret
+        env:
+          - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zitadel-db-auth
+                key: password
+          - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zitadel-db-auth
+                key: password
+          - name: ZITADEL_MASTERKEY
+            valueFrom:
+              secretKeyRef:
+                name: zitadel-machinekey
+                key: masterkey
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zitadel
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
