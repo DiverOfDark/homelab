@@ -63,6 +63,13 @@ locals {
       hostname = "bonsai.kirillorlov.pro"
       service  = "http://bonsai.bonsai.svc.cluster.local"
     }, {
+      short = "auth"
+      hostname = "auth.kirillorlov.pro"
+      service  = "https://traefik.kube-system.svc.cluster.local:443"
+      originRequest = {
+          noTLSVerify = true
+      }
+    }, {
       short = "status"
       hostname = "status.kirillorlov.pro"
       service  = "http://homepage.statuspage.svc.cluster.local:3000"
