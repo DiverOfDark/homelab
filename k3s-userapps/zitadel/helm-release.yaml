@@ -14,7 +14,7 @@ spec:
     helm:
       valuesObject:
         zitadel:
-          masterkey: "a-32-byte-long-secret-key-change-me"
+          masterkeySecretName: "zitadel-machinekey"
           configmapConfig:
             ExternalSecure: true
             ExternalDomain: "auth.kirillorlov.pro"
