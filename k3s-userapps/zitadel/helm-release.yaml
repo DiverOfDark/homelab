@@ -27,7 +27,9 @@ spec:
                   Password: "SecurePassword123!"
                   FirstName: "Kirill"
                   LastName: "Orlov"
-                  Email: "me@kirillorlov.pro"
+                  Email:
+                    Address: "me@kirillorlov.pro"
+                    Verified: true
                   PasswordChangeRequired: true
 
             Database:
@@ -110,6 +112,8 @@ spec:
               secretKeyRef:
                 name: zitadel-db-superuser
                 key: password
+          - name: ZITADEL_LOG_LEVEL
+            value: debug
 
   destination:
     server: https://kubernetes.default.svc
