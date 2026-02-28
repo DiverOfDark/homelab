@@ -39,6 +39,31 @@ spec:
         postgresql:
           enabled: false
 
+        replicaCount: 2
+
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+
+        login:
+          replicas: 2
+          ingress:
+            enabled: true
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+            hosts:
+              - host: auth.kirillorlov.pro
+                paths:
+                - path: /ui/v2/login
+                  pathType: Prefix
+            tls:
+              - secretName: zitadel-tls
+                hosts:
+                  - auth.kirillorlov.pro
+
+
         # Ingress configuration (assuming Traefik)
         ingress:
           enabled: true
