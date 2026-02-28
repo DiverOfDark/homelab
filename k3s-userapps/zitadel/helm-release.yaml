@@ -18,6 +18,16 @@ spec:
           configmapConfig:
             ExternalSecure: true
             ExternalDomain: "auth.kirillorlov.pro"
+            FirstInstance:
+              Org:
+                Human:
+                  UserName: "diverofdark"
+                  Password: "SecurePassword123!"
+                  FirstName: "Kirill"
+                  LastName: "Orlov"
+                  Email: "me@kirillorlov.pro"
+                  PasswordChangeRequired: true
+
             Database:
               Postgres:
                 Host: "zitadel-db-rw.zitadel.svc.cluster.local"
