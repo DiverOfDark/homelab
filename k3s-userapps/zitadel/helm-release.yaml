@@ -73,11 +73,6 @@ spec:
               secretKeyRef:
                 name: zitadel-db-superuser
                 key: password
-          - name: ZITADEL_MASTERKEY
-            valueFrom:
-              secretKeyRef:
-                name: zitadel-machinekey
-                key: masterkey
 
   destination:
     server: https://kubernetes.default.svc
