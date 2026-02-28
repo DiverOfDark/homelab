@@ -13,6 +13,8 @@ spec:
     chart: zitadel
     helm:
       valuesObject:
+        cleanupJob:
+          enabled: false
         zitadel:
           masterkeySecretName: "zitadel-machinekey"
           configmapConfig:
