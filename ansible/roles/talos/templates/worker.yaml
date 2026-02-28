@@ -204,24 +204,24 @@ machine:
 
 
     # Used to configure the machine's container image registry mirrors.
-    registries:
-      mirrors:
-        ghcr.io:
-          endpoints:
-            - https://harbor.kirillorlov.pro/v2/proxy-ghcr-io
-          overridePath: true
-        quay.io:
-          endpoints:
-            - https://harbor.kirillorlov.pro/v2/proxy-quay-io
-          overridePath: true
-        docker.io:
-          endpoints:
-            - https://harbor.kirillorlov.pro/v2/proxy-hub-docker-com
-          overridePath: true
-        registry.k8s.io:
-          endpoints:
-            - https://harbor.kirillorlov.pro/v2/proxy-registry-k8s-io
-          overridePath: true
+    #registries:
+    #  mirrors:
+    #    ghcr.io:
+    #      endpoints:
+    #        - https://harbor.kirillorlov.pro/v2/proxy-ghcr-io
+    #      overridePath: true
+    #    quay.io:
+    #      endpoints:
+    #        - https://harbor.kirillorlov.pro/v2/proxy-quay-io
+    #      overridePath: true
+    #    docker.io:
+    #      endpoints:
+    #        - https://harbor.kirillorlov.pro/v2/proxy-hub-docker-com
+    #      overridePath: true
+    #    registry.k8s.io:
+    #      endpoints:
+    #        - https://harbor.kirillorlov.pro/v2/proxy-registry-k8s-io
+    #      overridePath: true
 
     # # Specifies mirror configuration for each registry host namespace.
     # mirrors:

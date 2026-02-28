@@ -81,31 +81,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: riven
-  namespace: media
-spec:
-  ports:
-    - port: 8080
-      targetPort: 8080
-      name: http
-  selector:
-    app: riven
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: riven-db
-  namespace: media
-spec:
-  ports:
-    - port: 5432
-      targetPort: 5432
-  selector:
-    cnpg.io/cluster: riven-db
----
-apiVersion: v1
-kind: Service
-metadata:
   name: mediamanager
   namespace: media
 spec:

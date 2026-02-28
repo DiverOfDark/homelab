@@ -170,36 +170,6 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://riven.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Riven
-    gethomepage.dev/icon: riven.png
-    gethomepage.dev/pod-selector: "app=riven"
-  name: riven
-  namespace: media
-spec:
-  rules:
-  - host: riven.kirillorlov.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: riven
-            port:
-              name: http
-        path: /
-        pathType: Prefix
-  tls:
-  - hosts:
-    - riven.kirillorlov.pro
-    secretName: riven-tls
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
     gethomepage.dev/href: "https://mediamanager.kirillorlov.pro"
     gethomepage.dev/group: Media
     gethomepage.dev/name: MediaManager
