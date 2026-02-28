@@ -19,8 +19,6 @@ spec:
     initdb:
       database: zitadel
       owner: zitadel
-      secret:
-        name: zitadel-db-auth
 
   monitoring:
     enablePodMonitor: true

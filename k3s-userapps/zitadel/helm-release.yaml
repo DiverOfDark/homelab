@@ -66,12 +66,12 @@ spec:
           - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: zitadel-db-auth
+                name: zitadel-db-app
                 key: password
           - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: zitadel-db-auth
+                name: zitadel-db-app
                 key: password
           - name: ZITADEL_MASTERKEY
             valueFrom:
