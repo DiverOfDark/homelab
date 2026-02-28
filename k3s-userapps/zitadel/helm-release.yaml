@@ -71,7 +71,7 @@ spec:
           - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: zitadel-db-app
+                name: zitadel-db-superuser
                 key: password
           - name: ZITADEL_MASTERKEY
             valueFrom:
@@ -85,7 +85,6 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
