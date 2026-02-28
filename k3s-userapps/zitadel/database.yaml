@@ -1,0 +1,24 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: zitadel-db
+  namespace: zitadel
+spec:
+  instances: 2
+  primaryUpdateStrategy: unsupervised
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-8-bullseye
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+
+  storage:
+    size: 20Gi
+
+  bootstrap:
+    initdb:
+      database: zitadel
+      owner: zitadel
+
+  monitoring:
+    enablePodMonitor: true
