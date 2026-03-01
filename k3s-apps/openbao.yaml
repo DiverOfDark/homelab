@@ -16,9 +16,15 @@ spec:
         server:
           ingress:
             enabled: true
-            labels:
             annotations:
-            incressClassName: traefik
+              cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://openbao.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: OpenBao
+              gethomepage.dev/icon: openbao.svg
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=openbao"
+            ingressClassName: traefik
             hosts:
               - host: openbao.kirillorlov.pro
                 paths: [ ]
