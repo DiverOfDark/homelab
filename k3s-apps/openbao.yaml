@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openbao
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://openbao.github.io/openbao-helm
+    targetRevision: 0.4.0
+    chart: openbao
+    helm:
+      valuesObject:
+        server:
+          ingress:
+            enabled: true
+            labels:
+            annotations:
+            incressClassName: traefik
+            hosts:
+              - host: openbao.kirillorlov.pro
+                paths: [ ]
+            tls:
+              - secretName: openbao-tls
+                hosts:
+                  - openbao.kirillorlov.pro
+          dataStorage:
+            enabled: true
+            size: 5Gi
+            storageClass: "ceph-filesystem"
+          ha:
+            enabled: true
+            raft:
+              enabled: true
+              setNodeId: true
+
+              config: |
+                ui = true
+                listener "tcp" {
+                  tls_disable = 1
+                  address = "[::]:8200"
+                  cluster_address = "[::]:8201"
+                  telemetry {
+                    unauthenticated_metrics_access = "true"
+                  }
+                }
+                storage "raft" {
+                  path = "/openbao/data"
+                }
+                service_registration "kubernetes" {}
+        ui:
+          enabled: true
+          serviceType: "ClusterIP"
+        injector:
+          enabled: false
+        serverTelemetry:
+          serviceMonitor:
+            enabled: true
+          prometheusRules:
+            enabled: true
+          grafanaDashboard:
+            enabled: true
+        extraObjects:
+        - apiVersion: external-secrets.io/v1beta1
+          kind: ClusterSecretStore
+          metadata:
+            name: openbao-store
+          spec:
+            provider:
+              vault:
+                server: "http://openbao-active.openbao.svc.cluster.local:8200"
+                path: "secret"
+                # Version is the Vault KV secret engine version. This can be either "v1" or
+                # "v2". Version default is "v2".
+                version: "v2"
+                auth:
+                  kubernetes:
+                    mountPath: "kubernetes"
+                    role: "eso-role"
+                    serviceAccountRef:
+                      name: "eso-external-secrets"
+                      namespace: "eso"
+
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openbao
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
