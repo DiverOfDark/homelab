@@ -230,21 +230,32 @@ resource "cloudflare_record" "dmarc" {
   ttl     = 1
   type    = "TXT"
 }
-resource "cloudflare_record" "txt" {
+
+resource "cloudflare_record" "mailgun-txt" {
   zone_id = cloudflare_zone.zone.id
-  content = "jqsclpyyms"
+  content = "k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8FNoH2XVc2hlcoBoalxE9K1Q71wEGvwS2gtQMMO2yIq6cb+O/aJktZl1LtxOgabmOAyCSOXt2fVbwcZHo4+t+6E4JLHCUQUQ4YAAt4qRp/kdCG/HRi2de768tMUWloOPI4a4/66RxxbQIdwOsUN+MqMP9CIT6zarfOutsDW73vwIDAQAB"
+  name    = "s1._domainkey.kirillorlov.pro"
+  proxied = false
+  ttl     = 1
+  type    = "TXT"
+}
+
+resource "cloudflare_record" "spf" {
+  zone_id = cloudflare_zone.zone.id
+  content = "v=spf1 a mx include:_spf.google.com include:_spf.mx.cloudflare.net include:mailgun.org ~all"
   name    = "kirillorlov.pro"
   proxied = false
   ttl     = 1
   type    = "TXT"
 }
-resource "cloudflare_record" "spf" {
+
+resource "cloudflare_record" "email-cname" {
   zone_id = cloudflare_zone.zone.id
-  content = "v=spf1 a mx include:_spf.google.com include:_spf.mx.cloudflare.net  ~all"
-  name    = "kirillorlov.pro"
+  content = "eu.mailgun.org"
+  name    = "email.kirillorlov.pro"
   proxied = false
   ttl     = 1
-  type    = "TXT"
+  type    = "CNAME"
 }
 
 resource "cloudflare_zero_trust_access_identity_provider" "github" {

@@ -59,6 +59,25 @@
             # Set Mitogen strategy plugins path for Ansible
             export ANSIBLE_STRATEGY_PLUGINS=$(python3 -c "import ansible_mitogen; print(ansible_mitogen.__path__[0] + '/plugins/strategy')" 2>/dev/null || echo "")
 
+            # Talos — config rendered by Ansible to /tmp/talos/
+            export TALOSCONFIG=/tmp/talos/talosconfig
+
+            # OpenTofu / Kubernetes — override in_cluster_config for local use
+            export KUBE_CONFIG_PATH=~/.kube/config
+
+            export TF_VAR_kube_config=~/.kube/config
+            export TF_CLI_ARGS_init="-backend-config=$PWD/terraform/config.kubernetes.tfbackend"
+
+            # OpenBao
+            export BAO_ADDR=https://openbao.kirillorlov.pro
+
+            # OpenTofu — required TF_VAR_* for terraform/cloudflare.tf
+            # Set these in your environment or via a sops-encrypted shell snippet:
+            export TF_VAR_cloudflare_email=`bao kv get -field=email secret/cloudflare`
+            export TF_VAR_cloudflare_api_key=`bao kv get -field=api_key secret/cloudflare`
+            export TF_VAR_cloudflare_api_token=`bao kv get -field=api_token secret/cloudflare`
+            export TF_VAR_tunnel_secret=`bao kv get -field=tunnel_secret secret/cloudflare`
+
             # Aliases
             alias k=kubectl
             alias t=tofu
