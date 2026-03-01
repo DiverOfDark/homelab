@@ -15,6 +15,7 @@ spec:
       valuesObject:
         server:
           updateStrategy: "RollingUpdate"
+          podManagementPolicy: "Parallel"
           volumes:
             - name: seal-key
               secret:
