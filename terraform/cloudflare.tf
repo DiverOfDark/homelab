@@ -7,7 +7,7 @@ terraform {
     }
     kubernetes = {
       source  = "registry.opentofu.org/hashicorp/kubernetes"
-      version = "2.38.0"
+      version = "3.0.1"
     }
   }
 
@@ -391,7 +391,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
   }
 }
 
-resource "kubernetes_secret" "cloudflared_config" {
+resource "kubernetes_secret_v1" "cloudflared_config" {
   metadata {
     namespace = "cloudflared"
     name = "cloudflare-api-token-secret"
@@ -404,7 +404,7 @@ resource "kubernetes_secret" "cloudflared_config" {
   }
 }
 
-resource "kubernetes_secret" "certmanager_config" {
+resource "kubernetes_secret_v1" "certmanager_config" {
   metadata {
     namespace = "cert-manager"
     name = "cloudflare-api-token-secret"
