@@ -87,9 +87,10 @@ spec:
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Zitadel"
             gethomepage.dev/description: "Identity Provider"
-            gethomepage.dev/group: "Infrastructure"
+            gethomepage.dev/group: "Infra"
             gethomepage.dev/icon: "zitadel"
             gethomepage.dev/href: "https://auth.kirillorlov.pro"
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=zitadel"
           hosts:
             - host: auth.kirillorlov.pro
               paths:
