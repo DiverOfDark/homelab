@@ -1,93 +1,48 @@
-terraform {
-  required_version = ">= 1.0"
-  
-  required_providers {
-    cloudflare = {
-      source  = "registry.terraform.io/cloudflare/cloudflare"
-      version = "4.52.5"
-    }
-    kubernetes = {
-      source  = "registry.opentofu.org/hashicorp/kubernetes"
-      version = "2.38.0"
-    }
-  }
-}
-
-# Backend configuration
-terraform {
-  backend "kubernetes" {
-    namespace         = "github-runner"
-    secret_suffix     = "state"
-    config_path       = "~/.kube/config"
-    in_cluster_config = true
-  }
-}
-
-# Providers
 provider "cloudflare" {
-  dynamic "api_token" {
-    for_each = var.cloudflare_api_token != null ? [1] : []
-    content {
-      value = var.cloudflare_api_token
-    }
-  }
-  
-  dynamic "api_key" {
-    for_each = var.cloudflare_api_key != null ? [1] : []
-    content {
-      value = var.cloudflare_api_key
-    }
-  }
-  
-  dynamic "email" {
-    for_each = var.cloudflare_email != null ? [1] : []
-    content {
-      value = var.cloudflare_email
-    }
-  }
+  api_token = var.cloudflare_api_token
 }
 
 provider "kubernetes" {
   config_path = var.kube_config
 }
 
-# Modules
 module "cloudflare_zone" {
   source = "./modules/cloudflare-zone"
 }
 
 module "cloudflare_tunnel" {
-  source           = "./modules/cloudflare-tunnel"
-  account_id       = module.cloudflare_zone.account_id
-  tunnel_name      = "k8s"
-  tunnel_secret    = var.tunnel_secret
-  ingress_rules    = var.ingress_rules
+  source        = "./modules/cloudflare-tunnel"
+  account_id    = module.cloudflare_zone.account_id
+  tunnel_name   = "k8s"
+  tunnel_secret = var.tunnel_secret
+  ingress_rules = [
+    for r in var.ingress_rules : {
+      hostname = r.hostname
+      service  = r.service
+    }
+  ]
 }
 
 module "cloudflare_dns" {
-  source           = "./modules/cloudflare-dns"
-  zone_id          = module.cloudflare_zone.zone_id
-  dns_records      = [
-    for record in var.dns_records : record
-    if record.name != "yggdrasil" && record.name != "yggdrasil-s"
-  ]  # Exclude records that will be created separately
+  source      = "./modules/cloudflare-dns"
+  zone_id     = module.cloudflare_zone.zone_id
+  dns_records = [for record in var.dns_records : record if record.name != "yggdrasil" && record.name != "yggdrasil-s"]
 }
 
 module "kubernetes_secrets" {
-  source                     = "./modules/kubernetes-secrets"
-  namespace                  = "cloudflared"
-  certmanager_namespace      = "cert-manager"
-  cloudflare_account_id      = module.cloudflare_zone.account_id
-  cloudflare_api_token       = var.cloudflare_api_token
-  tunnel_id                  = module.cloudflare_tunnel.tunnel_id
-  tunnel_token               = module.cloudflare_tunnel.tunnel_token
+  source                = "./modules/kubernetes-secrets"
+  namespace             = "cloudflared"
+  certmanager_namespace = "cert-manager"
+  cloudflare_account_id = module.cloudflare_zone.account_id
+  cloudflare_api_token  = var.cloudflare_api_token
+  tunnel_id             = module.cloudflare_tunnel.tunnel_id
+  tunnel_token          = module.cloudflare_tunnel.tunnel_token
 }
 
-# Create tunnel DNS records separately
 resource "cloudflare_record" "tunnel_records" {
   for_each = {
-    "yggdrasil"  = module.cloudflare_tunnel.cname
-    "yggdrasil-s" = module.cloudflare_tunnel.cname
+    yggdrasil   = module.cloudflare_tunnel.cname
+    yggdrasil-s = module.cloudflare_tunnel.cname
   }
 
   zone_id = module.cloudflare_zone.zone_id
@@ -98,7 +53,6 @@ resource "cloudflare_record" "tunnel_records" {
   proxied = true
 }
 
-# DMARC, SPF, DKIM records
 resource "cloudflare_record" "dmarc" {
   zone_id = module.cloudflare_zone.zone_id
   content = "v=DMARC1; p=none; rua=mailto:aae0da00a1dc4478bfd42740df319d8f@dmarc-reports.cloudflare.net,mailto:dmarc@kirillorlov.pro; aspf=r;"
@@ -135,7 +89,6 @@ resource "cloudflare_record" "email_cname" {
   type    = "CNAME"
 }
 
-# Email routing
 resource "cloudflare_email_routing_settings" "email_routing" {
   enabled = true
   zone_id = module.cloudflare_zone.zone_id
@@ -175,11 +128,11 @@ resource "cloudflare_email_routing_catch_all" "catch_all" {
   }
 }
 
-# Zero Trust Configuration
 resource "cloudflare_zero_trust_access_identity_provider" "github" {
   account_id = module.cloudflare_zone.account_id
   name       = "GitHub"
   type       = "github"
+
   config {
     client_id = "Ov23liDFOC6cLvQ2YZM2"
   }
@@ -225,14 +178,16 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_home_network" {
   action      = "allow"
   description = "default"
   enabled     = true
-  filters = ["l4"]
+  filters     = ["l4"]
   name        = "allow localnet"
   precedence  = 9
   traffic     = "net.dst.ip in {192.168.0.0/16}"
+
   rule_settings {
     block_page_enabled                 = false
     insecure_disable_dnssec_validation = false
     ip_categories                      = false
+
     notification_settings {
       enabled = false
     }

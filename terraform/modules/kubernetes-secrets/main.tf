@@ -1,26 +1,15 @@
-data "kubernetes_secret" "existing_cloudflared" {
-  count = var.tunnel_id != "" && var.tunnel_token != "" ? 1 : 0
-  
-  metadata {
-    name      = "cloudflare-api-token-secret"
-    namespace = var.namespace
-  }
-}
-
 resource "kubernetes_secret" "cloudflared_config" {
   metadata {
     namespace = var.namespace
     name      = "cloudflare-api-token-secret"
   }
-  
+
   data = {
     account-id  = var.cloudflare_account_id
     api-token   = var.cloudflare_api_token
     tunnel-id   = var.tunnel_id
     tunnelToken = var.tunnel_token
   }
-  
-  depends_on = [kubernetes_secret.existing_cloudflared]
 }
 
 resource "kubernetes_secret" "certmanager_config" {
@@ -28,7 +17,7 @@ resource "kubernetes_secret" "certmanager_config" {
     namespace = var.certmanager_namespace
     name      = "cloudflare-api-token-secret"
   }
-  
+
   data = {
     account-id = var.cloudflare_account_id
     api-token  = var.cloudflare_api_token
@@ -48,7 +37,7 @@ resource "kubernetes_role" "cloudflared_role" {
     name      = "cloudflared-role"
     namespace = var.namespace
   }
-  
+
   rules {
     api_groups = [""]
     resources  = ["secrets"]
@@ -61,13 +50,13 @@ resource "kubernetes_role_binding" "cloudflared_binding" {
     name      = "cloudflared-role-binding"
     namespace = var.namespace
   }
-  
+
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
     name      = "cloudflared-role"
   }
-  
+
   subjects {
     kind      = "ServiceAccount"
     name      = "cloudflared"
