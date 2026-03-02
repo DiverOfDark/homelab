@@ -15,11 +15,12 @@
 ```bash
 cd terraform/openbao
 
-export TF_VAR_zitadel_domain="auth.kirillorlov.pro"
-export TF_VAR_zitadel_jwt_profile_file="$HOME/.secrets/zitadel-admin-sa.json"
-export TF_VAR_zitadel_issuer="https://auth.kirillorlov.pro"
+# taken from repo config defaults:
+# - ZITADEL domain: auth.kirillorlov.pro
+# - ArgoCD callback: https://argo.kirillorlov.pro/auth/callback
+# - issuer: https://auth.kirillorlov.pro
 
-export TF_VAR_argocd_redirect_uris='["https://argocd.kirillorlov.pro/auth/callback"]'
+export TF_VAR_zitadel_jwt_profile_file="$HOME/.secrets/zitadel-admin-sa.json"
 
 export TF_VAR_openbao_addr="https://openbao.kirillorlov.pro"
 export TF_VAR_openbao_token="..."

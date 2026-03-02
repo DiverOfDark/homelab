@@ -1,6 +1,7 @@
 variable "zitadel_domain" {
   description = "ZITADEL domain, e.g. auth.example.com"
   type        = string
+  default     = "auth.kirillorlov.pro"
 }
 
 variable "zitadel_port" {
@@ -23,6 +24,7 @@ variable "zitadel_jwt_profile_file" {
 variable "zitadel_issuer" {
   description = "OIDC issuer URL used by ArgoCD"
   type        = string
+  default     = "https://auth.kirillorlov.pro"
 }
 
 variable "zitadel_dev_mode" {
@@ -46,12 +48,13 @@ variable "client_name" {
 variable "argocd_redirect_uris" {
   description = "Allowed ArgoCD callback URIs"
   type        = list(string)
+  default     = ["https://argo.kirillorlov.pro/auth/callback"]
 }
 
 variable "argocd_post_logout_redirect_uris" {
   description = "Allowed ArgoCD post logout redirect URIs"
   type        = list(string)
-  default     = []
+  default     = ["https://argo.kirillorlov.pro"]
 }
 
 variable "openbao_addr" {
