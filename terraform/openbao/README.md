@@ -1,38 +1,36 @@
-# Terraform OpenBao Integration
+# ZITADEL -> OpenBao via OpenTofu
 
-Этот набор файлов добавляет Terraform конфигурацию для управления OpenBao проектами и клиентами через GitOps workflow.
+Этот стек делает ровно одно:
+1. Создаёт проект `homelab` в ZITADEL
+2. Создаёт OIDC client `argocd` в этом проекте
+3. Складывает `client_id`/`client_secret` в OpenBao KV v2
 
-## Структура
+## Почему так
+- ZITADEL ресурсы создаются провайдером `zitadel`
+- OpenBao секреты пишутся провайдером `vault` (OpenBao совместим с Vault API)
+- Никакого лишнего Kubernetes/RBAC в этом стеке
 
+## Пример запуска
+
+```bash
+cd terraform/openbao
+
+# taken from repo config defaults:
+# - ZITADEL domain: auth.kirillorlov.pro
+# - ArgoCD callback: https://argo.kirillorlov.pro/auth/callback
+# - issuer: https://auth.kirillorlov.pro
+
+export TF_VAR_zitadel_jwt_profile_file="$HOME/.secrets/zitadel-admin-sa.json"
+
+export TF_VAR_openbao_addr="https://openbao.kirillorlov.pro"
+export TF_VAR_openbao_token="..."
+
+# OpenTofu
+
+tofu init
+tofu plan
+tofu apply
 ```
-terraform/openbao/
-├── main.tf                    # Основная конфигурация
-├── variables.tf               # Переменные
-├── outputs.tf                # Выводы
-├── provider.tf               # Настройка провайдера
-└── README.md                 # Документация
-```
 
-## Компоненты
-
-### 1. OpenBao Provider Configuration
-Настраивает аутентификацию и подключение к OpenBao instance.
-
-### 2. OpenBao Project Resource
-Создаёт проект "homelab" в OpenBao с нужными настройками.
-
-### 3. OpenBao OAuth2 Client
-Создаёт OAuth2 клиент "argocd" с правильными permissions.
-
-### 4. Secrets Management
-Автоматически сохраняет client ID и secret в OpenBao secrets engine.
-
-## Использование
-
-Просто применяйте через Terraform или интегрируйте в ваш ArgoCD workflow.
-
-## Безопасность
-
-- Все sensitive данные хранятся в OpenBao KV v2
-- Используется Kubernetes auth method для аутентификации
-- Client credentials автоматически генерируются и ротируются
+После apply секрет лежит в:
+`secret/apps/argocd/oidc`
