@@ -1,61 +1,78 @@
-variable "openbao_url" {
+variable "zitadel_domain" {
+  description = "ZITADEL domain, e.g. auth.example.com"
   type        = string
-  description = "OpenBao instance URL"
-  default     = "https://openbao.example.com"
-  sensitive   = false
 }
 
-variable "openbao_root_token" {
+variable "zitadel_port" {
+  description = "ZITADEL port"
   type        = string
-  description = "OpenBao root token for authentication"
-  sensitive   = true
+  default     = "443"
 }
 
-variable "argocd_redirect_uris" {
-  type        = list(string)
-  description = "List of allowed redirect URIs for ArgoCD OAuth2 client"
-  default     = [
-    "https://argocd.example.com/oauth2/callback",
-    "https://argocd-dev.example.com/oauth2/callback"
-  ]
+variable "zitadel_insecure" {
+  description = "Disable TLS validation for local/dev only"
+  type        = bool
+  default     = false
+}
+
+variable "zitadel_jwt_profile_file" {
+  description = "Path to ZITADEL service user key file (JSON)"
+  type        = string
+}
+
+variable "zitadel_issuer" {
+  description = "OIDC issuer URL used by ArgoCD"
+  type        = string
+}
+
+variable "zitadel_dev_mode" {
+  description = "Set true only for local testing"
+  type        = bool
+  default     = false
 }
 
 variable "project_name" {
+  description = "ZITADEL project name"
   type        = string
-  description = "Name of the OpenBao project"
   default     = "homelab"
 }
 
 variable "client_name" {
+  description = "ZITADEL OIDC app name"
   type        = string
-  description = "Name of the OAuth2 client"
   default     = "argocd"
 }
 
-variable "project_description" {
-  type        = string
-  description = "Description for the OpenBao project"
-  default     = "Homelab Infrastructure Project"
+variable "argocd_redirect_uris" {
+  description = "Allowed ArgoCD callback URIs"
+  type        = list(string)
 }
 
-variable "environment" {
-  type        = string
-  description = "Target environment (dev/prod)"
-  default     = "prod"
-  validation {
-    condition     = contains(["dev", "prod"], var.environment)
-    error_message = "Environment must be either 'dev' or 'prod'"
-  }
+variable "argocd_post_logout_redirect_uris" {
+  description = "Allowed ArgoCD post logout redirect URIs"
+  type        = list(string)
+  default     = []
 }
 
-variable "secret_ttl" {
-  type        = number
-  description = "Time to live for stored secrets in hours"
-  default     = 8760  # 1 year
+variable "openbao_addr" {
+  description = "OpenBao/Vault API address"
+  type        = string
 }
 
-variable "kubernetes_namespace" {
+variable "openbao_token" {
+  description = "OpenBao token with write access to KV path"
   type        = string
-  description = "Kubernetes namespace for ArgoCD"
-  default     = "argocd"
+  sensitive   = true
+}
+
+variable "openbao_kv_mount" {
+  description = "KV v2 mount in OpenBao"
+  type        = string
+  default     = "secret"
+}
+
+variable "openbao_secret_path" {
+  description = "Path where argocd OIDC credentials are stored"
+  type        = string
+  default     = "apps/argocd/oidc"
 }
