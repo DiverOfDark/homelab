@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: terraform-openbao-integration
+  namespace: argocd
+spec:
+  source:
+    repoURL: 'https://github.com/DiverOfDark/homelab.git'
+    targetRevision: main
+    path: terraform/openbao
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argocd
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+---
+# Secret for OpenBao root token (to be created separately)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openbao-root-token
+  namespace: argocd
+type: Opaque
+stringData:
+  # This should be populated with actual OpenBao root token
+  # In production, use proper secret management
+  openbao-root-token: ""  # Replace with actual token
+---
+# Terraform variables secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: terraform-openbao-vars
+  namespace: argocd
+type: Opaque
+stringData:
+  openbao-url: "https://openbao.example.com"
+  argocd-redirect-uris: '["https://argocd.example.com/oauth2/callback"]'
+  project-name: "homelab"
+  client-name: "argocd"
+  environment: "prod"
+  kubernetes-namespace: "argocd"
+  secret-ttl: "8760"
