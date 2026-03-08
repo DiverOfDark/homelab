@@ -39,8 +39,8 @@ metadata:
     app.kubernetes.io/part-of: argocd
 spec:
   secretStoreRef:
-    name: bitwarden-login
-    kind: ClusterSecretStore  # or ClusterSecretStore
+    name: openbao-store
+    kind: ClusterSecretStore
 
   refreshInterval: "10s"
 
@@ -54,15 +54,17 @@ spec:
         labels:
           app.kubernetes.io/part-of: argocd
       data:
-        password: "{{ .userPassword }}"
+        client-id: "{{ .client_id }}"
+        client-secret: "{{ .client_secret }}"
   data:
-    - secretKey: userPassword
+    - secretKey: client_id
       remoteRef:
-        key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
-        conversionStrategy: Default
-        decodingStrategy: None
-        metadataPolicy: None
-        property: password
+        key: zitadel/argocd-credentials
+        property: client_id
+    - secretKey: client_secret
+      remoteRef:
+        key: zitadel/argocd-credentials
+        property: client_secret
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -138,10 +140,10 @@ spec:
                 admin.enabled: false
                 oidc.config: |
                   name: Homelab
-                  issuer: https://dex.kirillorlov.pro
-                  clientId: argocd
-                  clientSecret: $oauth-secret:password
-                  requestedScopes: ["openid", "profile", "email", "groups"]
+                  issuer: https://auth.kirillorlov.pro
+                  clientID: $oauth-secret:client-id
+                  clientSecret: $oauth-secret:client-secret
+                  requestedScopes: ["openid", "profile", "email"]
 
                 exec.enabled: true
                 accounts.readonly: apiKey
