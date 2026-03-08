@@ -6,7 +6,7 @@ provider "vault" {
 }
 
 # Read Zitadel service account key from OpenBao
-data "vault_kv_secret_v2" "zitadel_key" {
+ephemeral "vault_kv_secret_v2" "zitadel_key" {
   mount = "secret"
   name  = "zitadel/terraform-token"
 }
@@ -14,7 +14,7 @@ data "vault_kv_secret_v2" "zitadel_key" {
 # Zitadel provider using JWT service account key from OpenBao
 provider "zitadel" {
   domain           = "auth.kirillorlov.pro"
-  jwt_profile_json = data.vault_kv_secret_v2.zitadel_key.data["sa_jwt_key"]
+  jwt_profile_json = ephemeral.vault_kv_secret_v2.zitadel_key.data["sa_jwt_key"]
 }
 
 resource "zitadel_project" "homelab" {
