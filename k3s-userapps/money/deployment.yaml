@@ -26,6 +26,21 @@ spec:
         - image: 'actualbudget/actual-server:26.3.0'
           imagePullPolicy: IfNotPresent
           name: actualbudget
+          env:
+            - name: ACTUAL_OPENID_DISCOVERY_URL
+              value: "https://auth.kirillorlov.pro/.well-known/openid-configuration"
+            - name: ACTUAL_OPENID_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: actualbudget-zitadel
+                  key: client_id
+            - name: ACTUAL_OPENID_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: actualbudget-zitadel
+                  key: client_secret
+            - name: ACTUAL_OPENID_PROVIDER_NAME
+              value: "Homelab"
           ports:
             - containerPort: 5006
               protocol: TCP
