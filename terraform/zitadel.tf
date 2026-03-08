@@ -18,10 +18,14 @@ provider "zitadel" {
 }
 
 resource "zitadel_project" "homelab" {
-  name = "Homelab"
+  name   = "Homelab"
+  org_id = var.zitadel_org_id
 }
 
+# --- OIDC Applications ---
+
 resource "zitadel_application_oidc" "argocd" {
+  org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "ArgoCD"
   redirect_uris               = ["https://argo.kirillorlov.pro/auth/callback"]
@@ -37,14 +41,133 @@ resource "zitadel_application_oidc" "argocd" {
   id_token_userinfo_assertion = true
 }
 
-# Write ArgoCD OIDC credentials back to OpenBao
-resource "vault_kv_secret_v2" "argocd_credentials" {
+resource "zitadel_application_oidc" "grafana" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Grafana"
+  redirect_uris               = ["https://grafana.kirillorlov.pro/login/generic_oauth"]
+  post_logout_redirect_uris   = ["https://grafana.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "harbor" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Harbor"
+  redirect_uris               = ["https://harbor.kirillorlov.pro/c/oidc/callback"]
+  post_logout_redirect_uris   = ["https://harbor.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "velero" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Velero"
+  redirect_uris               = ["https://velero.kirillorlov.pro/login"]
+  post_logout_redirect_uris   = ["https://velero.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "actual_budget" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Actual Budget"
+  redirect_uris               = ["https://money.kirillorlov.pro/openid/callback"]
+  post_logout_redirect_uris   = ["https://money.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "vaultwarden" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Vaultwarden"
+  redirect_uris               = ["https://vaultwarden.kirillorlov.pro/identity/connect/oidc-signin"]
+  post_logout_redirect_uris   = ["https://vaultwarden.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_saml" "ceph_dashboard" {
+  org_id       = var.zitadel_org_id
+  project_id   = zitadel_project.homelab.id
+  name         = "Ceph Dashboard"
+  metadata_xml = <<-EOT
+<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+                     entityID="https://ceph.kirillorlov.pro">
+    <md:SPSSODescriptor AuthnRequestsSigned="false"
+                        WantAssertionsSigned="true"
+                        protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                     Location="https://ceph.kirillorlov.pro/auth/saml2/sso/ceph-dashboard"
+                                     index="1" />
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>
+EOT
+}
+
+# --- Store all OIDC credentials in OpenBao ---
+
+locals {
+  zitadel_apps = {
+    argocd        = zitadel_application_oidc.argocd
+    grafana       = zitadel_application_oidc.grafana
+    harbor        = zitadel_application_oidc.harbor
+    velero        = zitadel_application_oidc.velero
+    actual_budget = zitadel_application_oidc.actual_budget
+    vaultwarden   = zitadel_application_oidc.vaultwarden
+  }
+}
+
+resource "vault_kv_secret_v2" "zitadel_credentials" {
+  for_each = local.zitadel_apps
+
   mount = "secret"
-  name  = "zitadel/argocd-credentials"
+  name  = "zitadel/${each.key}-credentials"
 
   data_json = jsonencode({
-    client_id     = zitadel_application_oidc.argocd.client_id
-    client_secret = zitadel_application_oidc.argocd.client_secret
+    client_id     = each.value.client_id
+    client_secret = each.value.client_secret
     issuer        = "https://auth.kirillorlov.pro"
     project_id    = zitadel_project.homelab.id
   })

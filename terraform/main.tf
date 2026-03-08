@@ -57,6 +57,12 @@ variable "openbao_token" {
   sensitive   = true
 }
 
+variable "zitadel_org_id" {
+  description = "Zitadel organization ID"
+  type        = string
+  default     = "362091424306495995"
+}
+
 locals {
   ingress_rules = [
     {
