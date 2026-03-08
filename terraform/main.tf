@@ -26,26 +26,6 @@ terraform {
   }
 }
 
-variable "cloudflare_email" {
-  description = "Cloudflare email"
-  type        = string
-}
-
-variable "cloudflare_api_key" {
-  description = "Cloudflare API key"
-  type        = string
-}
-
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token"
-  type        = string
-}
-
-variable "tunnel_secret" {
-  description = "Cloudflare Tunnel secret"
-  type        = string
-}
-
 variable "kube_config" {
   default     = null
   description = "Path to kubeconfig file"
@@ -121,8 +101,8 @@ locals {
 }
 
 provider "cloudflare" {
-  email   = var.cloudflare_email
-  api_key = var.cloudflare_api_key
+  email   = data.vault_kv_secret_v2.cloudflare.data["email"]
+  api_key = data.vault_kv_secret_v2.cloudflare.data["api_key"]
 }
 
 provider "kubernetes" {

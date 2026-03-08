@@ -113,10 +113,6 @@ jobs:
       - uses: actions/checkout@v6
       - name: OpenTofu plan
         env:
-          TF_VAR_tunnel_secret: ${{ secrets.TUNNEL_SECRET }}
-          TF_VAR_cloudflare_email: ${{ secrets.CLOUDFLARE_EMAIL }}
-          TF_VAR_cloudflare_api_key: ${{ secrets.CLOUDFLARE_API_KEY }}
-          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443
@@ -141,10 +137,6 @@ jobs:
       - uses: actions/checkout@v6
       - name: OpenTofu apply
         env:
-          TF_VAR_tunnel_secret: ${{ secrets.TUNNEL_SECRET }}
-          TF_VAR_cloudflare_email: ${{ secrets.CLOUDFLARE_EMAIL }}
-          TF_VAR_cloudflare_api_key: ${{ secrets.CLOUDFLARE_API_KEY }}
-          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443

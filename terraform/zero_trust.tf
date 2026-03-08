@@ -65,14 +65,14 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_home_network" {
 resource "cloudflare_zero_trust_tunnel_cloudflared" "kubernetes_account" {
   account_id = cloudflare_account.account.id
   name       = "k8s"
-  tunnel_secret = base64encode(var.tunnel_secret)
+  tunnel_secret = base64encode(data.vault_kv_secret_v2.cloudflare.data["tunnel_secret"])
   config_src = "cloudflare"
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "yggdrasil" {
   account_id = cloudflare_account.account.id
   name       = "yggdrasil"
-  tunnel_secret = base64encode(var.tunnel_secret)
+  tunnel_secret = base64encode(data.vault_kv_secret_v2.cloudflare.data["tunnel_secret"])
   config_src = "cloudflare"
 }
 

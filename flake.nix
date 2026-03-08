@@ -71,12 +71,7 @@
             # OpenBao
             export BAO_ADDR=https://openbao.kirillorlov.pro
 
-            # OpenTofu — required TF_VAR_* for terraform/cloudflare.tf
-            # Set these in your environment or via a sops-encrypted shell snippet:
-            export TF_VAR_cloudflare_email=`bao kv get -field=email secret/cloudflare`
-            export TF_VAR_cloudflare_api_key=`bao kv get -field=api_key secret/cloudflare`
-            export TF_VAR_cloudflare_api_token=`bao kv get -field=api_token secret/cloudflare`
-            export TF_VAR_tunnel_secret=`bao kv get -field=tunnel_secret secret/cloudflare`
+            # OpenTofu — only openbao token needed, all other secrets are read from OpenBao by Terraform
             export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
 
             # Aliases

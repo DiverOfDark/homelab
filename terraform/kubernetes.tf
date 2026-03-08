@@ -5,12 +5,12 @@ resource "kubernetes_secret_v1" "cloudflared_config" {
   }
   data = {
     account-id = cloudflare_account.account.id
-    api-token = var.cloudflare_api_token
+    api-token = data.vault_kv_secret_v2.cloudflare.data["api_token"]
     tunnel-id = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
     tunnelToken = base64encode(jsonencode({
       a = cloudflare_account.account.id
       t = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
-      s = base64encode(var.tunnel_secret)
+      s = base64encode(data.vault_kv_secret_v2.cloudflare.data["tunnel_secret"])
     }))
   }
 }
@@ -22,7 +22,7 @@ resource "kubernetes_secret_v1" "certmanager_config" {
   }
   data = {
     account-id = cloudflare_account.account.id
-    api-token = var.cloudflare_api_token
+    api-token = data.vault_kv_secret_v2.cloudflare.data["api_token"]
     tunnel-id = cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id
   }
 }
