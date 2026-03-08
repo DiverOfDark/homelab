@@ -41,7 +41,7 @@ spec:
                   key: client_secret
             - name: ACTUAL_OPENID_PROVIDER_NAME
               value: "Homelab"
-            - name: ACTUAL_OPENID_SERVER_URL
+            - name: ACTUAL_OPENID_SERVER_HOSTNAME
               value: "https://money.kirillorlov.pro"
           ports:
             - containerPort: 5006
