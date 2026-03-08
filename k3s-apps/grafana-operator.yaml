@@ -108,7 +108,7 @@ spec:
                   root_url: "https://grafana.kirillorlov.pro"
                 auth:
                   disable_gravatar: "true"
-                  disable_login_form: "false"
+                  disable_login_form: "true"
                   disable_signout_menu: "false"
                   disable_user_sign_up: "false"
                   oauth_allow_insecure_email_lookup: "true"
