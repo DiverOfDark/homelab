@@ -77,10 +77,6 @@ locals {
       hostname = "vaultwarden.kirillorlov.pro"
       service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
     }, {
-      short = "dex"
-      hostname = "dex.kirillorlov.pro"
-      service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
-    }, {
       short = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
