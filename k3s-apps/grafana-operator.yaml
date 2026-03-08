@@ -37,8 +37,8 @@ spec:
               name: "oauth-secret"
             spec:
               secretStoreRef:
-                name: bitwarden-login
-                kind: ClusterSecretStore  # or ClusterSecretStore
+                name: openbao-store
+                kind: ClusterSecretStore
               refreshInterval: "10s"
               target:
                 name: oauth-secret
@@ -47,15 +47,17 @@ spec:
                 template:
                   type: Opaque
                   data:
-                    oauth-secret: "{{`{{ .userPassword }}`}}"
+                    client-id: "{{`{{ .client_id }}`}}"
+                    client-secret: "{{`{{ .client_secret }}`}}"
               data:
-                - secretKey: userPassword
+                - secretKey: client_id
                   remoteRef:
-                    key: 0e313ad2-4820-4e9b-b86f-5d4816dbb1e0
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: password
+                    key: zitadel/grafana-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/grafana-credentials
+                    property: client_secret
           - apiVersion: grafana.integreatly.org/v1beta1
             kind: Grafana
             metadata:
@@ -79,11 +81,16 @@ spec:
                       containers:
                         - name: grafana
                           env:
+                            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+                              valueFrom:
+                                secretKeyRef:
+                                  name: oauth-secret
+                                  key: client-id
                             - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
                               valueFrom:
                                 secretKeyRef:
                                   name: oauth-secret
-                                  key: oauth-secret
+                                  key: client-secret
                           securityContext:
                             runAsNonRoot: false
                             runAsUser: 0
@@ -104,23 +111,21 @@ spec:
                   disable_login_form: "true"
                   disable_signout_menu: "false"
                   disable_user_sign_up: "false"
-                  login_hint: "https://dex.kirillorlov.pro/dex/auth?client_id=grafana&response_type=code&scope=openid+email+profile+offline_access+roles&redirect_uri=https://grafana.kirillorlov.pro/login/generic_oauth"
                 log:
                   mode: "console"
                 auth.generic_oauth:
-                  # For variables see https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#env-provider
                   enabled: "true"
-                  name: "HomeLab"
+                  name: "Homelab"
                   allow_sign_up: "true"
-                  client_id: "grafana"
-                  scopes: "openid email profile offline_access"
+                  client_id: "$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_ID}"
+                  client_secret: "$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+                  scopes: "openid email profile"
                   email_attribute_path: "email"
-                  login_attribute_path: "username"
-                  name_attribute_path: "full_name"
-                  groups_attribute_path: "groups"
-                  auth_url: "https://dex.kirillorlov.pro/auth"
-                  token_url: "https://dex.kirillorlov.pro/token"
-                  api_url: "https://dex.kirillorlov.pro/userinfo"
+                  login_attribute_path: "preferred_username"
+                  name_attribute_path: "name"
+                  auth_url: "https://auth.kirillorlov.pro/oauth/v2/authorize"
+                  token_url: "https://auth.kirillorlov.pro/oauth/v2/token"
+                  api_url: "https://auth.kirillorlov.pro/oidc/v1/userinfo"
                   role_attribute_path: "'Admin'"
                   skip_org_role_sync: "true"
               ingress:

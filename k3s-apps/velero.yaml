@@ -299,26 +299,53 @@ spec:
           enabled: false
         readinessProbe:
           enabled: false
+        extraObjects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: velero-zitadel
+              namespace: velero
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "10s"
+              target:
+                name: velero-zitadel
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: client_id
+                  remoteRef:
+                    key: zitadel/velero-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/velero-credentials
+                    property: client_secret
         env:
           - name: OAUTH_AUTH_ENABLED
             value: "true"
           - name: OAUTH_NAME
             value: "Homelab"
           - name: OAUTH_AUTHORIZATION_URL
-            value: "https://dex.kirillorlov.pro/auth"
+            value: "https://auth.kirillorlov.pro/oauth/v2/authorize"
           - name: OAUTH_USER_INFO_URL
-            value: "https://dex.kirillorlov.pro/userinfo"
+            value: "https://auth.kirillorlov.pro/oidc/v1/userinfo"
           - name: OAUTH_TOKEN_URL
-            value: "https://dex.kirillorlov.pro/token"
+            value: "https://auth.kirillorlov.pro/oauth/v2/token"
           - name: OAUTH_CLIENT_ID
-            value: "velero"
+            valueFrom:
+              secretKeyRef:
+                name: velero-zitadel
+                key: client_id
           - name: OAUTH_CLIENT_SECRET
             valueFrom:
               secretKeyRef:
-                name: velero-credentials
-                key: OAUTH_KEY
+                name: velero-zitadel
+                key: client_secret
           - name: OAUTH_OAUTH_SCOPE
-            value: "openid email groups profile offline_access"
+            value: "openid email profile"
           - name: OAUTH_REDIRECT_URI
             value: "https://velero.kirillorlov.pro/login"
 
