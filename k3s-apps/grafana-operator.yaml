@@ -142,9 +142,9 @@ spec:
                     gethomepage.dev/pod-selector: "app=grafana"
                     gethomepage.dev/widget.type: grafana
                     gethomepage.dev/widget.url: https://grafana.kirillorlov.pro/
-                    gethomepage.dev/widget.username: diverofdark
-                    gethomepage.dev/widget.password: "$admin-password$"
-                    kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
+                    gethomepage.dev/widget.username: "$GF_SECURITY_ADMIN_USER$"
+                    gethomepage.dev/widget.password: "$GF_SECURITY_ADMIN_PASSWORD$"
+                    kirillorlov.pro/annotationsFromSecretName: grafana-admin-credentials
                 spec:
                   ingressClassName: traefik
                   rules:
