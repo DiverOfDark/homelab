@@ -77,6 +77,7 @@
             export TF_VAR_cloudflare_api_key=`bao kv get -field=api_key secret/cloudflare`
             export TF_VAR_cloudflare_api_token=`bao kv get -field=api_token secret/cloudflare`
             export TF_VAR_tunnel_secret=`bao kv get -field=tunnel_secret secret/cloudflare`
+            export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
 
             # Aliases
             alias k=kubectl

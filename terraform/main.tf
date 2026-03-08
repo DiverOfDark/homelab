@@ -8,6 +8,14 @@ terraform {
       source  = "registry.opentofu.org/hashicorp/kubernetes"
       version = "3.0.1"
     }
+    zitadel = {
+      source  = "zitadel/zitadel"
+      version = "2.0.1"
+    }
+    vault = {
+      source  = "hashicorp/vault"
+      version = "4.6.0"
+    }
   }
 
   backend "kubernetes" {
@@ -39,8 +47,14 @@ variable "tunnel_secret" {
 }
 
 variable "kube_config" {
-  default = null
+  default     = null
   description = "Path to kubeconfig file"
+}
+
+variable "openbao_token" {
+  description = "OpenBao/Vault token for authentication"
+  type        = string
+  sensitive   = true
 }
 
 locals {
