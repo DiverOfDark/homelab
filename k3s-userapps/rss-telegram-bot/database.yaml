@@ -1,31 +1,3 @@
-apiVersion: acid.zalan.do/v1
-kind: postgresql
-metadata:
-  name: rsstt-db
-  namespace: rss-telegram-bot
-spec:
-  teamId: "acid"
-  postgresql:
-    version: "17"
-  env:
-    - name: ALLOW_NOSSL
-      value: "true"
-  numberOfInstances: 1
-  volume:
-    size: "5Gi"
-
-  users:
-    rsstt: [ ]
-  databases:
-    rsstt: rsstt
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-    limits:
-      cpu: 500m
-      memory: 500Mi
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -38,19 +10,5 @@ spec:
     size: 5Gi
   bootstrap:
     initdb:
-      import:
-        type: microservice
-        databases:
-          - rsstt
-        source:
-          externalCluster: rsstt-zalando
-  externalClusters:
-    - name: rsstt-zalando
-      connectionParameters:
-        host: rsstt-db.rss-telegram-bot.svc.cluster.local
-        user: postgres
-        dbname: postgres
-        sslmode: disable
-      password:
-        name: postgres.rsstt-db.credentials.postgresql.acid.zalan.do
-        key: password
+      database: rsstt
+      owner: rsstt
