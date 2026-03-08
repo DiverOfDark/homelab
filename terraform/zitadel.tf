@@ -124,6 +124,23 @@ resource "zitadel_application_oidc" "vaultwarden" {
   id_token_userinfo_assertion = true
 }
 
+resource "zitadel_application_oidc" "readur" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Readur"
+  redirect_uris               = ["https://readur.kirillorlov.pro/auth/callback"]
+  post_logout_redirect_uris   = ["https://readur.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
 resource "zitadel_application_saml" "ceph_dashboard" {
   org_id       = var.zitadel_org_id
   project_id   = zitadel_project.homelab.id
@@ -153,6 +170,7 @@ locals {
     velero        = zitadel_application_oidc.velero
     actual_budget = zitadel_application_oidc.actual_budget
     vaultwarden   = zitadel_application_oidc.vaultwarden
+    readur        = zitadel_application_oidc.readur
   }
 }
 
