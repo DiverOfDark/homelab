@@ -73,23 +73,6 @@ resource "zitadel_application_oidc" "grafana" {
   id_token_userinfo_assertion = true
 }
 
-resource "zitadel_application_oidc" "harbor" {
-  org_id                      = var.zitadel_org_id
-  project_id                  = zitadel_project.homelab.id
-  name                        = "Harbor"
-  redirect_uris               = ["https://harbor.kirillorlov.pro/c/oidc/callback"]
-  post_logout_redirect_uris   = ["https://harbor.kirillorlov.pro"]
-  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
-  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
-  app_type                    = "OIDC_APP_TYPE_WEB"
-  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
-  version                     = "OIDC_VERSION_1_0"
-  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
-  access_token_role_assertion = true
-  id_token_role_assertion     = true
-  id_token_userinfo_assertion = true
-}
-
 resource "zitadel_application_oidc" "velero" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
@@ -167,7 +150,6 @@ locals {
   zitadel_apps = {
     argocd        = zitadel_application_oidc.argocd
     grafana       = zitadel_application_oidc.grafana
-    harbor        = zitadel_application_oidc.harbor
     velero        = zitadel_application_oidc.velero
     actual_budget = zitadel_application_oidc.actual_budget
     vaultwarden   = zitadel_application_oidc.vaultwarden
