@@ -111,6 +111,7 @@ spec:
                   disable_login_form: "true"
                   disable_signout_menu: "false"
                   disable_user_sign_up: "false"
+                  oauth_allow_insecure_email_lookup: "true"
                 log:
                   mode: "console"
                 auth.generic_oauth:
