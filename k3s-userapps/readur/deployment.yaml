@@ -35,8 +35,22 @@ spec:
           envFrom:
             - secretRef:
                 name: readur-secret
-            - secretRef:
-                name: readur-db-credentials
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: readur-pg-app
+                  key: uri
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: readur-pg-app
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: readur-pg-app
+                  key: password
           volumeMounts:
             - mountPath: /app/uploads
               name: readur-uploads

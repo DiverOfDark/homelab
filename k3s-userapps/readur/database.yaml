@@ -1,31 +1,3 @@
-apiVersion: acid.zalan.do/v1
-kind: postgresql
-metadata:
-  name: readur-db
-  namespace: readur
-spec:
-  teamId: "acid"
-  postgresql:
-    version: "17"
-  env:
-    - name: ALLOW_NOSSL
-      value: "true"
-  numberOfInstances: 1
-  volume:
-    size: "5Gi"
-
-  users:
-    readur: [ ]
-  databases:
-    readur: readur
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -38,19 +10,5 @@ spec:
     size: 5Gi
   bootstrap:
     initdb:
-      import:
-        type: microservice
-        databases:
-          - readur
-        source:
-          externalCluster: readur-zalando
-  externalClusters:
-    - name: readur-zalando
-      connectionParameters:
-        host: readur-db.readur.svc.cluster.local
-        user: postgres
-        dbname: postgres
-        sslmode: disable
-      password:
-        name: postgres.readur-db.credentials.postgresql.acid.zalan.do
-        key: password
+      database: readur
+      owner: readur
