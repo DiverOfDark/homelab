@@ -51,6 +51,24 @@ spec:
                 secretKeyRef:
                   name: readur-pg-app
                   key: password
+            - name: OIDC_ENABLED
+              value: "true"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: readur-zitadel
+                  key: client_id
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: readur-zitadel
+                  key: client_secret
+            - name: OIDC_ISSUER_URL
+              value: "https://auth.kirillorlov.pro"
+            - name: OIDC_REDIRECT_URI
+              value: "https://readur.kirillorlov.pro/auth/callback"
+            - name: OIDC_AUTO_REGISTER
+              value: "true"
           volumeMounts:
             - mountPath: /app/uploads
               name: readur-uploads
