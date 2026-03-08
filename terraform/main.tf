@@ -40,7 +40,7 @@ variable "openbao_token" {
 variable "zitadel_org_id" {
   description = "Zitadel organization ID"
   type        = string
-  default     = "362091424306495995"
+  default     = "363252298534683134"
 }
 
 locals {
