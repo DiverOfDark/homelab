@@ -74,6 +74,9 @@
             # OpenTofu — only openbao token needed, all other secrets are read from OpenBao by Terraform
             export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
 
+            # ArgoCD
+            export ARGOCD_SERVER=argo.kirillorlov.pro
+
             # Aliases
             alias k=kubectl
             alias t=tofu
