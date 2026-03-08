@@ -299,30 +299,6 @@ spec:
           enabled: false
         readinessProbe:
           enabled: false
-        extraObjects:
-          - apiVersion: external-secrets.io/v1
-            kind: ExternalSecret
-            metadata:
-              name: velero-zitadel
-              namespace: velero
-            spec:
-              secretStoreRef:
-                name: openbao-store
-                kind: ClusterSecretStore
-              refreshInterval: "10s"
-              target:
-                name: velero-zitadel
-                creationPolicy: Owner
-                deletionPolicy: Retain
-              data:
-                - secretKey: client_id
-                  remoteRef:
-                    key: zitadel/velero-credentials
-                    property: client_id
-                - secretKey: client_secret
-                  remoteRef:
-                    key: zitadel/velero-credentials
-                    property: client_secret
         env:
           - name: OAUTH_AUTH_ENABLED
             value: "true"
