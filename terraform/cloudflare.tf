@@ -310,17 +310,14 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_home_network" {
   action      = "allow"
   description = "default"
   enabled     = true
-  filters = ["l4"]
+  filters     = ["l4"]
   name        = "allow localnet"
-  precedence  = 9
   traffic     = "net.dst.ip in {192.168.0.0/16}"
-  rule_settings = {
-    block_page_enabled                 = false
-    insecure_disable_dnssec_validation = false
-    ip_categories                      = false
-    notification_settings = {
-      enabled = false
-    }
+
+  # Workaround for cloudflare provider v5 bug: computed fields cause perpetual diff
+  # https://github.com/cloudflare/terraform-provider-cloudflare/issues/5839
+  lifecycle {
+    ignore_changes = [precedence, rule_settings]
   }
 }
 
