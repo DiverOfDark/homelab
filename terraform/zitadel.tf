@@ -22,6 +22,21 @@ resource "zitadel_project" "homelab" {
   org_id = var.zitadel_org_id
 }
 
+# --- Google Identity Provider ---
+
+resource "zitadel_org_idp_google" "google" {
+  org_id              = var.zitadel_org_id
+  name                = "Google"
+  client_id           = data.vault_kv_secret_v2.google_oauth.data["client_id"]
+  client_secret       = data.vault_kv_secret_v2.google_oauth.data["client_secret"]
+  scopes              = ["openid", "profile", "email"]
+  is_linking_allowed  = true
+  is_creation_allowed = true
+  is_auto_creation    = true
+  is_auto_update      = true
+  auto_linking        = "AUTO_LINKING_OPTION_EMAIL"
+}
+
 # --- OIDC Applications ---
 
 resource "zitadel_application_oidc" "argocd" {
