@@ -81,14 +81,6 @@ locals {
       hostname = "dex.kirillorlov.pro"
       service  = "http://dex.oauth2-proxy.svc.cluster.local:5556"
     }, {
-      short = "ai"
-      hostname = "ai.kirillorlov.pro"
-      service  = "http://lobechat.lobechat.svc.cluster.local:80"
-    }, {
-      short = "search"
-      hostname = "search.kirillorlov.pro"
-      service  = "http://searxng.lobechat.svc.cluster.local:80"
-    }, {
       short = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
