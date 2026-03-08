@@ -39,10 +39,8 @@ spec:
   bootstrap:
     initdb:
       import:
-        type: monolith
+        type: microservice
         databases:
-          - readur
-        roles:
           - readur
         source:
           externalCluster: readur-zalando

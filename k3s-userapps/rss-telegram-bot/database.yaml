@@ -36,10 +36,8 @@ spec:
   bootstrap:
     initdb:
       import:
-        type: monolith
+        type: microservice
         databases:
-          - rsstt
-        roles:
           - rsstt
         source:
           externalCluster: rsstt-zalando
