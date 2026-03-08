@@ -22,5 +22,9 @@ spec:
           envFrom:
             - secretRef:
                 name: rss-telegram-bot-secret
-            - secretRef:
-                name: rss-telegram-bot-db-secret
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rsstt-pg-app
+                  key: uri
