@@ -87,7 +87,7 @@ spec:
     spec:
       containers:
         - name: meilisearch
-          image: getmeili/meilisearch:v1.37
+          image: getmeili/meilisearch:v1.38
           ports:
             - containerPort: 7700
           env:
