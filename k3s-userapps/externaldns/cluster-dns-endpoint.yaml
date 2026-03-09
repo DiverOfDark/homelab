@@ -32,4 +32,4 @@ spec:
     recordTTL: 300
     recordType: CNAME
     targets:
-    - k8s.kirillorlov.pro
+    - 192.168.179.12
