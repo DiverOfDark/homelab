@@ -32,6 +32,7 @@
             pkgs.talosctl
             pkgs.argocd
             pkgs.k9s
+            pkgs.krew
 
             # Networking & service mesh
             pkgs.cilium-cli
@@ -76,6 +77,14 @@
 
             # ArgoCD
             export ARGOCD_SERVER=argo.kirillorlov.pro
+
+            # Krew / virtctl
+            export KREW_ROOT="''${KREW_ROOT:-$HOME/.krew}"
+            export PATH="''${KREW_ROOT}/bin:$PATH"
+            if ! kubectl krew list 2>/dev/null | grep -q virt; then
+              kubectl krew install virt
+            fi
+            alias virtctl="kubectl virt"
 
             # Aliases
             alias k=kubectl
