@@ -30,6 +30,6 @@ spec:
   endpoints:
   - dnsName: cdi-upload.kirillorlov.pro
     recordTTL: 300
-    recordType: CNAME
+    recordType: A
     targets:
     - 192.168.179.12
