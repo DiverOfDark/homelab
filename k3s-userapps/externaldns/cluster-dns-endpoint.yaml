@@ -21,3 +21,15 @@ spec:
     recordType: A
     targets:
     - 192.168.178.20
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cdi-upload
+spec:
+  endpoints:
+  - dnsName: cdi-upload.kirillorlov.pro
+    recordTTL: 300
+    recordType: CNAME
+    targets:
+    - k8s.kirillorlov.pro
