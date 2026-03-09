@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cdi-uploadproxy
+  namespace: cdi
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    - host: cdi-upload.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cdi-uploadproxy
+                port:
+                  number: 443
+  tls:
+    - hosts:
+        - cdi-upload.kirillorlov.pro
+      secretName: cdi-uploadproxy-tls
