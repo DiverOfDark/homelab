@@ -12,15 +12,3 @@ spec:
     requests:
       storage: 300Gi
   storageClassName: "ceph-filesystem"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: opencloud-data
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: ceph-filesystem
-  resources:
-    requests:
-      storage: 300Gi
