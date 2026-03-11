@@ -237,7 +237,8 @@ spec:
             template:
               ttl: "240h" ## choose ttl, after which the backups will be removed.
               snapshotVolumes: true
-              defaultVolumesToFsBackup: true
+              snapshotMoveData: true
+              defaultVolumesToFsBackup: false
               resourcePolicy:
                 kind: configmap
                 name: resource-policy-configmap
