@@ -17,6 +17,9 @@ spec:
       labels:
         app.kubernetes.io/pod: phos
     spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       volumes:
         - name: phos-data
           persistentVolumeClaim:

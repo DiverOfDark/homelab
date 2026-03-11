@@ -28,3 +28,4 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
+        velero.io/exclude-from-backup: "true"
