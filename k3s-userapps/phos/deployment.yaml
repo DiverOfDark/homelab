@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phos
+  namespace: phos
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: phos
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: phos
+    spec:
+      volumes:
+        - name: phos-data
+          persistentVolumeClaim:
+            claimName: phos-data
+      containers:
+        - image: 'ghcr.io/diverofdark/phos:latest'
+          imagePullPolicy: Always
+          name: phos
+          ports:
+            - containerPort: 33000
+              protocol: TCP
+              name: "http"
+          env:
+            - name: PHOS_PORT
+              value: "33000"
+            - name: PHOS_LIBRARY_PATH
+              value: "/app/data"
+            - name: PHOS_OIDC_ISSUER
+              value: "https://auth.kirillorlov.pro"
+            - name: PHOS_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: phos-zitadel
+                  key: client_id
+            - name: PHOS_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: phos-zitadel
+                  key: client_secret
+            - name: PHOS_OIDC_REDIRECT_URI
+              value: "https://phos.kirillorlov.pro/api/auth/callback"
+            - name: PHOS_OIDC_SCOPES
+              value: "openid profile email"
+            - name: RUST_LOG
+              value: "info"
+          volumeMounts:
+            - mountPath: /app/data
+              name: phos-data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 33000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 33000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
