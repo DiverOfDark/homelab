@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: nextcloud-pg
+  namespace: nextcloud
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  storage:
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: nextcloud
+      owner: nextcloud

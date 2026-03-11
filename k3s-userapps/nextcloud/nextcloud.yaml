@@ -30,6 +30,26 @@ spec:
               value: https
             - name: TRUSTED_PROXIES
               value: 10.42.0.0/16
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-pg-app
+                  key: host
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-pg-app
+                  key: dbname
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-pg-app
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-pg-app
+                  key: password
           volumeMounts:
             - mountPath: /var/www/html
               name: nextcloud
