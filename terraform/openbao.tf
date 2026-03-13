@@ -29,3 +29,17 @@ data "vault_kv_secret_v2" "google_oauth" {
   mount = "secret"
   name  = "google/oauth"
 }
+
+# Mailgun SMTP credentials from OpenBao
+# Expected keys: user, password
+data "vault_kv_secret_v2" "mailgun" {
+  mount = "secret"
+  name  = "mailgun"
+}
+
+# Twilio credentials from OpenBao
+# Expected keys: sid, token, sender_number
+data "vault_kv_secret_v2" "twilio" {
+  mount = "secret"
+  name  = "twilio"
+}

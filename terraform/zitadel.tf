@@ -178,6 +178,30 @@ resource "zitadel_application_saml" "ceph_dashboard" {
 EOT
 }
 
+# --- Email Provider (Mailgun SMTP) ---
+
+resource "zitadel_email_provider_smtp" "mailgun" {
+  sender_address   = "auth@kirillorlov.pro"
+  sender_name      = "Homelab Auth"
+  tls              = true
+  host             = "smtp.eu.mailgun.org:587"
+  user             = data.vault_kv_secret_v2.mailgun.data["user"]
+  password         = data.vault_kv_secret_v2.mailgun.data["password"]
+  reply_to_address = "auth@kirillorlov.pro"
+  description      = "Mailgun SMTP"
+  set_active       = true
+}
+
+# --- SMS Provider (Twilio) ---
+
+resource "zitadel_sms_provider_twilio" "twilio" {
+
+  sid           = data.vault_kv_secret_v2.twilio.data["sid"]
+  sender_number = data.vault_kv_secret_v2.twilio.data["sender_number"]
+  token         = data.vault_kv_secret_v2.twilio.data["token"]
+  set_active    = true
+}
+
 # --- Store all OIDC credentials in OpenBao ---
 
 locals {
