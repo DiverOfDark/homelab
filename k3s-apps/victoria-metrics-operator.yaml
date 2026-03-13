@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-metrics-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: victoriametrics
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: victoria-metrics-operator
+    repoURL: https://victoriametrics.github.io/helm-charts/
+    targetRevision: 0.59.2
+    helm:
+      valuesObject:
+        admissionWebhooks:
+          enabled: false
+        serviceMonitor:
+          enabled: true
+        extraObjects:
+          - apiVersion: operator.victoriametrics.com/v1beta1
+            kind: VMSingle
+            metadata:
+              name: main
+            spec:
+              retentionPeriod: "12"
+              removePvcAfterDelete: false
+              storage:
+                storageClassName: ceph-block
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 50Gi
+              extraArgs:
+                dedup.minScrapeInterval: 30s
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: vmsingle-main
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+                gethomepage.dev/enabled: "true"
+                gethomepage.dev/href: "https://vmetrics.kirillorlov.pro"
+                gethomepage.dev/group: Infra
+                gethomepage.dev/name: VictoriaMetrics
+                gethomepage.dev/icon: https://docs.victoriametrics.com/icons/favicon.svg
+                gethomepage.dev/pod-selector: "app.kubernetes.io/name=vmsingle"
+            spec:
+              ingressClassName: traefik
+              rules:
+                - host: vmetrics.kirillorlov.pro
+                  http:
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        backend:
+                          service:
+                            name: vmsingle-main
+                            port:
+                              name: http
+              tls:
+                - secretName: vmsingle-ingress-tls
+                  hosts:
+                    - vmetrics.kirillorlov.pro
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
