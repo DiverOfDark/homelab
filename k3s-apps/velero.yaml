@@ -11,6 +11,9 @@ spec:
     targetRevision: 11.4.0
     helm:
       valuesObject:
+        nodeAgent:
+          extraArgs:
+            - --data-mover-max-concurrent-per-node=3
         kubectl:
           image:
             repository: public.ecr.aws/bitnami/kubectl
@@ -239,8 +242,6 @@ spec:
 
         configuration:
           itemBlockWorkerCount: 2
-          dataMoverPrepareTimeout: 2h
-
           backupStorageLocation:
           - name: default
             provider: aws
