@@ -118,6 +118,7 @@ spec:
             scrapeConfigNamespaceSelector: {}
             scrapeConfigSelector: {}
             scrapeConfigSelectorNilUsesHelmValues: false
+            retention: 3d
             remoteWrite:
               - url: http://vmsingle-main.victoriametrics.svc.cluster.local:8429/api/v1/write
             storageSpec:
