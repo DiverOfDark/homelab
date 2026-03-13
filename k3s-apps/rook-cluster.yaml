@@ -47,6 +47,53 @@ spec:
   grafanaCom:
     id: 9340
 ---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: ceph-dashboard-transport
+  namespace: rook-ceph
+spec:
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ceph-dashboard
+  namespace: rook-ceph
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://ceph.kirillorlov.pro"
+    gethomepage.dev/group: Cluster Management
+    gethomepage.dev/name: Ceph
+    gethomepage.dev/icon: ceph.png
+    gethomepage.dev/pod-selector: "app.kubernetes.io/app-group=rook-ceph"
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`ceph.kirillorlov.pro`)
+      kind: Rule
+      services:
+        - name: rook-ceph-mgr-dashboard
+          port: 8443
+          scheme: https
+          serversTransport: ceph-dashboard-transport
+  tls:
+    secretName: ceph-kirillorlov-pro-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ceph-dashboard-cert
+  namespace: rook-ceph
+spec:
+  secretName: ceph-kirillorlov-pro-tls
+  issuerRef:
+    name: acme-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - ceph.kirillorlov.pro
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -83,7 +130,7 @@ spec:
             dashboard:
               enabled: true
               prometheusEndpoint: http://vmsingle-main.victoriametrics.svc.cluster.local:8429/
-              ssl: false
+              ssl: true
             labels:
               all:
                 app.kubernetes.io/app-group: rook-ceph
@@ -132,22 +179,7 @@ spec:
                   devices:
                     - name: "nvme0n1"
           ingress:
-            dashboard:
-              annotations:
-                cert-manager.io/cluster-issuer: acme-issuer
-                gethomepage.dev/enabled: "true"
-                gethomepage.dev/href: "https://ceph.kirillorlov.pro"
-                gethomepage.dev/group: Cluster Management
-                gethomepage.dev/name: Ceph
-                gethomepage.dev/icon: ceph.png
-                gethomepage.dev/pod-selector: "app.kubernetes.io/app-group=rook-ceph"
-              host:
-                name: ceph.kirillorlov.pro
-              tls:
-                - hosts:
-                    - ceph.kirillorlov.pro
-                  secretName: ceph-kirillorlov-pro-tls
-              ingressClassName: traefik
+            dashboard: {}
           cephBlockPools:
             - name: ceph-blockpool
               spec:
