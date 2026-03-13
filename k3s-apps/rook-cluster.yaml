@@ -47,6 +47,14 @@ spec:
   grafanaCom:
     id: 9340
 ---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: ceph-dashboard-transport
+  namespace: rook-ceph
+spec:
+  insecureSkipVerify: true
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -135,6 +143,7 @@ spec:
             dashboard:
               annotations:
                 traefik.ingress.kubernetes.io/service.serversscheme: https
+                traefik.ingress.kubernetes.io/service.serverstransport: rook-ceph-ceph-dashboard-transport@kubernetescrd
                 cert-manager.io/cluster-issuer: acme-issuer
                 gethomepage.dev/enabled: "true"
                 gethomepage.dev/href: "https://ceph.kirillorlov.pro"
