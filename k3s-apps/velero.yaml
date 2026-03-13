@@ -13,7 +13,8 @@ spec:
       valuesObject:
         nodeAgent:
           extraArgs:
-            - --data-mover-max-concurrent-per-node=3
+            - --resource-timeout=2h
+            - --data-mover-prepare-timeout=2h
         kubectl:
           image:
             repository: public.ecr.aws/bitnami/kubectl
