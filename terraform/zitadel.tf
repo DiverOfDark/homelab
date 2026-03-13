@@ -145,7 +145,7 @@ resource "zitadel_application_oidc" "phos" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Phos"
-  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback"]
+  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback", "dev.phos.android://callback"]
   post_logout_redirect_uris   = ["https://phos.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
