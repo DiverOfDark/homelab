@@ -145,12 +145,29 @@ resource "zitadel_application_oidc" "phos" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Phos"
-  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback", "dev.phos.android://callback"]
+  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback"]
   post_logout_redirect_uris   = ["https://phos.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
   app_type                    = "OIDC_APP_TYPE_WEB"
   auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "phos_android" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Phos Android"
+  redirect_uris               = ["dev.phos.android://callback"]
+  post_logout_redirect_uris   = ["dev.phos.android://callback"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_NATIVE"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_NONE"
   version                     = "OIDC_VERSION_1_0"
   access_token_type           = "OIDC_TOKEN_TYPE_JWT"
   access_token_role_assertion = true
@@ -213,6 +230,7 @@ locals {
     vaultwarden   = zitadel_application_oidc.vaultwarden
     readur        = zitadel_application_oidc.readur
     phos          = zitadel_application_oidc.phos
+    phos_android  = zitadel_application_oidc.phos_android
   }
 }
 
@@ -227,5 +245,6 @@ resource "vault_kv_secret_v2" "zitadel_credentials" {
     client_secret = each.value.client_secret
     issuer        = "https://auth.kirillorlov.pro"
     project_id    = zitadel_project.homelab.id
+
   })
 }

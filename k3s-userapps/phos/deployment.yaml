@@ -49,6 +49,11 @@ spec:
                 secretKeyRef:
                   name: phos-zitadel
                   key: client_secret
+            - name: PHOS_OIDC_MOBILE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: phos-zitadel
+                  key: mobile_client_id
             - name: PHOS_OIDC_REDIRECT_URI
               value: "https://phos.kirillorlov.pro/api/auth/callback"
             - name: PHOS_OIDC_SCOPES
