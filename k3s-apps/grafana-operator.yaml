@@ -179,6 +179,19 @@ spec:
           - apiVersion: grafana.integreatly.org/v1beta1
             kind: GrafanaDatasource
             metadata:
+              name: victoriametrics-grafanadatasource
+            spec:
+              datasource:
+                access: "proxy"
+                type: prometheus
+                name: VictoriaMetrics
+                url: http://vmsingle-main.victoriametrics.svc.cluster.local:8429
+              instanceSelector:
+                matchLabels:
+                  dashboards: grafana
+          - apiVersion: grafana.integreatly.org/v1beta1
+            kind: GrafanaDatasource
+            metadata:
               name: victorialogs-grafanadatasource
             spec:
               datasource:
