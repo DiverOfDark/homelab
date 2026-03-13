@@ -45,7 +45,6 @@ spec:
               allowCrossNamespace: true
             kubernetesIngress:
               allowExternalNameServices: true
-              allowCrossNamespace: true
 
           metrics:
             prometheus:
