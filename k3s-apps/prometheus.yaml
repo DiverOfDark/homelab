@@ -118,6 +118,8 @@ spec:
             scrapeConfigNamespaceSelector: {}
             scrapeConfigSelector: {}
             scrapeConfigSelectorNilUsesHelmValues: false
+            remoteWrite:
+              - url: http://vminsert-victoriametrics.victoriametrics.svc.cluster.local:8480/insert/0/prometheus/api/v1/write
             storageSpec:
               volumeClaimTemplate:
                 spec:

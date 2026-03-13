@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredns
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: coredns
+    repoURL: https://coredns.github.io/helm
+    targetRevision: 1.39.1
+    helm:
+      valuesObject:
+        replicaCount: 2
+        priorityClassName: system-cluster-critical
+        k8sAppLabelOverride: "kube-dns"
+        service:
+          name: kube-dns
+        prometheus:
+          monitor:
+            enabled: true
+        servers:
+        - zones:
+          - zone: .
+          port: 53
+          plugins:
+          - name: errors
+          - name: health
+            configBlock: |-
+              lameduck 5s
+          - name: ready
+          - name: prometheus
+            parameters: :9153
+          - name: kubernetes
+            parameters: cluster.local in-addr.arpa ip6.arpa
+            configBlock: |-
+              pods insecure
+              fallthrough in-addr.arpa ip6.arpa
+              ttl 30
+          - name: forward
+            parameters: . /etc/resolv.conf
+          - name: cache
+            parameters: 30
+          - name: loop
+          - name: reload
+          - name: loadbalance
+        - zones:
+          - zone: internal.kirillorlov.pro
+          port: 53
+          plugins:
+          - name: template
+            parameters: IN A
+            configBlock: |-
+              match (.*\.|)internal\.kirillorlov\.pro\.
+              answer "{{ .Name }} 60 IN CNAME traefik.traefik.svc.cluster.local."
+          - name: log
+          - name: errors
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
