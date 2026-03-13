@@ -13,7 +13,7 @@ spec:
   source:
     chart: mariadb-operator
     repoURL: https://helm.mariadb.com/mariadb-operator
-    targetRevision: 25.10.4
+    targetRevision: 26.3.0
     helm:
       values: |
         certController:
