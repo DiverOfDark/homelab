@@ -150,7 +150,7 @@ spec:
               gethomepage.dev/href: "https://vlogs.kirillorlov.pro"
               gethomepage.dev/group: Infra
               gethomepage.dev/name: Victoria Logs
-              gethomepage.dev/icon: https://docs.victoriametrics.com/icons/favicon.svg
+              gethomepage.dev/icon: victoriametrics.svg
               gethomepage.dev/pod-selector: "app.kubernetes.io/instance=victorialogs"
             hosts:
               - name: vlogs.kirillorlov.pro
