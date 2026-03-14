@@ -12,8 +12,8 @@ spec:
   project: default
   source:
     chart: kube-cleanup-operator
-    repoURL: https://lwolf.github.io/kube-cleanup-operator
-    targetRevision: 1.0.0
+    repoURL:  https://charts.lwolf.org/kube-cleanup-operator
+    targetRevision: 1.0.4
   syncPolicy:
     automated:
       prune: true
