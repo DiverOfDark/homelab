@@ -42,7 +42,7 @@ spec:
     name: openbao-store
     kind: ClusterSecretStore
 
-  refreshInterval: "10s"
+  refreshInterval: "1h"
 
   target:
     name: oauth-secret

@@ -49,7 +49,7 @@ spec:
   secretStoreRef:
     name: bitwarden-login
     kind: ClusterSecretStore
-  refreshInterval: "10s"
+  refreshInterval: "1h"
   target:
     name: artifact-keeper-secrets
     creationPolicy: "Owner"

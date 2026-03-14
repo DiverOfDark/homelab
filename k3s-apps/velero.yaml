@@ -66,7 +66,7 @@ spec:
               secretStoreRef:
                 name: bitwarden-fields
                 kind: ClusterSecretStore  # or ClusterSecretStore
-              refreshInterval: "10s"
+              refreshInterval: "1h"
               target:
                 name: velero-repo-credentials
                 creationPolicy: 'Owner'
@@ -92,7 +92,7 @@ spec:
               secretStoreRef:
                 name: bitwarden-fields
                 kind: ClusterSecretStore  # or ClusterSecretStore
-              refreshInterval: "10s"
+              refreshInterval: "1h"
               target:
                 name: velero-credentials
                 creationPolicy: 'Owner'
@@ -157,7 +157,7 @@ spec:
               secretStoreRef:
                 name: openbao-store
                 kind: ClusterSecretStore
-              refreshInterval: "10s"
+              refreshInterval: "1h"
               target:
                 name: velero-wasabi-credentials
                 creationPolicy: 'Owner'
