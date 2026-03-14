@@ -53,7 +53,7 @@ metadata:
   namespace: readur
 spec:
   configuration:
-    destinationPath: s3://ceph-backups/cnpg-backups/readur/readur-pg/
+    destinationPath: s3://cnpg-backups/readur/readur-pg/
     endpointURL: https://yggdrasil.kirillorlov.pro
     s3Credentials:
       accessKeyId:

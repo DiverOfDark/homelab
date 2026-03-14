@@ -53,7 +53,7 @@ metadata:
   namespace: zitadel
 spec:
   configuration:
-    destinationPath: s3://ceph-backups/cnpg-backups/zitadel/zitadel-db/
+    destinationPath: s3://cnpg-backups/zitadel/zitadel-db/
     endpointURL: https://yggdrasil.kirillorlov.pro
     s3Credentials:
       accessKeyId:

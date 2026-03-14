@@ -53,7 +53,7 @@ metadata:
   namespace: nextcloud
 spec:
   configuration:
-    destinationPath: s3://ceph-backups/cnpg-backups/nextcloud/nextcloud-pg/
+    destinationPath: s3://cnpg-backups/nextcloud/nextcloud-pg/
     endpointURL: https://yggdrasil.kirillorlov.pro
     s3Credentials:
       accessKeyId:

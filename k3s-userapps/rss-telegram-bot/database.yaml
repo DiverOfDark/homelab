@@ -53,7 +53,7 @@ metadata:
   namespace: rss-telegram-bot
 spec:
   configuration:
-    destinationPath: s3://ceph-backups/cnpg-backups/rss-telegram-bot/rsstt-pg/
+    destinationPath: s3://cnpg-backups/rss-telegram-bot/rsstt-pg/
     endpointURL: https://yggdrasil.kirillorlov.pro
     s3Credentials:
       accessKeyId:
