@@ -24,6 +24,8 @@ resource "zitadel_project" "homelab" {
 
 # --- Google Identity Provider ---
 
+
+
 resource "zitadel_org_idp_google" "google" {
   org_id              = var.zitadel_org_id
   name                = "Google"
@@ -182,14 +184,16 @@ resource "zitadel_application_saml" "ceph_dashboard" {
   metadata_xml = <<-EOT
 <?xml version="1.0"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-                     entityID="https://ceph.kirillorlov.pro">
+                     entityID="https://ceph.kirillorlov.pro/auth/saml2/metadata">
     <md:SPSSODescriptor AuthnRequestsSigned="false"
-                        WantAssertionsSigned="true"
+                        WantAssertionsSigned="false"
                         protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
         <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-                                     Location="https://ceph.kirillorlov.pro/auth/saml2/sso/ceph-dashboard"
+                                     Location="https://ceph.kirillorlov.pro/auth/saml2"
                                      index="1" />
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                                Location="https://ceph.kirillorlov.pro/auth/saml2/logout" />
     </md:SPSSODescriptor>
 </md:EntityDescriptor>
 EOT
