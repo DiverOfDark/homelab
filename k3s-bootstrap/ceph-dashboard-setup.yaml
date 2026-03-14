@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ceph-dashboard-setup
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      serviceAccountName: rook-ceph-default
+      containers:
+      - name: setup
+        image: quay.io/ceph/ceph:v20.2.0
+        env:
+        - name: ROOK_CEPH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: rook-ceph-mon
+              key: ceph-username
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          # Setup ceph config
+          ceph_secret=$(cat /var/lib/rook-ceph-mon/secret.keyring)
+          cat <<EOF > /etc/ceph/keyring
+          [${ROOK_CEPH_USERNAME}]
+          key = ${ceph_secret}
+          EOF
+
+          endpoints=$(cat /etc/rook/mon-endpoints)
+          mon_endpoints=$(echo "${endpoints}" | sed 's/[a-z0-9_-]\+=//g')
+          cat <<EOF > /etc/ceph/ceph.conf
+          [global]
+          mon_host = ${mon_endpoints}
+
+          [client.admin]
+          keyring = /etc/ceph/keyring
+          EOF
+
+          # Setup SAML SSO
+          ceph dashboard sso setup saml2 \
+            https://ceph.kirillorlov.pro \
+            https://auth.kirillorlov.pro/saml/v2/metadata \
+            UserName
+
+          # Create admin user (ignore error if already exists)
+          ceph dashboard ac-user-create diverofdark || true
+          ceph dashboard ac-user-set-roles diverofdark administrator
+        volumeMounts:
+        - name: ceph-config
+          mountPath: /etc/ceph
+        - name: mon-endpoint-volume
+          mountPath: /etc/rook
+        - name: ceph-admin-secret
+          mountPath: /var/lib/rook-ceph-mon
+      volumes:
+      - name: ceph-config
+        emptyDir: {}
+      - name: mon-endpoint-volume
+        configMap:
+          name: rook-ceph-mon-endpoints
+          items:
+          - key: data
+            path: mon-endpoints
+      - name: ceph-admin-secret
+        secret:
+          secretName: rook-ceph-mon
+          items:
+          - key: ceph-secret
+            path: secret.keyring
+      restartPolicy: Never
+  backoffLimit: 3
