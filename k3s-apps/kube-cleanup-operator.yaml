@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     chart: kube-cleanup-operator
-    repoURL:  https://charts.lwolf.org/kube-cleanup-operator
+    repoURL:  https://charts.lwolf.org/
     targetRevision: 1.0.4
   syncPolicy:
     automated:
