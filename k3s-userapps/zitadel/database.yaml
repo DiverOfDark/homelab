@@ -117,6 +117,7 @@ spec:
 
   plugins:
     - name: barman-cloud.cloudnative-pg.io
+      enabled: true
       isWALArchiver: true
       parameters:
         barmanObjectName: yggdrasil-store
