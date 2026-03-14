@@ -67,8 +67,7 @@ spec:
       maxParallel: 2
     data:
       compression: gzip
-  instanceSidecarConfiguration:
-    retentionPolicy: "30d"
+  retentionPolicy: "30d"
 ---
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
@@ -91,8 +90,7 @@ spec:
       maxParallel: 2
     data:
       compression: gzip
-  instanceSidecarConfiguration:
-    retentionPolicy: "30d"
+  retentionPolicy: "30d"
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
