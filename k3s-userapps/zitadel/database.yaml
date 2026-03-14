@@ -1,10 +1,106 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cnpg-backup-yggdrasil-creds
+  namespace: zitadel
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cnpg-backup-yggdrasil-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: ACCESS_KEY_ID
+      remoteRef:
+        key: yggdrasil-s3
+        property: access_key
+    - secretKey: ACCESS_SECRET_KEY
+      remoteRef:
+        key: yggdrasil-s3
+        property: secret_key
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cnpg-backup-wasabi-creds
+  namespace: zitadel
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cnpg-backup-wasabi-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: ACCESS_KEY_ID
+      remoteRef:
+        key: wasabi
+        property: access_key
+    - secretKey: ACCESS_SECRET_KEY
+      remoteRef:
+        key: wasabi
+        property: secret_key
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: yggdrasil-store
+  namespace: zitadel
+spec:
+  configuration:
+    destinationPath: s3://ceph-backups/cnpg-backups/zitadel/zitadel-db/
+    endpointURL: https://yggdrasil.kirillorlov.pro
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  instanceSidecarConfiguration:
+    retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: wasabi-store
+  namespace: zitadel
+spec:
+  configuration:
+    destinationPath: s3://diverofdark-homelab-backup/cnpg-backups/zitadel/zitadel-db/
+    endpointURL: https://s3.eu-central-2.wasabisys.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  instanceSidecarConfiguration:
+    retentionPolicy: "30d"
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: zitadel-db
   namespace: zitadel
 spec:
-  instances: 2
+  instances: 3
   primaryUpdateStrategy: unsupervised
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5-8-bullseye
   enableSuperuserAccess: true
@@ -21,5 +117,43 @@ spec:
       database: zitadel
       owner: zitadel
 
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: yggdrasil-store
+
   monitoring:
     enablePodMonitor: true
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: zitadel-db-backup-yggdrasil
+  namespace: zitadel
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: zitadel-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: yggdrasil-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: zitadel-db-backup-wasabi
+  namespace: zitadel
+spec:
+  schedule: "0 0 12 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: zitadel-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: wasabi-store
