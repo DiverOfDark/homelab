@@ -42,6 +42,10 @@ spec:
             https://auth.kirillorlov.pro/saml/v2/metadata \
             UserName
 
+          # Set Alertmanager API host
+          ceph dashboard set-alertmanager-api-host \
+            http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093
+
           # Create admin user (ignore error if already exists)
           ceph dashboard ac-user-create diverofdark || true
           ceph dashboard ac-user-set-roles diverofdark administrator

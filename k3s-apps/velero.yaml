@@ -19,10 +19,6 @@ spec:
           image:
             repository: public.ecr.aws/bitnami/kubectl
 
-        image:
-          # renovate: datasource=docker depName=docker.io/velero/velero
-          tag: v1.18.0
-
         extraObjects:
           - apiVersion: v1
             kind: ConfigMap
