@@ -48,6 +48,14 @@ spec:
                       - cinder
                   action:
                     type: skip
+                - conditions:
+                    pvcLabels:
+                      velero.io/backup-type: "snapshot"
+                  action:
+                    type: snapshot
+                - conditions: {}
+                  action:
+                    type: fs-backup
 
           - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
@@ -280,9 +288,11 @@ spec:
             schedule: "0 0 * * *" ## choose time, when scheduled backups will be make.
             template:
               ttl: "240h" ## choose ttl, after which the backups will be removed.
+              excludedNamespaces:
+                - github-runner
               snapshotVolumes: true
               snapshotMoveData: true
-              defaultVolumesToFsBackup: false
+              defaultVolumesToFsBackup: true
               itemOperationTimeout: "8h"
               resourcePolicy:
                 kind: configmap
@@ -301,9 +311,11 @@ spec:
             template:
               storageLocation: wasabi
               ttl: "240h"
+              excludedNamespaces:
+                - github-runner
               snapshotVolumes: true
               snapshotMoveData: true
-              defaultVolumesToFsBackup: false
+              defaultVolumesToFsBackup: true
               itemOperationTimeout: "8h"
               resourcePolicy:
                 kind: configmap

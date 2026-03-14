@@ -7,6 +7,8 @@ spec:
   dataVolumeTemplates:
     - metadata:
         name: claw-root
+        labels:
+          velero.io/backup-type: "snapshot"
       spec:
         pvc:
           accessModes:
