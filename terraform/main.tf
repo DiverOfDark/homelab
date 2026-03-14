@@ -80,6 +80,10 @@ locals {
       short = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
+    }, {
+      short = "suwayomi"
+      hostname = "suwayomi.kirillorlov.pro"
+      service  = "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
     }
   ]
 }
