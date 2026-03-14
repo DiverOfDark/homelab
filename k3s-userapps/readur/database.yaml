@@ -1,10 +1,104 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cnpg-backup-yggdrasil-creds
+  namespace: readur
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cnpg-backup-yggdrasil-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: ACCESS_KEY_ID
+      remoteRef:
+        key: yggdrasil-s3
+        property: access_key
+    - secretKey: ACCESS_SECRET_KEY
+      remoteRef:
+        key: yggdrasil-s3
+        property: secret_key
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cnpg-backup-wasabi-creds
+  namespace: readur
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cnpg-backup-wasabi-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: ACCESS_KEY_ID
+      remoteRef:
+        key: wasabi
+        property: access_key
+    - secretKey: ACCESS_SECRET_KEY
+      remoteRef:
+        key: wasabi
+        property: secret_key
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: yggdrasil-store
+  namespace: readur
+spec:
+  configuration:
+    destinationPath: s3://ceph-backups/cnpg-backups/readur/readur-pg/
+    endpointURL: https://yggdrasil.kirillorlov.pro
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: wasabi-store
+  namespace: readur
+spec:
+  configuration:
+    destinationPath: s3://diverofdark-homelab-backup/cnpg-backups/readur/readur-pg/
+    endpointURL: https://s3.eu-central-2.wasabisys.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: readur-pg
   namespace: readur
 spec:
-  instances: 1
+  instances: 2
   imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
     size: 5Gi
@@ -12,3 +106,41 @@ spec:
     initdb:
       database: readur
       owner: readur
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: yggdrasil-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: readur-pg-backup-yggdrasil
+  namespace: readur
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: readur-pg
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: yggdrasil-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: readur-pg-backup-wasabi
+  namespace: readur
+spec:
+  schedule: "0 0 12 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: readur-pg
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: wasabi-store
