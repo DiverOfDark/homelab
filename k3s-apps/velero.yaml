@@ -293,7 +293,7 @@ spec:
               snapshotVolumes: true
               snapshotMoveData: true
               defaultVolumesToFsBackup: true
-              itemOperationTimeout: "8h"
+              itemOperationTimeout: "1h"
               resourcePolicy:
                 kind: configmap
                 name: resource-policy-configmap
@@ -316,7 +316,7 @@ spec:
               snapshotVolumes: true
               snapshotMoveData: true
               defaultVolumesToFsBackup: true
-              itemOperationTimeout: "8h"
+              itemOperationTimeout: "1h"
               resourcePolicy:
                 kind: configmap
                 name: resource-policy-configmap
