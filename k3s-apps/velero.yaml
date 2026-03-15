@@ -64,13 +64,13 @@ spec:
               namespace: velero
             spec:
               secretStoreRef:
-                name: bitwarden-fields
-                kind: ClusterSecretStore  # or ClusterSecretStore
+                name: openbao-store
+                kind: ClusterSecretStore
               refreshInterval: "1h"
               target:
                 name: velero-repo-credentials
-                creationPolicy: 'Owner'
-                deletionPolicy: "Retain"
+                creationPolicy: Owner
+                deletionPolicy: Retain
                 template:
                   type: Opaque
                   data:
@@ -78,10 +78,7 @@ spec:
               data:
                 - secretKey: encryption
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
+                    key: velero
                     property: encryption
           - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
@@ -90,13 +87,13 @@ spec:
               namespace: velero
             spec:
               secretStoreRef:
-                name: bitwarden-fields
-                kind: ClusterSecretStore  # or ClusterSecretStore
+                name: openbao-store
+                kind: ClusterSecretStore
               refreshInterval: "1h"
               target:
                 name: velero-credentials
-                creationPolicy: 'Owner'
-                deletionPolicy: "Retain"
+                creationPolicy: Owner
+                deletionPolicy: Retain
                 template:
                   type: Opaque
                   data:
@@ -115,38 +112,23 @@ spec:
               data:
                 - secretKey: password
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
+                    key: velero
                     property: oauth
                 - secretKey: archer_s3_access_key
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: access
+                    key: velero
+                    property: access_key
                 - secretKey: archer_s3_secret_key
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: secret
+                    key: velero
+                    property: secret_key
                 - secretKey: velero_ui_security_token_key
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
-                    property: security-token
+                    key: velero
+                    property: security_token
                 - secretKey: encryption
                   remoteRef:
-                    key: 583655f6-ce75-43e1-8326-85860d136809
-                    conversionStrategy: Default
-                    decodingStrategy: None
-                    metadataPolicy: None
+                    key: velero
                     property: encryption
           - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
