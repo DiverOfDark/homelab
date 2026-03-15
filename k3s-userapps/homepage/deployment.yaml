@@ -14,10 +14,6 @@ spec:
       labels:
         app.kubernetes.io/pod: homepage
     spec:
-      volumes:
-        - name: nextcloud
-          persistentVolumeClaim:
-            claimName: nextcloud
       containers:
         - image: 'ghcr.io/diverofdark/about/website:0.0.2'
           imagePullPolicy: IfNotPresent
