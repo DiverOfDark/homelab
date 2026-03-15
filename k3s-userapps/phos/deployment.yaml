@@ -71,7 +71,7 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 10
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 10
           readinessProbe:
             httpGet:
               path: /
@@ -84,6 +84,6 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              memory: 2Gi
             limits:
-              memory: 4Gi
+              memory: 8Gi
