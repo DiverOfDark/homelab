@@ -6,7 +6,7 @@ metadata:
 spec:
   progressDeadlineSeconds: 600
   strategy:
-    type: Recreate
+    type: RollingUpdate
   replicas: 1
   revisionHistoryLimit: 1
   selector:
@@ -67,7 +67,7 @@ spec:
             httpGet:
               path: /
               port: 33000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 5
             periodSeconds: 30
             timeoutSeconds: 10
             successThreshold: 1
@@ -76,7 +76,7 @@ spec:
             httpGet:
               path: /
               port: 33000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
