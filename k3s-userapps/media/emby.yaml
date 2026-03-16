@@ -28,7 +28,7 @@ spec:
           hostPath:
             path: /dev/dri
       containers:
-        - image: 'emby/embyserver:4.10.0.4'
+        - image: 'emby/embyserver:4.10.0.5'
           imagePullPolicy: IfNotPresent
           name: emby
           envFrom:
