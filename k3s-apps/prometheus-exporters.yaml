@@ -45,3 +45,49 @@ spec:
     - ServerSideApply=true
     - RespectIgnoreDifferences=true
 ---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: velero-stats
+  namespace: prometheus
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 15469
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-velero-exporter
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: velero
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: prometheus-velero-exporter
+    repoURL: https://technicityworks.github.io/helm-charts
+    targetRevision: 0.1.2
+    helm:
+      valuesObject:
+        velero:
+          namespace: velero
+        serviceMonitor:
+          enabled: true
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+---
