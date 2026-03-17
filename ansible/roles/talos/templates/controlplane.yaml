@@ -472,7 +472,8 @@ cluster:
                     namespaces:
                         - kube-system
                     runtimeClasses: []
-                    usernames: []
+                    usernames:
+                        - system:serviceaccount:velero:velero-server
                 kind: PodSecurityConfiguration
         # Configure the API server audit policy.
         auditPolicy:
