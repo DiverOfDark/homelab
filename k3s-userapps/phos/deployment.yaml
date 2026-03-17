@@ -58,6 +58,8 @@ spec:
               value: "https://phos.kirillorlov.pro/api/auth/callback"
             - name: PHOS_OIDC_SCOPES
               value: "openid profile email"
+            - name: PHOS_COMFYUI_URL
+              value: "192.168.178.126:8188"
             - name: RUST_LOG
               value: "info"
           volumeMounts:
