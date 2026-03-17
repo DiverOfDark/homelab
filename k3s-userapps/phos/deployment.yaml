@@ -60,6 +60,8 @@ spec:
               value: "openid profile email"
             - name: PHOS_COMFYUI_URL
               value: "192.168.178.126:8188"
+            - name: PHOS_JWT_TTL
+              value: "86400"
             - name: RUST_LOG
               value: "info"
           volumeMounts:
