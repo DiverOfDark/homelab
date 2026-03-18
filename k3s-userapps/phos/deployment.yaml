@@ -59,7 +59,7 @@ spec:
             - name: PHOS_OIDC_SCOPES
               value: "openid profile email"
             - name: PHOS_COMFYUI_URL
-              value: "192.168.178.126:8188"
+              value: "http://192.168.178.126:8188"
             - name: PHOS_JWT_TTL
               value: "86400"
             - name: RUST_LOG
