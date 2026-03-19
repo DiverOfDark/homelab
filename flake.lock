@@ -34,10 +34,27 @@
         "type": "github"
       }
     },
+    "peelbox": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772581089,
+        "narHash": "sha256-2AENHTGR6bNeYoM7gAT719izkNmKkzZlHsTsQyr3SQc=",
+        "owner": "DiverOfDark",
+        "repo": "peelbox",
+        "rev": "59423ba7f09a802ed0b70eb749b78afd7968a465",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DiverOfDark",
+        "repo": "peelbox",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "peelbox": "peelbox"
       }
     },
     "systems": {

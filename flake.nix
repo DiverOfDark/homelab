@@ -4,12 +4,27 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    peelbox = {
+      url = "github:DiverOfDark/peelbox";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, peelbox }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+        peelboxPkg = pkgs.rustPlatform.buildRustPackage {
+          pname = "peelbox";
+          version = "0.4.0";
+          src = peelbox;
+          cargoLock.lockFile = "${peelbox}/Cargo.lock";
+          nativeBuildInputs = [ pkgs.pkg-config pkgs.protobuf ];
+          buildInputs = [ pkgs.openssl pkgs.oniguruma ];
+          OPENSSL_NO_VENDOR = 1;
+          RUSTONIG_SYSTEM_LIBONIG = 1;
+          doCheck = false;
+        };
         pythonEnv = pkgs.python3.withPackages (ps: [
           ps.ansible-core
           ps.mitogen
@@ -50,6 +65,9 @@
 
             # Cloud providers
             pkgs.hcloud
+
+            # Container tooling
+            peelboxPkg
 
             # Utilities
             pkgs.yq
@@ -105,6 +123,7 @@
             echo "  Secrets:    sops, age, bao, cmctl"
             echo "  Backup:     velero"
             echo "  Cloud:      hcloud"
+            echo "  Container:  peelbox"
             echo "  Utils:      yq, dos2unix, pre-commit"
             echo ""
           '';
