@@ -67,6 +67,9 @@ spec:
           volumeMounts:
             - mountPath: /app/data
               name: phos-data
+            - mountPath: /home/phos/.cache/huggingface
+              name: phos-data
+              subPath: hf-cache
           livenessProbe:
             httpGet:
               path: /
