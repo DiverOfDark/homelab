@@ -1,4 +1,0 @@
-printer_hosts:
-  vars:
-    ansible_user: root
-    ansible_python_interpreter: auto_silent

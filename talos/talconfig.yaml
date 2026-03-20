@@ -1,0 +1,196 @@
+# yaml-language-server: $schema=https://budimanjojo.github.io/talhelper/latest/schema.json
+
+# renovate: image=ghcr.io/siderolabs/talosctl
+talosVersion: v1.12.5
+# renovate: image=registry.k8s.io/kube-apiserver
+kubernetesVersion: v1.35.2
+
+clusterName: homelab
+endpoint: https://192.168.179.2:6443
+allowSchedulingOnControlPlanes: true
+domain: cluster.local
+
+clusterPodNets:
+  - 10.244.0.0/16
+clusterSvcNets:
+  - 10.96.0.0/12
+
+cniConfig:
+  name: none
+
+additionalApiServerCertSans:
+  - "192.168.179.2"
+
+nodes:
+  - hostname: asgard
+    controlPlane: true
+    ipAddress: 192.168.178.11
+    installDisk: /dev/sdb
+    nameservers:
+      - 192.168.178.2
+    networkInterfaces:
+      - interface: enp3s0
+        addresses:
+          - 192.168.178.11/23
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.178.1
+            metric: 1024
+
+  - hostname: jotunheimr
+    controlPlane: true
+    ipAddress: 192.168.178.13
+    installDisk: /dev/sda
+    nameservers:
+      - 192.168.178.2
+    networkInterfaces:
+      - interface: enp3s0
+        addresses:
+          - 192.168.178.13/23
+        vip:
+          ip: 192.168.179.2
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.178.1
+            metric: 1024
+
+  - hostname: niflheimr
+    controlPlane: true
+    ipAddress: 192.168.178.12
+    installDisk: /dev/sdb
+    nameservers:
+      - 192.168.178.2
+    networkInterfaces:
+      - interface: enp2s0
+        addresses:
+          - 192.168.178.12/23
+        vip:
+          ip: 192.168.179.2
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.178.1
+            metric: 1024
+
+  - hostname: muspelheimr
+    controlPlane: false
+    ipAddress: 192.168.178.14
+    installDisk: /dev/sda
+    nameservers:
+      - 192.168.178.2
+    networkInterfaces:
+      - interface: enp3s0
+        addresses:
+          - 192.168.178.14/23
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.178.1
+            metric: 1024
+
+schematic:
+  customization:
+    extraKernelArgs:
+      - talos.platform=metal
+      - talos.logging.kernel=udp://127.0.0.1:5051
+      - cpufreq.default_governor=conservative
+    systemExtensions:
+      officialExtensions:
+        - siderolabs/amd-ucode
+        - siderolabs/intel-ucode
+        - siderolabs/binfmt-misc
+        - siderolabs/amdgpu
+        - siderolabs/i915
+        - siderolabs/util-linux-tools
+        - siderolabs/ctr
+        - siderolabs/gvisor
+        - siderolabs/kata-containers
+        - siderolabs/stargz-snapshotter
+        - siderolabs/nvme-cli
+        - siderolabs/thunderbolt
+
+# Patches applied to all nodes
+patches:
+  - |-
+    machine:
+      kubelet:
+        defaultRuntimeSeccompProfileEnabled: true
+        disableManifestsDirectory: true
+        extraArgs:
+          rotate-server-certificates: true
+          max-pods: 200
+      install:
+        wipe: true
+      files:
+        - content: |
+            [plugins."io.containerd.cri.v1.runtime"]
+              device_ownership_from_security_context = true
+          path: /etc/cri/conf.d/20-customization.part
+          op: create
+      features:
+        rbac: true
+        apidCheckExtKeyUsage: true
+        diskQuotaSupport: true
+        kubePrism:
+          enabled: true
+          port: 7445
+      logging:
+        destinations:
+          - endpoint: udp://127.0.0.1:5050
+            format: json_lines
+  - |-
+    cluster:
+      discovery:
+        enabled: true
+        registries:
+          kubernetes:
+            disabled: true
+          service: {}
+  - |-
+    apiVersion: v1alpha1
+    kind: KmsgLogConfig
+    name: remote-log
+    url: udp://127.0.0.1:5051/
+
+controlPlane:
+  patches:
+    - |-
+      machine:
+        features:
+          kubernetesTalosAPIAccess:
+            enabled: true
+            allowedRoles:
+              - os:reader
+              - os:admin
+            allowedKubernetesNamespaces:
+              - system-upgrade
+    - |-
+      cluster:
+        apiServer:
+          disablePodSecurityPolicy: true
+          admissionControl:
+            - name: PodSecurity
+              configuration:
+                apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+                defaults:
+                  audit: restricted
+                  audit-version: latest
+                  enforce: baseline
+                  enforce-version: latest
+                  warn: restricted
+                  warn-version: latest
+                exemptions:
+                  namespaces:
+                    - kube-system
+                  runtimeClasses: []
+                  usernames:
+                    - system:serviceaccount:velero:velero-server
+                kind: PodSecurityConfiguration
+          auditPolicy:
+            apiVersion: audit.k8s.io/v1
+            kind: Policy
+            rules:
+              - level: Metadata
+        proxy:
+          disabled: true
+        etcd:
+          extraArgs:
+            listen-metrics-urls: http://0.0.0.0:2381

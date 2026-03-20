@@ -10,59 +10,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  ansible-dry-run:
-    name: Dry-Run Ansible Playbook
+  talos-validate:
+    name: Validate Talos Configs
     runs-on: github-runner-instance
     container: ubuntu:noble
     steps:
       - uses: actions/checkout@v6
-      - name: Setup packages
+      - name: Install tools
         env:
-         DEBIAN_FRONTEND: noninteractive
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          apt update 
-          apt install -y -q ca-certificates curl ssh ansible ansible-mitogen
+          apt update
+          apt install -y -q ca-certificates curl
+          curl -fsSL https://github.com/budimanjojo/talhelper/releases/latest/download/talhelper-linux-amd64 -o /usr/local/bin/talhelper && chmod +x /usr/local/bin/talhelper
+          curl -fsSL https://github.com/siderolabs/talos/releases/latest/download/talosctl-linux-amd64 -o /usr/local/bin/talosctl && chmod +x /usr/local/bin/talosctl
+          curl -fsSL https://github.com/openbao/openbao/releases/latest/download/bao_linux_amd64 -o /usr/local/bin/bao && chmod +x /usr/local/bin/bao
 
-      - name: Setup Ansible settings
+      - name: Generate and validate configs
+        env:
+          BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
+          BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
-          mkdir ~/.ssh || true
-          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
-          echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
-          echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
-          
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_AGGREGATORCA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_ETCD_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SECRET }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SECRETBOX }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SERVICEACCOUNT }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_TOKEN }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CONFIG_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_MACHINE_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_TALOS_TOKEN }}"
+          cd talos
+          bao kv get -field=yaml secret/talos/config > /tmp/talsecret.yaml
+          talhelper genconfig --secret-file /tmp/talsecret.yaml --out-dir ./clusterconfig
+          rm -f /tmp/talsecret.yaml
+          for f in ./clusterconfig/homelab-*.yaml; do
+            echo "Validating $f..."
+            talosctl validate --config "$f" --mode metal
+          done
 
-
-      - name: Check syntax Ansible
-        run: |
-          cd ansible
-          ansible-playbook playbook.yaml --syntax-check
-          
-      - name: Dry-run Ansible playbook
-        run: |
-          cd ansible
-          ansible-playbook playbook.yaml --check --diff
-
-  ansible-apply:
-    name: Apply Ansible Playbook
+  talos-apply:
+    name: Apply Talos Configs
     concurrency:
-      group: ansible-apply
+      group: talos-apply
       cancel-in-progress: true
     needs:
-      - ansible-dry-run
+      - talos-validate
     runs-on: github-runner-instance
     container: ubuntu:noble
     if: github.ref == 'refs/heads/master'
@@ -70,40 +54,26 @@ jobs:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - name: Setup packages
+      - name: Install tools
         env:
-         DEBIAN_FRONTEND: noninteractive
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          apt update 
-          apt install -y -q ca-certificates curl ssh ansible ansible-mitogen
+          apt update
+          apt install -y -q ca-certificates curl
+          curl -fsSL https://github.com/budimanjojo/talhelper/releases/latest/download/talhelper-linux-amd64 -o /usr/local/bin/talhelper && chmod +x /usr/local/bin/talhelper
+          curl -fsSL https://github.com/siderolabs/talos/releases/latest/download/talosctl-linux-amd64 -o /usr/local/bin/talosctl && chmod +x /usr/local/bin/talosctl
+          curl -fsSL https://github.com/openbao/openbao/releases/latest/download/bao_linux_amd64 -o /usr/local/bin/bao && chmod +x /usr/local/bin/bao
 
-      - name: Setup Ansible settings
+      - name: Apply configs
+        env:
+          BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
+          BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          echo "${{ secrets.VAULT_PASSWORD }}" > ansible/vault-password
-          mkdir ~/.ssh || true
-          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          echo "ANSIBLE_CONFIG=ansible.cfg" >> $GITHUB_ENV
-          echo "ANSIBLE_INVENTORY=inventory.yaml" >> $GITHUB_ENV
-          echo "ANSIBLE_VAULT_PASSWORD_FILE=vault-password" >> $GITHUB_ENV
-
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_AGGREGATORCA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_ETCD_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SECRET }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SECRETBOX }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_SERVICEACCOUNT }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CLUSTER_TOKEN }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_CONFIG_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_MACHINE_CA_KEY }}"
-          echo "::add-mask::${{ secrets.ANSIBLE_VAULT_TALOS_TOKEN }}"
-
-      - name: Apply Ansible playbook
-        if: github.ref == 'refs/heads/master'
-        run: |
-          cd ansible
-          ansible-playbook playbook.yaml --diff
+          cd talos
+          bao kv get -field=yaml secret/talos/config > /tmp/talsecret.yaml
+          talhelper genconfig --secret-file /tmp/talsecret.yaml --out-dir ./clusterconfig
+          rm -f /tmp/talsecret.yaml
+          talhelper gencommand apply --out-dir ./clusterconfig | bash
 
   tofu-plan:
     name: Plan OpenTofu

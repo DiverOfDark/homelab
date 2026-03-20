@@ -1,8 +1,0 @@
----
-- name: Talos
-  hosts: localhost
-  gather_facts: false
-  become: false
-  roles:
-     - role: talos
-       tags: ['talos']

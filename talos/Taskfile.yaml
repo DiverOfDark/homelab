@@ -1,0 +1,99 @@
+version: "3"
+
+vars:
+  BAO_ADDR: '{{ .BAO_ADDR | default "https://openbao.kirillorlov.pro" }}'
+  SECRET_PATH: secret/talos/config
+  SECRET_FILE: /tmp/talsecret.yaml
+  OUTPUT_DIR: ./clusterconfig
+
+tasks:
+  genconfig:
+    desc: Generate Talos machine configs (fetches secrets from OpenBao)
+    cmds:
+      - bao kv get -field=yaml {{ .SECRET_PATH }} > {{ .SECRET_FILE }}
+      - talhelper genconfig --secret-file {{ .SECRET_FILE }} --out-dir {{ .OUTPUT_DIR }}
+      - defer: rm -f {{ .SECRET_FILE }}
+    env:
+      BAO_ADDR: "{{ .BAO_ADDR }}"
+    preconditions:
+      - sh: command -v bao
+        msg: "bao CLI not found - enter the nix dev shell first"
+      - sh: command -v talhelper
+        msg: "talhelper not found - enter the nix dev shell first"
+      - sh: "[ -n \"$BAO_TOKEN\" ] || bao token lookup > /dev/null 2>&1"
+        msg: "Not authenticated to OpenBao - set BAO_TOKEN or run 'bao login'"
+
+  validate:
+    desc: Validate generated Talos machine configs
+    deps: [genconfig]
+    cmds:
+      - |
+        for f in {{ .OUTPUT_DIR }}/*.yaml; do
+          echo "Validating $f..."
+          talosctl validate --config "$f" --mode metal
+        done
+
+  apply:
+    desc: Apply configs to all nodes
+    deps: [genconfig]
+    cmds:
+      - talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} | bash
+    prompt: "Apply Talos configs to ALL nodes?"
+
+  "apply:node":
+    desc: "Apply config to a specific node (usage: task apply:node -- <hostname>)"
+    deps: [genconfig]
+    cmds:
+      - talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node {{ .CLI_ARGS }} | bash
+    requires:
+      vars: [CLI_ARGS]
+    prompt: "Apply Talos config to node '{{ .CLI_ARGS }}'?"
+
+  upgrade:
+    desc: Upgrade Talos on all nodes
+    deps: [genconfig]
+    cmds:
+      - talhelper gencommand upgrade --out-dir {{ .OUTPUT_DIR }} | bash
+    prompt: "Upgrade Talos on ALL nodes?"
+
+  "upgrade:node":
+    desc: "Upgrade Talos on a specific node (usage: task upgrade:node -- <hostname>)"
+    deps: [genconfig]
+    cmds:
+      - talhelper gencommand upgrade --out-dir {{ .OUTPUT_DIR }} --node {{ .CLI_ARGS }} | bash
+    requires:
+      vars: [CLI_ARGS]
+    prompt: "Upgrade Talos on node '{{ .CLI_ARGS }}'?"
+
+  "upgrade:k8s":
+    desc: Upgrade Kubernetes on the cluster
+    deps: [genconfig]
+    cmds:
+      - talhelper gencommand upgrade-k8s --out-dir {{ .OUTPUT_DIR }} | bash
+    prompt: "Upgrade Kubernetes on the cluster?"
+
+  kubeconfig:
+    desc: Generate kubeconfig from Talos
+    deps: [genconfig]
+    cmds:
+      - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig kubeconfig
+
+  dashboard:
+    desc: "Open Talos dashboard (usage: task dashboard -- <hostname>)"
+    deps: [genconfig]
+    vars:
+      NODE_IP:
+        sh: yq '.nodes[] | select(.hostname == "{{ .CLI_ARGS }}") | .ipAddress' talconfig.yaml
+    cmds:
+      - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig dashboard -n {{ .NODE_IP }}
+    requires:
+      vars: [CLI_ARGS]
+
+  health:
+    desc: Check cluster health
+    deps: [genconfig]
+    vars:
+      NODE_IP:
+        sh: yq '.nodes[] | select(.hostname == "{{ .CLI_ARGS }}") | .ipAddress' talconfig.yaml
+    cmds:
+      - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig health -n {{ .NODE_IP }}
