@@ -21,13 +21,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Generate and validate configs
         env:
-          BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
-
-          TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
-          TF_CLI_ARGS_init: "-backend-config=config.kubernetes.tfbackend"
-          KUBERNETES_SERVICE_HOST: kubernetes.default.svc
-          KUBERNETES_SERVICE_PORT: 443
         run: |
           nix develop --command bash -euxo pipefail -c '
             pushd talos
@@ -36,6 +30,9 @@ jobs:
             popd
 
             pushd terraform
+            unset TF_VAR_kube_config
+            unset KUBE_CONFIG_PATH
+
             tofu init
             tofu plan -lock=false
           '
