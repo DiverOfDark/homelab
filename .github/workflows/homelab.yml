@@ -13,20 +13,16 @@ jobs:
   talos-validate:
     name: Validate Talos Configs
     runs-on: github-runner-instance
-    container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
-        with:
-          path: /nix/store
-          key: nix-store-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-store-
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Generate and validate configs
         env:
           BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+          nix develop --command bash -c '
             cd talos
             task genconfig
             task validate
@@ -40,23 +36,19 @@ jobs:
     needs:
       - talos-validate
     runs-on: github-runner-instance
-    container: nixos/nix:latest
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
-        with:
-          path: /nix/store
-          key: nix-store-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-store-
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Apply configs
         env:
           BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+          nix develop --command bash -c '
             cd talos
             task genconfig
             talhelper gencommand apply --out-dir ./clusterconfig | bash
@@ -65,14 +57,10 @@ jobs:
   tofu-plan:
     name: Plan OpenTofu
     runs-on: github-runner-instance
-    container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
-        with:
-          path: /nix/store
-          key: nix-store-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-store-
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: OpenTofu plan
         env:
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
@@ -80,7 +68,7 @@ jobs:
           KUBERNETES_SERVICE_PORT: 443
           TF_CLI_ARGS_init: "-backend-config=config.kubernetes.tfbackend"
         run: |
-          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+          nix develop --command bash -c '
             cd terraform
             tofu init
             tofu plan -lock=false
@@ -94,17 +82,13 @@ jobs:
       - tofu-plan
     name: Apply OpenTofu
     runs-on: github-runner-instance
-    container: nixos/nix:latest
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
-        with:
-          path: /nix/store
-          key: nix-store-${{ hashFiles('flake.lock') }}
-          restore-keys: nix-store-
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: OpenTofu apply
         env:
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
@@ -112,7 +96,7 @@ jobs:
           KUBERNETES_SERVICE_PORT: 443
           TF_CLI_ARGS_init: "-backend-config=config.kubernetes.tfbackend"
         run: |
-          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+          nix develop --command bash -c '
             cd terraform
             tofu init
             tofu apply -auto-approve
