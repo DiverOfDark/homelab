@@ -16,7 +16,7 @@ jobs:
     container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: /nix/store
           key: nix-store-${{ hashFiles('flake.lock') }}
@@ -46,7 +46,7 @@ jobs:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: /nix/store
           key: nix-store-${{ hashFiles('flake.lock') }}
@@ -68,7 +68,7 @@ jobs:
     container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: /nix/store
           key: nix-store-${{ hashFiles('flake.lock') }}
@@ -100,7 +100,7 @@ jobs:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: /nix/store
           key: nix-store-${{ hashFiles('flake.lock') }}
