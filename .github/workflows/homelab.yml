@@ -14,10 +14,6 @@ jobs:
     name: Validate
     runs-on: github-runner-instance
     container: buildpack-deps:trixie
-    # Include this block to log in to FlakeHub and access private flakes
-    #permissions:
-    #  id-token: write
-    #  contents: read
     steps:
       - uses: actions/checkout@v6
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -56,9 +52,6 @@ jobs:
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v6
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
