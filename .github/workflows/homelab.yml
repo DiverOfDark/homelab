@@ -13,11 +13,11 @@ jobs:
   validate:
     name: Validate
     runs-on: github-runner-instance
-    container: ubuntu:noble
+    container: buildpack-deps:trixie
     # Include this block to log in to FlakeHub and access private flakes
-    permissions:
-      id-token: write
-      contents: read
+    #permissions:
+    #  id-token: write
+    #  contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
@@ -51,7 +51,7 @@ jobs:
     needs:
       - validate
     runs-on: github-runner-instance
-    container: ubuntu:noble
+    container: buildpack-deps:trixie
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
