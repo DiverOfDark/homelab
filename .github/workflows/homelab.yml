@@ -29,12 +29,12 @@ jobs:
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443
         run: |
-          nix develop --command bash -c '
+          nix develop --command bash -euxo pipefail -c '
             pushd talos
             task genconfig
             task validate
             popd
-          
+
             pushd terraform
             tofu init
             tofu plan -lock=false
@@ -67,7 +67,7 @@ jobs:
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443
         run: |
-          nix develop --command bash -c '
+          nix develop --command bash -euxo pipefail -c '
             pushd talos
             task genconfig
             talhelper gencommand apply --out-dir ./clusterconfig | bash
