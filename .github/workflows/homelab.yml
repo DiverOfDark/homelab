@@ -13,32 +13,19 @@ jobs:
   talos-validate:
     name: Validate Talos Configs
     runs-on: github-runner-instance
-    container: ubuntu:noble
+    container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
-      - name: Install tools
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          apt update
-          apt install -y -q ca-certificates curl
-          curl -fsSL https://github.com/budimanjojo/talhelper/releases/latest/download/talhelper-linux-amd64 -o /usr/local/bin/talhelper && chmod +x /usr/local/bin/talhelper
-          curl -fsSL https://github.com/siderolabs/talos/releases/latest/download/talosctl-linux-amd64 -o /usr/local/bin/talosctl && chmod +x /usr/local/bin/talosctl
-          curl -fsSL https://github.com/openbao/openbao/releases/latest/download/bao_linux_amd64 -o /usr/local/bin/bao && chmod +x /usr/local/bin/bao
-
       - name: Generate and validate configs
         env:
           BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          cd talos
-          bao kv get -field=yaml secret/talos/config > /tmp/talsecret.yaml
-          talhelper genconfig --secret-file /tmp/talsecret.yaml --out-dir ./clusterconfig
-          rm -f /tmp/talsecret.yaml
-          for f in ./clusterconfig/homelab-*.yaml; do
-            echo "Validating $f..."
-            talosctl validate --config "$f" --mode metal
-          done
+          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+            cd talos
+            task genconfig
+            task validate
+          '
 
   talos-apply:
     name: Apply Talos Configs
@@ -48,37 +35,27 @@ jobs:
     needs:
       - talos-validate
     runs-on: github-runner-instance
-    container: ubuntu:noble
+    container: nixos/nix:latest
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
-      - name: Install tools
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          apt update
-          apt install -y -q ca-certificates curl
-          curl -fsSL https://github.com/budimanjojo/talhelper/releases/latest/download/talhelper-linux-amd64 -o /usr/local/bin/talhelper && chmod +x /usr/local/bin/talhelper
-          curl -fsSL https://github.com/siderolabs/talos/releases/latest/download/talosctl-linux-amd64 -o /usr/local/bin/talosctl && chmod +x /usr/local/bin/talosctl
-          curl -fsSL https://github.com/openbao/openbao/releases/latest/download/bao_linux_amd64 -o /usr/local/bin/bao && chmod +x /usr/local/bin/bao
-
       - name: Apply configs
         env:
           BAO_ADDR: http://openbao-active.openbao.svc.cluster.local:8200
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
         run: |
-          cd talos
-          bao kv get -field=yaml secret/talos/config > /tmp/talsecret.yaml
-          talhelper genconfig --secret-file /tmp/talsecret.yaml --out-dir ./clusterconfig
-          rm -f /tmp/talsecret.yaml
-          talhelper gencommand apply --out-dir ./clusterconfig | bash
+          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+            cd talos
+            task genconfig
+            talhelper gencommand apply --out-dir ./clusterconfig | bash
+          '
 
   tofu-plan:
     name: Plan OpenTofu
     runs-on: github-runner-instance
-    container: ghcr.io/opentofu/opentofu:latest
+    container: nixos/nix:latest
     steps:
       - uses: actions/checkout@v6
       - name: OpenTofu plan
@@ -86,10 +63,13 @@ jobs:
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443
+          TF_CLI_ARGS_init: "-backend-config=config.kubernetes.tfbackend"
         run: |
-          cd terraform
-          tofu init
-          tofu plan -lock=false
+          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+            cd terraform
+            tofu init
+            tofu plan -lock=false
+          '
 
   tofu-apply:
     concurrency:
@@ -99,7 +79,7 @@ jobs:
       - tofu-plan
     name: Apply OpenTofu
     runs-on: github-runner-instance
-    container: ghcr.io/opentofu/opentofu:latest
+    container: nixos/nix:latest
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
@@ -110,8 +90,10 @@ jobs:
           TF_VAR_openbao_token: ${{ secrets.OPENBAO_TOKEN }}
           KUBERNETES_SERVICE_HOST: kubernetes.default.svc
           KUBERNETES_SERVICE_PORT: 443
+          TF_CLI_ARGS_init: "-backend-config=config.kubernetes.tfbackend"
         run: |
-          cd terraform
-          tofu init
-          tofu apply -auto-approve
-          
+          nix develop --extra-experimental-features "nix-command flakes" --command bash -c '
+            cd terraform
+            tofu init
+            tofu apply -auto-approve
+          '
