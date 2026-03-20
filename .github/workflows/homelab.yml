@@ -20,6 +20,7 @@ jobs:
     #  contents: read
     steps:
       - uses: actions/checkout@v6
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Generate and validate configs
@@ -60,6 +61,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Apply configs
