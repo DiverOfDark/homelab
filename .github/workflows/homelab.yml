@@ -13,9 +13,12 @@ jobs:
   talos-validate:
     name: Validate Talos Configs
     runs-on: github-runner-instance
+    container: ubuntu:noble
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          init: none
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Generate and validate configs
         env:
@@ -36,12 +39,15 @@ jobs:
     needs:
       - talos-validate
     runs-on: github-runner-instance
+    container: ubuntu:noble
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          init: none
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Apply configs
         env:
@@ -57,9 +63,12 @@ jobs:
   tofu-plan:
     name: Plan OpenTofu
     runs-on: github-runner-instance
+    container: ubuntu:noble
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          init: none
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: OpenTofu plan
         env:
@@ -82,12 +91,15 @@ jobs:
       - tofu-plan
     name: Apply OpenTofu
     runs-on: github-runner-instance
+    container: ubuntu:noble
     if: github.ref == 'refs/heads/master'
     environment:
       name: Homelab
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          init: none
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: OpenTofu apply
         env:
