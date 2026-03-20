@@ -76,16 +76,14 @@
             export TALOSCONFIG=$PWD/talos/clusterconfig/talosconfig
 
             # OpenTofu / Kubernetes — override in_cluster_config for local use
-            export KUBE_CONFIG_PATH=~/.kube/config
-
-            export TF_VAR_kube_config=~/.kube/config
-            export TF_CLI_ARGS_init="-backend-config=$PWD/terraform/config.kubernetes.tfbackend"
-
-            # OpenBao
             export BAO_ADDR=https://openbao.kirillorlov.pro
-
-            # OpenTofu — only openbao token needed, all other secrets are read from OpenBao by Terraform
             export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
+
+            if [ -z "''${KUBERNETES_SERVICE_HOST:-}" ]; then
+              export KUBE_CONFIG_PATH=~/.kube/config
+              export TF_VAR_kube_config=~/.kube/config
+              export TF_CLI_ARGS_init="-backend-config=$PWD/terraform/config.kubernetes.tfbackend"
+            fi
 
             # ArgoCD
             export ARGOCD_SERVER=argo.kirillorlov.pro
