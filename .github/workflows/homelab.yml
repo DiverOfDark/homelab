@@ -22,6 +22,8 @@ jobs:
       - name: Generate and validate configs
         env:
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
+          KUBERNETES_SERVICE_HOST: kubernetes.default.svc
+          KUBERNETES_SERVICE_PORT: 443
         run: |
           nix develop --command bash -euxo pipefail -c '
             pushd talos
