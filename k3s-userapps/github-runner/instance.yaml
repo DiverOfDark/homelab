@@ -37,11 +37,23 @@ spec:
           spec:
             restartPolicy: Never
             containers:
-              - name: runner
-                envFrom:
-                  - secretRef:
-                      name: nix-cache
-                      optional: true
+             - name: runner
+               image: ghcr.io/actions/actions-runner:latest
+               command: ["/home/runner/run.sh"]
+               env:
+                 - name: DOCKER_HOST
+                   value: unix:///var/run/docker.sock
+                 - name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS
+                   value: "120"
+               volumeMounts:
+                 - name: work
+                   mountPath: /home/runner/_work
+                 - name: dind-sock
+                   mountPath: /var/run
+               envFrom:
+                 - secretRef:
+                     name: nix-cache
+                     optional: true
             initContainers:
               - name: init-k8s-volume-permissions
                 image: ghcr.io/actions/actions-runner:latest
