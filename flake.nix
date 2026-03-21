@@ -26,6 +26,9 @@
           doCheck = false;
         };
       in {
+        packages.peelbox = peelboxPkg;
+        packages.packer = pkgs.packer;
+
         devShells.default = pkgs.mkShell {
           name = "homelab";
           packages = [

@@ -23,6 +23,10 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Pre-build peelbox package for caching
+        run: nix build .#peelbox
+      - name: Pre-build packer package for caching
+        run: nix build .#packer
       - name: Generate and validate configs
         env:
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
@@ -55,6 +59,10 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Pre-build peelbox package for caching
+        run: nix build .#peelbox
+      - name: Pre-build packer package for caching
+        run: nix build .#packer
       - name: Apply configs
         env:
           BAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
