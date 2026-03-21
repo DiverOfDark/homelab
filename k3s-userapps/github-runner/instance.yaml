@@ -36,6 +36,12 @@ spec:
         template:
           spec:
             restartPolicy: Never
+            containers:
+              - name: runner
+                envFrom:
+                  - secretRef:
+                      name: nix-cache
+                      optional: true
             initContainers:
               - name: init-k8s-volume-permissions
                 image: ghcr.io/actions/actions-runner:latest
