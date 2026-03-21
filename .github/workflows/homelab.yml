@@ -9,6 +9,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   validate:
     name: Validate
@@ -57,8 +61,7 @@ jobs:
         run: |
           nix develop --command bash -euxo pipefail -c '
             pushd talos
-            task genconfig
-            talhelper gencommand apply --out-dir ./clusterconfig | bash
+            task apply --yes
             popd
 
             pushd terraform

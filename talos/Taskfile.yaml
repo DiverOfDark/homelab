@@ -34,11 +34,19 @@ tasks:
         done
 
   apply:
-    desc: Apply configs to all nodes
+    desc: Apply configs to all nodes (rolling, one at a time)
     deps: [genconfig]
     cmds:
-      - talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} | bash
-    prompt: "Apply Talos configs to ALL nodes?"
+      - |
+        set -euo pipefail
+        for node in $(yq '.nodes[].hostname' talconfig.yaml); do
+          echo "Applying config to $node..."
+          talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" | bash
+          echo "Waiting for $node to be healthy..."
+          ip=$(yq ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
+          talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig health --wait-timeout 5m -n "$ip" || true
+        done
+    prompt: "Apply Talos configs to ALL nodes (rolling)?"
 
   "apply:node":
     desc: "Apply config to a specific node (usage: task apply:node -- <hostname>)"
