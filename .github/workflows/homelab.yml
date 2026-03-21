@@ -24,9 +24,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Fetch nix cache S3 credentials
+        id: cache
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          RESP=$(curl -sf -k \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/nix-cache")
+          decode() { python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())" <<< "$RESP"; }
+          echo "::add-mask::$(decode AWS_ACCESS_KEY_ID)"
+          echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
+          {
+            echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)"
+            echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)"
+          } >> "$GITHUB_ENV"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - name: Configure Nix S3 cache
-        if: env.AWS_ACCESS_KEY_ID != ''
+        if: steps.cache.outcome == 'success'
         run: |
           cat >> /etc/nix/nix.conf <<EOF
           extra-substituters = $NIX_CACHE_S3
@@ -35,7 +52,7 @@ jobs:
       - name: Build dev shell and push to S3 cache
         run: |
           nix build .#devShells.x86_64-linux.default --no-link
-          if [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+          if [ "${{ steps.cache.outcome }}" = "success" ]; then
             nix copy --to "$NIX_CACHE_S3" .#devShells.x86_64-linux.default
           fi
       - name: Generate and validate configs
@@ -68,9 +85,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Fetch nix cache S3 credentials
+        id: cache
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          RESP=$(curl -sf -k \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/nix-cache")
+          decode() { python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())" <<< "$RESP"; }
+          echo "::add-mask::$(decode AWS_ACCESS_KEY_ID)"
+          echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
+          {
+            echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)"
+            echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)"
+          } >> "$GITHUB_ENV"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - name: Configure Nix S3 cache
-        if: env.AWS_ACCESS_KEY_ID != ''
+        if: steps.cache.outcome == 'success'
         run: |
           cat >> /etc/nix/nix.conf <<EOF
           extra-substituters = $NIX_CACHE_S3
@@ -79,7 +113,7 @@ jobs:
       - name: Build dev shell and push to S3 cache
         run: |
           nix build .#devShells.x86_64-linux.default --no-link
-          if [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+          if [ "${{ steps.cache.outcome }}" = "success" ]; then
             nix copy --to "$NIX_CACHE_S3" .#devShells.x86_64-linux.default
           fi
       - name: Apply configs
