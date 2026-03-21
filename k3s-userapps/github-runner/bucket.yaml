@@ -1,0 +1,7 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: nix-cache
+spec:
+  bucketName: nix-cache
+  storageClassName: ceph-bucket
