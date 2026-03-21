@@ -25,6 +25,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v13
         with:
           use-gha-cache: true
+          use-flakehub: false
       - name: Pre-build peelbox package for caching
         run: nix build .#peelbox
       - name: Pre-build packer package for caching
@@ -63,6 +64,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v13
         with:
           use-gha-cache: true
+          use-flakehub: false
       - name: Pre-build peelbox package for caching
         run: nix build .#peelbox
       - name: Pre-build packer package for caching
