@@ -43,3 +43,28 @@ data "vault_kv_secret_v2" "twilio" {
   mount = "secret"
   name  = "twilio"
 }
+
+# OpenBao backup read-only policy and role
+resource "vault_policy" "openbao_backup" {
+  name   = "openbao-backup-policy"
+  policy = <<-EOT
+    path "secret/metadata" {
+      capabilities = ["list", "read"]
+    }
+    path "secret/metadata/*" {
+      capabilities = ["list", "read"]
+    }
+    path "secret/data/*" {
+      capabilities = ["read"]
+    }
+  EOT
+}
+
+resource "vault_kubernetes_auth_backend_role" "openbao_backup" {
+  backend                          = "kubernetes"
+  role_name                        = "openbao-backup-role"
+  bound_service_account_names      = ["openbao-backup-sa"]
+  bound_service_account_namespaces = ["openbao-backup"]
+  token_policies                   = [vault_policy.openbao_backup.name]
+  token_ttl                        = 600
+}
