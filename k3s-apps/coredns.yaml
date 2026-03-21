@@ -1,0 +1,125 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredns
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    chart: coredns
+    repoURL: https://coredns.github.io/helm
+    targetRevision: 1.45.0
+    helm:
+      valuesObject:
+        replicaCount: 2
+        priorityClassName: system-cluster-critical
+
+        k8sAppLabelOverride: "kube-dns"
+
+        deployment:
+          selector:
+            matchLabels:
+              "k8s-app": kube-dns
+
+        service:
+          name: kube-dns
+
+        serviceAccount:
+          name: coredns
+
+        clusterRole:
+          nameOverride: "system:coredns"
+
+        prometheus:
+          monitor:
+            enabled: true
+
+        resources:
+          limits:
+            memory: 170Mi
+          requests:
+            cpu: 100m
+            memory: 70Mi
+
+        tolerations:
+          - key: "CriticalAddonsOnly"
+            operator: "Exists"
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/control-plane
+            operator: Exists
+          - effect: NoSchedule
+            key: node.cloudprovider.kubernetes.io/uninitialized
+            operator: Exists
+
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: k8s-app
+                      operator: In
+                      values: ["kube-dns"]
+                topologyKey: kubernetes.io/hostname
+
+        servers:
+        - zones:
+          - zone: .
+          port: 53
+          plugins:
+          - name: errors
+          - name: health
+            configBlock: |-
+              lameduck 5s
+          - name: ready
+          - name: log
+            parameters: .
+            configBlock: |-
+              class error
+          - name: prometheus
+            parameters: :9153
+          - name: kubernetes
+            parameters: cluster.local in-addr.arpa ip6.arpa
+            configBlock: |-
+              pods insecure
+              fallthrough in-addr.arpa ip6.arpa
+              ttl 30
+          - name: forward
+            parameters: . 192.168.178.2
+            configBlock: |-
+              max_concurrent 1000
+          - name: cache
+            parameters: 30
+            configBlock: |-
+              disable success cluster.local
+              disable denial cluster.local
+          - name: loop
+          - name: reload
+          - name: loadbalance
+
+        livenessProbe:
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 5
+
+        readinessProbe:
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 1
+
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
