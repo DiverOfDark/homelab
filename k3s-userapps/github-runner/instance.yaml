@@ -36,14 +36,6 @@ spec:
         template:
           spec:
             restartPolicy: Never
-            containers:
-             - name: runner
-               image: ghcr.io/actions/actions-runner:latest
-               command: ["/home/runner/run.sh"]
-               envFrom:
-                 - secretRef:
-                     name: nix-cache
-                     optional: true
             initContainers:
               - name: init-k8s-volume-permissions
                 image: ghcr.io/actions/actions-runner:latest
