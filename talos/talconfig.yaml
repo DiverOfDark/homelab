@@ -132,6 +132,8 @@ patches:
         kubePrism:
           enabled: true
           port: 7445
+        hostDNS:
+          enabled: false
       logging:
         destinations:
           - endpoint: udp://127.0.0.1:5050
@@ -178,8 +180,7 @@ controlPlane:
                   warn: restricted
                   warn-version: latest
                 exemptions:
-                  namespaces:
-                    - kube-system
+                  namespaces: []
                   runtimeClasses: []
                   usernames:
                     - system:serviceaccount:velero:velero-server
