@@ -34,11 +34,11 @@ tasks:
     cmds:
       - |
         set -euo pipefail
-        for node in $(yq '.nodes[].hostname' talconfig.yaml); do
+        for node in $(yq -r '.nodes[].hostname' talconfig.yaml); do
           echo "Applying config to $node..."
           talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" | bash
           echo "Waiting for $node to be healthy..."
-          ip=$(yq ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
+          ip=$(yq -r ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
           talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig health --wait-timeout 5m -n "$ip" || true
         done
     prompt: "Apply Talos configs to ALL nodes (rolling)?"
