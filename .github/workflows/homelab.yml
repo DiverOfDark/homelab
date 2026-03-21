@@ -28,19 +28,17 @@ jobs:
         id: cache
         continue-on-error: true
         run: |
-          set -euo pipefail
+          set -eu
           TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
           NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
           RESP=$(curl -sf -k \
             -H "Authorization: Bearer $TOKEN" \
             "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/nix-cache")
-          decode() { python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())" <<< "$RESP"; }
+          decode() { echo "$RESP" | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())"; }
           echo "::add-mask::$(decode AWS_ACCESS_KEY_ID)"
           echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
-          {
-            echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)"
-            echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)"
-          } >> "$GITHUB_ENV"
+          echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)" >> "$GITHUB_ENV"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - name: Configure Nix S3 cache
         if: steps.cache.outcome == 'success'
@@ -89,19 +87,17 @@ jobs:
         id: cache
         continue-on-error: true
         run: |
-          set -euo pipefail
+          set -eu
           TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
           NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
           RESP=$(curl -sf -k \
             -H "Authorization: Bearer $TOKEN" \
             "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/nix-cache")
-          decode() { python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())" <<< "$RESP"; }
+          decode() { echo "$RESP" | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['data']['$1']).decode())"; }
           echo "::add-mask::$(decode AWS_ACCESS_KEY_ID)"
           echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
-          {
-            echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)"
-            echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)"
-          } >> "$GITHUB_ENV"
+          echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)" >> "$GITHUB_ENV"
       - uses: DeterminateSystems/determinate-nix-action@v3.17.1
       - name: Configure Nix S3 cache
         if: steps.cache.outcome == 'success'
