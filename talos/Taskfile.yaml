@@ -1,27 +1,22 @@
 version: "3"
 
 vars:
-  BAO_ADDR: '{{ .BAO_ADDR | default "https://openbao.kirillorlov.pro" }}'
-  SECRET_PATH: secret/talos/config
-  SECRET_FILE: /tmp/talsecret.yaml
+  SECRET_FILE: ./talsecret.sops.yaml
+  DECRYPTED_SECRET_FILE: ./clusterconfig/talsecret.yaml
   OUTPUT_DIR: ./clusterconfig
 
 tasks:
   genconfig:
-    desc: Generate Talos machine configs (fetches secrets from OpenBao)
+    desc: Generate Talos machine configs (decrypts secrets with SOPS)
     cmds:
-      - bao kv get -field=yaml {{ .SECRET_PATH }} > {{ .SECRET_FILE }}
-      - talhelper genconfig --secret-file {{ .SECRET_FILE }} --out-dir {{ .OUTPUT_DIR }}
-      - defer: rm -f {{ .SECRET_FILE }}
-    env:
-      BAO_ADDR: "{{ .BAO_ADDR }}"
+      - sops -d {{ .SECRET_FILE }} > {{ .DECRYPTED_SECRET_FILE }}
+      - talhelper genconfig --secret-file {{ .DECRYPTED_SECRET_FILE }} --out-dir {{ .OUTPUT_DIR }}
+      - defer: rm -f {{ .DECRYPTED_SECRET_FILE }}
     preconditions:
-      - sh: command -v bao
-        msg: "bao CLI not found - enter the nix dev shell first"
+      - sh: command -v sops
+        msg: "sops not found - enter the nix dev shell first"
       - sh: command -v talhelper
         msg: "talhelper not found - enter the nix dev shell first"
-      - sh: "[ -n \"$BAO_TOKEN\" ] || bao token lookup > /dev/null 2>&1"
-        msg: "Not authenticated to OpenBao - set BAO_TOKEN or run 'bao login'"
 
   validate:
     desc: Validate generated Talos machine configs

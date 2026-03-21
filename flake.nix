@@ -51,6 +51,7 @@
             # Secrets & certs
             pkgs.sops
             pkgs.age
+            pkgs.ssh-to-age
             pkgs.openbao
             pkgs.cmctl
 
@@ -80,9 +81,13 @@
             export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
 
             if [ -z "''${KUBERNETES_SERVICE_HOST:-}" ]; then
+              # Local dev — use kubeconfig and override tofu backend
               export KUBE_CONFIG_PATH=~/.kube/config
               export TF_VAR_kube_config=~/.kube/config
               export TF_CLI_ARGS_init="-backend-config=$PWD/terraform/config.kubernetes.tfbackend"
+            else
+              # In-cluster (CI) — fetch age key from OpenBao for SOPS decryption
+              export SOPS_AGE_KEY=$(bao kv get -field=age_key secret/talos/config)
             fi
 
             # ArgoCD
