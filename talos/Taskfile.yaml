@@ -2,7 +2,7 @@ version: "3"
 
 vars:
   SECRET_FILE: ./talsecret.sops.yaml
-  DECRYPTED_SECRET_FILE: ./clusterconfig/talsecret.yaml
+  DECRYPTED_SECRET_FILE: ./talsecret.yaml
   OUTPUT_DIR: ./clusterconfig
 
 tasks:
