@@ -202,7 +202,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: backup
-              image: ghcr.io/openbao/openbao:2.2.0
+              image: ghcr.io/openbao/openbao:2.5.1
               command: ["/bin/sh", "/scripts/backup.sh"]
               env:
                 - name: BAO_ADDR
