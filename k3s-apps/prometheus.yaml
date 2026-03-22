@@ -62,6 +62,21 @@ spec:
           alertmanagerSpec:
             useExistingSecret: true
             configSecret: alertmanager-config
+            additionalArgs:
+              - name: config.expand-env
+            containers:
+              - name: alertmanager
+                env:
+                  - name: TELEGRAM_BOT_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: alertmanager-telegram-auth
+                        key: telegram_bot_token
+                  - name: TELEGRAM_CHAT_ID
+                    valueFrom:
+                      secretKeyRef:
+                        name: alertmanager-telegram-auth
+                        key: telegram_chat_id
             storage:
               volumeClaimTemplate:
                 spec:
