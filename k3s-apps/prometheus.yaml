@@ -57,6 +57,8 @@ spec:
               gethomepage.dev/icon: alertmanager.png
               gethomepage.dev/pod-selector: "app.kubernetes.io/name=alertmanager"
           alertmanagerSpec:
+            useExistingSecret: true
+            configSecret: alertmanager-config
             storage:
               volumeClaimTemplate:
                 spec:
