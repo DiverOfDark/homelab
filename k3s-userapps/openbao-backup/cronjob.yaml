@@ -29,7 +29,7 @@ spec:
                 - name: shared
                   mountPath: /shared
             - name: encrypt-sops
-              image: alpine:3.21
+              image: alpine:3.23
               command: ["/bin/sh", "-c"]
               args:
                 - apk add --no-cache curl > /dev/null 2>&1 &&
