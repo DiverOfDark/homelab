@@ -29,14 +29,11 @@ spec:
                 - name: shared
                   mountPath: /shared
             - name: encrypt-sops
-              image: ghcr.io/getsops/sops:v3.9.4
+              image: alpine:3.21
+              command: ["/bin/sh", "-c"]
               args:
-                - "--config"
-                - "/scripts/.sops.yaml"
-                - "--encrypt"
-                - "--output"
-                - "/shared/openbao-secrets.sops.json"
-                - "/shared/secrets.json"
+                - apk add --no-cache sops > /dev/null 2>&1 &&
+                  sops --config /scripts/.sops.yaml --encrypt --output /shared/openbao-secrets.sops.json /shared/secrets.json
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
