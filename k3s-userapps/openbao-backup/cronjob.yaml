@@ -78,10 +78,10 @@ data:
     git config user.email "openbao-backup@homelab.local"
     git config user.name "OpenBao Backup"
 
-    if git diff --quiet -- backups/openbao-secrets.sops.json; then
+    git add backups/openbao-secrets.sops.json
+    if git diff --cached --quiet -- backups/openbao-secrets.sops.json; then
       echo "No changes to commit."
     else
-      git add backups/openbao-secrets.sops.json
       git commit -m "backup: update OpenBao secrets $(date -u +%Y-%m-%dT%H:%M:%SZ)"
       git push
       echo "Pushed updated backup to git."
@@ -103,8 +103,8 @@ data:
       exit 0
     fi
 
-    export BW_SESSION=$(bw login "$VW_EMAIL" "$VW_MASTER_PASSWORD" \
-      --raw 2>/dev/null)
+    bw config server https://vaultwarden.kirillorlov.pro
+    export BW_SESSION=$(bw login "$VW_EMAIL" "$VW_MASTER_PASSWORD" --raw)
     bw sync
 
     FOLDER_ID=$(bw list folders | jq -r '.[] | select(.name=="OpenBao Backup") | .id')
