@@ -37,6 +37,9 @@ spec:
               operator: "Equal"
               value: "true"
               effect: "NoExecute"
+        defaultRules:
+          disabled:
+            KubeProxyDown: true
         kubeEtcd:
           enabled: false
         alertmanager:
