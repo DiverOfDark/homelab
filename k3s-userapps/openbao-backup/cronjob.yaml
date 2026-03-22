@@ -32,7 +32,7 @@ spec:
               image: alpine:3.21
               command: ["/bin/sh", "-c"]
               args:
-                - apk add --no-cache sops > /dev/null 2>&1 &&
+                - apk add --no-cache sops age > /dev/null 2>&1 &&
                   sops --config /scripts/.sops.yaml --encrypt --output /shared/openbao-secrets.sops.json /shared/secrets.json
               volumeMounts:
                 - name: scripts
