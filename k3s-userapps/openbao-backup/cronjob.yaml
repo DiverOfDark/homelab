@@ -32,7 +32,9 @@ spec:
               image: alpine:3.21
               command: ["/bin/sh", "-c"]
               args:
-                - apk add --no-cache sops age > /dev/null 2>&1 &&
+                - apk add --no-cache curl > /dev/null 2>&1 &&
+                  curl -sL "https://github.com/getsops/sops/releases/download/v3.12.1/sops-v3.12.1.linux.amd64" -o /usr/local/bin/sops &&
+                  chmod +x /usr/local/bin/sops &&
                   sops --config /scripts/.sops.yaml --encrypt --output /shared/openbao-secrets.sops.json /shared/secrets.json
               volumeMounts:
                 - name: scripts
