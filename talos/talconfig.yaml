@@ -9,6 +9,7 @@ clusterName: homelab
 endpoint: https://192.168.179.2:6443
 allowSchedulingOnControlPlanes: true
 domain: cluster.local
+stableHostname: true
 
 clusterPodNets:
   - 10.244.0.0/16
@@ -127,19 +128,22 @@ patches:
           op: create
       features:
         rbac: true
-        apidCheckExtKeyUsage: true
+        #apidCheckExtKeyUsage: false
         diskQuotaSupport: true
         kubePrism:
           enabled: true
           port: 7445
         hostDNS:
           enabled: false
+          forwardKubeDNSToHost: false
       logging:
         destinations:
           - endpoint: udp://127.0.0.1:5050
             format: json_lines
   - |-
     cluster:
+      coreDNS:
+        disabled: true
       discovery:
         enabled: true
         registries:

@@ -27,6 +27,7 @@ tasks:
           echo "Validating $f..."
           talosctl validate --config "$f" --mode metal
         done
+        talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" --extra-flags "--dry-run" | bash
 
   apply:
     desc: Apply configs to all nodes (rolling, one at a time)
@@ -36,44 +37,9 @@ tasks:
         set -euo pipefail
         for node in $(yq -r '.nodes[].hostname' talconfig.yaml); do
           echo "Applying config to $node..."
-          talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" | bash
-          echo "Waiting for $node to be healthy..."
-          ip=$(yq -r ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
-          talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig health --wait-timeout 5m -n "$ip" || true
+          talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" --extra-args "-m staged" | bash
         done
     prompt: "Apply Talos configs to ALL nodes (rolling)?"
-
-  "apply:node":
-    desc: "Apply config to a specific node (usage: task apply:node -- <hostname>)"
-    deps: [genconfig]
-    cmds:
-      - talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node {{ .CLI_ARGS }} | bash
-    requires:
-      vars: [CLI_ARGS]
-    prompt: "Apply Talos config to node '{{ .CLI_ARGS }}'?"
-
-  upgrade:
-    desc: Upgrade Talos on all nodes
-    deps: [genconfig]
-    cmds:
-      - talhelper gencommand upgrade --out-dir {{ .OUTPUT_DIR }} | bash
-    prompt: "Upgrade Talos on ALL nodes?"
-
-  "upgrade:node":
-    desc: "Upgrade Talos on a specific node (usage: task upgrade:node -- <hostname>)"
-    deps: [genconfig]
-    cmds:
-      - talhelper gencommand upgrade --out-dir {{ .OUTPUT_DIR }} --node {{ .CLI_ARGS }} | bash
-    requires:
-      vars: [CLI_ARGS]
-    prompt: "Upgrade Talos on node '{{ .CLI_ARGS }}'?"
-
-  "upgrade:k8s":
-    desc: Upgrade Kubernetes on the cluster
-    deps: [genconfig]
-    cmds:
-      - talhelper gencommand upgrade-k8s --out-dir {{ .OUTPUT_DIR }} | bash
-    prompt: "Upgrade Kubernetes on the cluster?"
 
   kubeconfig:
     desc: Generate kubeconfig from Talos
@@ -91,12 +57,3 @@ tasks:
       - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig dashboard -n {{ .NODE_IP }}
     requires:
       vars: [CLI_ARGS]
-
-  health:
-    desc: Check cluster health
-    deps: [genconfig]
-    vars:
-      NODE_IP:
-        sh: yq '.nodes[] | select(.hostname == "{{ .CLI_ARGS }}") | .ipAddress' talconfig.yaml
-    cmds:
-      - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig health -n {{ .NODE_IP }}
