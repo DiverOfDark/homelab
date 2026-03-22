@@ -125,11 +125,11 @@ data:
     EXISTING_ITEMS=$(bw list items --folderid "$FOLDER_ID")
 
     echo "$ALL_PATHS" | while read -r path; do
-      SECRET_DATA=$(jq --arg p "$path" '.[$p]' /shared/secrets.json)
+      SECRET_DATA=$(jq --arg p "$path" '.[$p] // {}' /shared/secrets.json)
       ITEM_ID=$(echo "$EXISTING_ITEMS" | jq -r --arg name "$path" \
         '.[] | select(.name==$name) | .id')
 
-      FIELDS=$(echo "$SECRET_DATA" | jq '[to_entries[] | {
+      FIELDS=$(echo "$SECRET_DATA" | jq '[(. // {}) | to_entries[] | {
         name: .key,
         value: (.value | tostring),
         type: 1
