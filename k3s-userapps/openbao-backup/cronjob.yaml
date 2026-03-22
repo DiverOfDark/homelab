@@ -41,6 +41,7 @@ spec:
                   mountPath: /scripts
                 - name: shared
                   mountPath: /shared
+          containers:
             - name: git-push
               image: alpine/git:latest
               command: ["/bin/sh", "/scripts/git-push.sh"]
@@ -55,28 +56,6 @@ spec:
                   mountPath: /scripts
                 - name: shared
                   mountPath: /shared
-          containers:
-            - name: vaultwarden-sync
-              image: node:22-alpine
-              command: ["/bin/sh", "/scripts/vaultwarden-sync.sh"]
-              env:
-                - name: VW_EMAIL
-                  valueFrom:
-                    secretKeyRef:
-                      name: backup-vaultwarden-creds
-                      key: email
-                - name: VW_MASTER_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: backup-vaultwarden-creds
-                      key: master_password
-              volumeMounts:
-                - name: scripts
-                  mountPath: /scripts
-                - name: shared
-                  mountPath: /shared
-                - name: bw-config
-                  mountPath: /root/.config
           volumes:
             - name: scripts
               configMap:
@@ -84,6 +63,3 @@ spec:
                 defaultMode: 0755
             - name: shared
               emptyDir: {}
-            - name: bw-config
-              persistentVolumeClaim:
-                claimName: bw-config

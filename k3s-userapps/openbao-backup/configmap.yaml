@@ -57,6 +57,8 @@ data:
     SECRET_COUNT=$(jq 'length' /shared/secrets.json)
     echo "Exported ${SECRET_COUNT} secrets."
 
+    sha256sum /shared/secrets.json | awk '{print $1}' > /shared/secrets.sha256
+
   git-push.sh: |
     #!/bin/sh
     set -e
@@ -66,105 +68,20 @@ data:
     git clone --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/DiverOfDark/homelab.git" "$REPO_DIR"
 
     mkdir -p "${REPO_DIR}/backups"
-    cp /shared/openbao-secrets.sops.json "${REPO_DIR}/backups/openbao-secrets.sops.json"
+    NEW_HASH=$(cat /shared/secrets.sha256)
+    OLD_HASH=$(cat "${REPO_DIR}/backups/openbao-secrets.sha256" 2>/dev/null || echo "")
 
-    cd "$REPO_DIR"
-    git config user.email "openbao-backup@homelab.local"
-    git config user.name "OpenBao Backup"
-
-    git add backups/openbao-secrets.sops.json
-    if git diff --cached --quiet -- backups/openbao-secrets.sops.json; then
-      echo "No changes to commit."
+    if [ "$NEW_HASH" = "$OLD_HASH" ]; then
+      echo "No changes to commit (plaintext hash unchanged)."
     else
+      cp /shared/openbao-secrets.sops.json "${REPO_DIR}/backups/openbao-secrets.sops.json"
+      cp /shared/secrets.sha256 "${REPO_DIR}/backups/openbao-secrets.sha256"
+
+      cd "$REPO_DIR"
+      git config user.email "openbao-backup@homelab.local"
+      git config user.name "OpenBao Backup"
+      git add backups/openbao-secrets.sops.json backups/openbao-secrets.sha256
       git commit -m "backup: update OpenBao secrets $(date -u +%Y-%m-%dT%H:%M:%SZ)"
       git push
       echo "Pushed updated backup to git."
     fi
-
-  vaultwarden-sync.sh: |
-    #!/bin/sh
-    set -e
-
-    apk add --no-cache jq > /dev/null 2>&1
-    npm install -g @bitwarden/cli@2025.1.3 > /dev/null 2>&1
-
-    echo "Syncing to Vaultwarden..."
-    export NODE_OPTIONS="--no-warnings"
-
-    ALL_PATHS=$(cat /shared/paths.txt)
-    if [ -z "$ALL_PATHS" ]; then
-      echo "No secrets to sync."
-      exit 0
-    fi
-
-    bw config server https://vaultwarden.kirillorlov.pro
-
-    # Use persisted auth from PVC - if not yet logged in, wait for
-    # manual login via: kubectl exec -it -n openbao-backup <pod> -c vaultwarden-sync -- sh
-    # Then run: bw login "$VW_EMAIL" --method 0
-    STATUS=$(bw status | jq -r '.status')
-    if [ "$STATUS" = "unauthenticated" ]; then
-      echo "Not logged in. Waiting for manual 'bw login' via kubectl exec..."
-      echo "  kubectl exec -it -n openbao-backup <pod> -c vaultwarden-sync -- sh"
-      echo "  bw login \$VW_EMAIL --method 0"
-      while [ "$(bw status | jq -r '.status')" = "unauthenticated" ]; do
-        sleep 10
-      done
-      echo "Login detected, continuing..."
-    fi
-    export BW_SESSION=$(bw unlock "$VW_MASTER_PASSWORD" --raw)
-    bw sync
-
-    FOLDER_ID=$(bw list folders | jq -r '.[] | select(.name=="OpenBao Backup") | .id')
-    if [ -z "$FOLDER_ID" ]; then
-      FOLDER_ID=$(bw create folder "$(echo '{"name":"OpenBao Backup"}' | bw encode)" \
-        | jq -r '.id')
-      echo "Created folder 'OpenBao Backup' (${FOLDER_ID})"
-    fi
-
-    EXISTING_ITEMS=$(bw list items --folderid "$FOLDER_ID")
-
-    echo "$ALL_PATHS" | while read -r path; do
-      SECRET_DATA=$(jq --arg p "$path" '.[$p] // {}' /shared/secrets.json)
-      ITEM_ID=$(echo "$EXISTING_ITEMS" | jq -r --arg name "$path" \
-        '.[] | select(.name==$name) | .id')
-
-      FIELDS=$(echo "$SECRET_DATA" | jq '[(. // {}) | to_entries[] | {
-        name: .key,
-        value: (.value | tostring),
-        type: 1
-      }]')
-
-      if [ -n "$ITEM_ID" ]; then
-        ITEM_JSON=$(bw get item "$ITEM_ID")
-        UPDATED=$(echo "$ITEM_JSON" | jq --argjson fields "$FIELDS" \
-          '.fields = $fields')
-        echo "$UPDATED" | bw encode | bw edit item "$ITEM_ID" > /dev/null
-        echo "  Updated: ${path}"
-      else
-        NEW_ITEM=$(jq -n --arg name "$path" --arg folderId "$FOLDER_ID" \
-          --argjson fields "$FIELDS" '{
-            type: 2,
-            secureNote: { type: 0 },
-            name: $name,
-            folderId: $folderId,
-            fields: $fields,
-            notes: null
-          }')
-        echo "$NEW_ITEM" | bw encode | bw create item > /dev/null
-        echo "  Created: ${path}"
-      fi
-    done
-
-    echo "Cleaning up stale entries..."
-    EXISTING_ITEMS=$(bw list items --folderid "$FOLDER_ID")
-    echo "$EXISTING_ITEMS" | jq -r '.[].name' | while read -r item_name; do
-      if ! echo "$ALL_PATHS" | grep -qxF "$item_name"; then
-        STALE_ID=$(echo "$EXISTING_ITEMS" | jq -r --arg name "$item_name" \
-          '.[] | select(.name==$name) | .id')
-        bw delete item "$STALE_ID" > /dev/null
-        echo "  Deleted stale: ${item_name}"
-      fi
-    done
-
-    echo "Vaultwarden sync complete."
