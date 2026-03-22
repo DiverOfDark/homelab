@@ -12,42 +12,22 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: backup-script
+  name: backup-scripts
   namespace: openbao-backup
 data:
-  backup.sh: |
+  export-secrets.sh: |
     #!/bin/sh
     set -e
 
-    # ── Phase 1: Setup ──────────────────────────────────────────────
-    echo "Installing dependencies..."
-    apk add --no-cache git jq curl > /dev/null 2>&1
+    apk add --no-cache jq > /dev/null 2>&1
 
-    # Install sops
-    SOPS_VERSION="3.9.4"
-    curl -sL "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64" \
-      -o /usr/local/bin/sops
-    chmod +x /usr/local/bin/sops
-
-    # Install Bitwarden CLI
-    BW_VERSION="2025.1.3"
-    curl -sL "https://github.com/bitwarden/clients/releases/download/cli-v${BW_VERSION}/bw-linux-${BW_VERSION}.zip" \
-      -o /tmp/bw.zip
-    unzip -o /tmp/bw.zip -d /usr/local/bin/ > /dev/null 2>&1
-    chmod +x /usr/local/bin/bw
-    rm /tmp/bw.zip
-
-    # Authenticate to OpenBao via Kubernetes SA token
     echo "Authenticating to OpenBao..."
     SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
     export BAO_TOKEN=$(bao write -field=token auth/kubernetes/login \
       role=openbao-backup-role jwt="$SA_TOKEN")
     echo "Authenticated to OpenBao."
 
-    # ── Phase 2: Export secrets ─────────────────────────────────────
     echo "Exporting secrets from OpenBao..."
-    WORKDIR=$(mktemp -d)
-    SECRETS_FILE="${WORKDIR}/secrets.json"
 
     list_secrets() {
       local prefix="$1"
@@ -56,7 +36,6 @@ data:
 
       echo "$keys" | jq -r '.[]' | while read -r key; do
         if echo "$key" | grep -q '/$'; then
-          # It's a directory, recurse
           list_secrets "${prefix}${key}"
         else
           echo "${prefix}${key}"
@@ -64,39 +43,36 @@ data:
       done
     }
 
-    # Collect all secret paths
     ALL_PATHS=$(list_secrets "")
+    echo "${ALL_PATHS}" > /shared/paths.txt
+    echo "{}" > /shared/secrets.json
+
     if [ -z "$ALL_PATHS" ]; then
-      echo "No secrets found, exiting."
+      echo "No secrets found."
       exit 0
     fi
 
-    # Build combined JSON
-    echo "{}" > "$SECRETS_FILE"
     echo "$ALL_PATHS" | while read -r path; do
       echo "  Reading: ${path}"
       SECRET_DATA=$(bao kv get -format=json "secret/${path}" | jq '.data.data')
-      ESCAPED_PATH=$(echo "$path" | jq -Rs '.')
       jq --argjson data "$SECRET_DATA" --arg path "$path" \
-        '. + {($path): $data}' "$SECRETS_FILE" > "${SECRETS_FILE}.tmp"
-      mv "${SECRETS_FILE}.tmp" "$SECRETS_FILE"
+        '. + {($path): $data}' /shared/secrets.json > /shared/secrets.json.tmp
+      mv /shared/secrets.json.tmp /shared/secrets.json
     done
 
-    SECRET_COUNT=$(jq 'length' "$SECRETS_FILE")
+    SECRET_COUNT=$(jq 'length' /shared/secrets.json)
     echo "Exported ${SECRET_COUNT} secrets."
 
-    # ── Phase 3: SOPS encrypt + git push ────────────────────────────
-    echo "Encrypting with SOPS..."
-    AGE_RECIPIENT="age13jdehut862zq4zp5cnglmxs4twhudhll7zdmt0ga2uqee9uaacqsthywd4"
-    ENCRYPTED_FILE="${WORKDIR}/openbao-secrets.sops.json"
-    sops --encrypt --age "$AGE_RECIPIENT" "$SECRETS_FILE" > "$ENCRYPTED_FILE"
+  git-push.sh: |
+    #!/bin/sh
+    set -e
 
     echo "Cloning git repo..."
-    REPO_DIR="${WORKDIR}/homelab"
+    REPO_DIR="/shared/homelab"
     git clone --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/DiverOfDark/homelab.git" "$REPO_DIR"
 
     mkdir -p "${REPO_DIR}/backups"
-    cp "$ENCRYPTED_FILE" "${REPO_DIR}/backups/openbao-secrets.sops.json"
+    cp /shared/openbao-secrets.sops.json "${REPO_DIR}/backups/openbao-secrets.sops.json"
 
     cd "$REPO_DIR"
     git config user.email "openbao-backup@homelab.local"
@@ -111,16 +87,26 @@ data:
       echo "Pushed updated backup to git."
     fi
 
-    # ── Phase 4: Vaultwarden sync ───────────────────────────────────
+  vaultwarden-sync.sh: |
+    #!/bin/sh
+    set -e
+
+    apk add --no-cache jq > /dev/null 2>&1
+    npm install -g @bitwarden/cli@2025.1.3 > /dev/null 2>&1
+
     echo "Syncing to Vaultwarden..."
     export NODE_OPTIONS="--no-warnings"
 
-    # Login to Vaultwarden
+    ALL_PATHS=$(cat /shared/paths.txt)
+    if [ -z "$ALL_PATHS" ]; then
+      echo "No secrets to sync."
+      exit 0
+    fi
+
     export BW_SESSION=$(bw login "$VW_EMAIL" "$VW_MASTER_PASSWORD" \
       --raw 2>/dev/null)
     bw sync
 
-    # Find or create "OpenBao Backup" folder
     FOLDER_ID=$(bw list folders | jq -r '.[] | select(.name=="OpenBao Backup") | .id')
     if [ -z "$FOLDER_ID" ]; then
       FOLDER_ID=$(bw create folder "$(echo '{"name":"OpenBao Backup"}' | bw encode)" \
@@ -128,16 +114,13 @@ data:
       echo "Created folder 'OpenBao Backup' (${FOLDER_ID})"
     fi
 
-    # Get list of existing items in the folder
     EXISTING_ITEMS=$(bw list items --folderid "$FOLDER_ID")
 
-    # Sync each secret
     echo "$ALL_PATHS" | while read -r path; do
-      SECRET_DATA=$(jq --arg p "$path" '.[$p]' "$SECRETS_FILE")
+      SECRET_DATA=$(jq --arg p "$path" '.[$p]' /shared/secrets.json)
       ITEM_ID=$(echo "$EXISTING_ITEMS" | jq -r --arg name "$path" \
         '.[] | select(.name==$name) | .id')
 
-      # Build custom fields array from key-value pairs
       FIELDS=$(echo "$SECRET_DATA" | jq '[to_entries[] | {
         name: .key,
         value: (.value | tostring),
@@ -145,14 +128,12 @@ data:
       }]')
 
       if [ -n "$ITEM_ID" ]; then
-        # Update existing item
         ITEM_JSON=$(bw get item "$ITEM_ID")
         UPDATED=$(echo "$ITEM_JSON" | jq --argjson fields "$FIELDS" \
           '.fields = $fields')
         echo "$UPDATED" | bw encode | bw edit item "$ITEM_ID" > /dev/null
         echo "  Updated: ${path}"
       else
-        # Create new secure note
         NEW_ITEM=$(jq -n --arg name "$path" --arg folderId "$FOLDER_ID" \
           --argjson fields "$FIELDS" '{
             type: 2,
@@ -167,7 +148,6 @@ data:
       fi
     done
 
-    # Cleanup stale entries
     echo "Cleaning up stale entries..."
     EXISTING_ITEMS=$(bw list items --folderid "$FOLDER_ID")
     echo "$EXISTING_ITEMS" | jq -r '.[].name' | while read -r item_name; do
@@ -180,7 +160,7 @@ data:
     done
 
     bw logout
-    echo "Backup complete."
+    echo "Vaultwarden sync complete."
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -200,18 +180,49 @@ spec:
         spec:
           serviceAccountName: openbao-backup-sa
           restartPolicy: OnFailure
-          containers:
-            - name: backup
+          initContainers:
+            - name: export-secrets
               image: ghcr.io/openbao/openbao:2.5.1
-              command: ["/bin/sh", "/scripts/backup.sh"]
+              command: ["/bin/sh", "/scripts/export-secrets.sh"]
               env:
                 - name: BAO_ADDR
                   value: "http://openbao-active.openbao.svc.cluster.local:8200"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: shared
+                  mountPath: /shared
+            - name: encrypt-sops
+              image: ghcr.io/getsops/sops:v3.9.4
+              args:
+                - "--encrypt"
+                - "--age"
+                - "age13jdehut862zq4zp5cnglmxs4twhudhll7zdmt0ga2uqee9uaacqsthywd4"
+                - "--output"
+                - "/shared/openbao-secrets.sops.json"
+                - "/shared/secrets.json"
+              volumeMounts:
+                - name: shared
+                  mountPath: /shared
+            - name: git-push
+              image: alpine/git:latest
+              command: ["/bin/sh", "/scripts/git-push.sh"]
+              env:
                 - name: GITHUB_PAT
                   valueFrom:
                     secretKeyRef:
                       name: backup-github-creds
                       key: pat
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: shared
+                  mountPath: /shared
+          containers:
+            - name: vaultwarden-sync
+              image: node:22-alpine
+              command: ["/bin/sh", "/scripts/vaultwarden-sync.sh"]
+              env:
                 - name: VW_EMAIL
                   valueFrom:
                     secretKeyRef:
@@ -225,8 +236,12 @@ spec:
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
+                - name: shared
+                  mountPath: /shared
           volumes:
             - name: scripts
               configMap:
-                name: backup-script
+                name: backup-scripts
                 defaultMode: 0755
+            - name: shared
+              emptyDir: {}
