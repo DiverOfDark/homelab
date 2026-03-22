@@ -317,6 +317,7 @@ spec:
     managedNamespaceMetadata:
       labels:
         reloader.stakater.com/auto: "true"
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
