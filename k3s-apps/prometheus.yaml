@@ -38,8 +38,8 @@ spec:
               value: "true"
               effect: "NoExecute"
         defaultRules:
-          disabled:
-            KubeProxyDown: true
+          rules:
+            kubeProxy: false
         kubeEtcd:
           enabled: false
         alertmanager:
