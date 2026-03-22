@@ -37,7 +37,7 @@ tasks:
         set -euo pipefail
         for node in $(yq -r '.nodes[].hostname' talconfig.yaml); do
           echo "Applying config to $node..."
-          talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" --extra-args "-m staged" | bash
+          talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" --extra-flags "-m staged" | bash
         done
     prompt: "Apply Talos configs to ALL nodes (rolling)?"
 
