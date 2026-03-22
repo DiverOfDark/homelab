@@ -61,24 +61,93 @@ spec:
               gethomepage.dev/name: Alertmanager
               gethomepage.dev/icon: alertmanager.png
               gethomepage.dev/pod-selector: "app.kubernetes.io/name=alertmanager"
+          templateFiles:
+            telegram.tmpl: |-
+              {{ define "telegram.message" }}
+              {{- $status := .Status | toUpper -}}
+              {{- $isFiring := eq .Status "firing" -}}
+              <b>{{ if $isFiring }}🚨{{ else }}✅{{ end }} {{ $status }}</b>
+              <b>Namespace:</b> {{ .GroupLabels.namespace }}
+              <b>Alerts:</b> {{ len .Alerts }}
+              {{- if .CommonLabels.severity }}
+              <b>Severity:</b> {{ .CommonLabels.severity }}
+              {{- end }}
+
+              {{- range .Alerts }}
+
+              <b>{{ .Labels.alertname }}</b>{{ if .Labels.instance }} <code>{{ .Labels.instance }}</code>{{ end }}
+              {{- if .Annotations.summary }}
+              {{ .Annotations.summary }}
+              {{- else if .Annotations.message }}
+              {{ .Annotations.message }}
+              {{- else if .Annotations.description }}
+              {{ .Annotations.description }}
+              {{- end }}
+              {{- if .Labels.pod }}
+              <b>Pod:</b> <code>{{ .Labels.pod }}</code>
+              {{- end }}
+              {{- if .Labels.node }}
+              <b>Node:</b> <code>{{ .Labels.node }}</code>
+              {{- end }}
+              {{- if .Labels.job }}
+              <b>Job:</b> <code>{{ .Labels.job }}</code>
+              {{- end }}
+              {{- if .GeneratorURL }}
+              <a href="{{ .GeneratorURL }}">source</a>
+              {{- end }}
+              {{- end }}
+              {{ end }}
+          config:
+            global:
+              resolve_timeout: 5m
+            inhibit_rules:
+              - source_matchers:
+                  - 'severity = critical'
+                target_matchers:
+                  - 'severity =~ warning|info'
+                equal:
+                  - 'namespace'
+                  - 'alertname'
+              - source_matchers:
+                  - 'severity = warning'
+                target_matchers:
+                  - 'severity = info'
+                equal:
+                  - 'namespace'
+                  - 'alertname'
+              - source_matchers:
+                  - 'alertname = InfoInhibitor'
+                target_matchers:
+                  - 'severity = info'
+                equal:
+                  - 'namespace'
+              - target_matchers:
+                  - 'alertname = InfoInhibitor'
+            route:
+              group_by: ['namespace']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 12h
+              receiver: 'telegram-homelab'
+              routes:
+                - receiver: 'null'
+                  matchers:
+                    - alertname = "Watchdog"
+            receivers:
+              - name: 'null'
+              - name: 'telegram-homelab'
+                telegram_configs:
+                  - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram-auth/telegram_bot_token
+                    chat_id: -1003509565932
+                    message_thread_id: 20
+                    parse_mode: 'HTML'
+                    send_resolved: true
+                    message: '{{ template "telegram.message" . }}'
+            templates:
+              - '/etc/alertmanager/config/*.tmpl'
           alertmanagerSpec:
-            useExistingSecret: true
-            configSecret: alertmanager-config
-            additionalArgs:
-              - name: config.expand-env
-            containers:
-              - name: alertmanager
-                env:
-                  - name: TELEGRAM_BOT_TOKEN
-                    valueFrom:
-                      secretKeyRef:
-                        name: alertmanager-telegram-auth
-                        key: telegram_bot_token
-                  - name: TELEGRAM_CHAT_ID
-                    valueFrom:
-                      secretKeyRef:
-                        name: alertmanager-telegram-auth
-                        key: telegram_chat_id
+            secrets:
+              - alertmanager-telegram-auth
             storage:
               volumeClaimTemplate:
                 spec:
