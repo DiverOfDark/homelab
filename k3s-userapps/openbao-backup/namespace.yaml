@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openbao-backup
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openbao-backup-sa
+  namespace: openbao-backup
