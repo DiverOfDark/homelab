@@ -40,6 +40,8 @@ spec:
         defaultRules:
           rules:
             kubeProxy: false
+        kubeProxy:
+          enabled: false
         kubeEtcd:
           enabled: false
         alertmanager:
