@@ -45,17 +45,26 @@
         "/(^|/).*\\.y[a]?ml$/"
       ],
       "matchStrings": [
-        "#\\s*renovate: image=(?<depName>.*?)\\s+[\\w]*version:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
+        "#\\s*renovate: image=(?<depName>.*?)\\s+[\\w]*[vV]ersion:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
       ]
     },
     {
       "customType": "regex",
       "datasourceTemplate": "docker",
       "managerFilePatterns": [
-        "/(^|/).*\\.y[a?]ml$/"
+        "/(^|/).*\\.y[a]?ml$/"
       ],
       "matchStrings": [
         "image: [\"']?(?<depName>.*?):(?<currentValue>[\\w+\\.\\-]*)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/).*\\.y[a]?ml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s+(?:version|tag):\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
       ]
     }
   ],
@@ -65,5 +74,5 @@
   "automergeType": "branch",
   "labels": [
     "automerge"
-  ],
+  ]
 }

@@ -16,6 +16,7 @@ spec:
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
+      # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
       tag: v1.12.4
 ---
 apiVersion: tuppr.home-operations.com/v1alpha1
