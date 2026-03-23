@@ -6,7 +6,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-    version: v1.12.4
+    version: v1.12.6
   policy:
     rebootMode: powercycle
   nodeSelector:
@@ -17,7 +17,7 @@ spec:
     image:
       repository: ghcr.io/siderolabs/talosctl
       # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-      tag: v1.12.4
+      tag: v1.12.6
 ---
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: KubernetesUpgrade
