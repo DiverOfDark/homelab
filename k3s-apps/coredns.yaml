@@ -13,7 +13,7 @@ spec:
   source:
     chart: coredns
     repoURL: https://coredns.github.io/helm
-    targetRevision: 1.45.0
+    targetRevision: 1.45.2
     helm:
       valuesObject:
         replicaCount: 2
