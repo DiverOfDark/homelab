@@ -25,6 +25,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: kubescape
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
