@@ -239,7 +239,7 @@ spec:
             schedule: "0 12 * * *" ## 12 hour after yggdrasil backup
             template:
               storageLocation: wasabi
-              volumeSnapshotLocation:
+              volumeSnapshotLocations:
                - wasabi
               ttl: "240h"
               excludedNamespaces:
