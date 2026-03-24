@@ -160,69 +160,6 @@ spec:
                   remoteRef:
                     key: wasabi
                     property: secret_key
-          - apiVersion: monitoring.coreos.com/v1alpha1
-            kind: ScrapeConfig
-            metadata:
-              name: minio-monitoring-cluster
-              namespace: velero
-            spec:
-              metricsPath: /minio/v2/metrics/cluster
-              staticConfigs:
-                - labels:
-                    job: prometheus
-                  targets:
-                    - yggdrasil.kirillorlov.pro:80
-          - apiVersion: grafana.integreatly.org/v1beta1
-            kind: GrafanaDashboard
-            metadata:
-              name: minio-monitoring
-              namespace: velero
-            spec:
-              allowCrossNamespaceImport: true
-              instanceSelector:
-                matchLabels:
-                  dashboards: "grafana"
-              grafanaCom:
-                id: 13502
-              datasources:
-                - inputName: DS_PROMETHEUS
-                  datasourceName: Prometheus
-          - apiVersion: monitoring.coreos.com/v1alpha1
-            kind: ScrapeConfig
-            metadata:
-              name: minio-monitoring-bucket
-              namespace: velero
-            spec:
-              metricsPath: /minio/v2/metrics/bucket
-              staticConfigs:
-                - labels:
-                    job: prometheus
-                  targets:
-                    - yggdrasil.kirillorlov.pro:80
-          - apiVersion: monitoring.coreos.com/v1alpha1
-            kind: ScrapeConfig
-            metadata:
-              name: minio-monitoring-node
-              namespace: velero
-            spec:
-              metricsPath: /minio/v2/metrics/node
-              staticConfigs:
-                - labels:
-                    job: prometheus
-                  targets:
-                    - yggdrasil.kirillorlov.pro:80
-          - apiVersion: monitoring.coreos.com/v1alpha1
-            kind: ScrapeConfig
-            metadata:
-              name: minio-monitoring-resource
-              namespace: velero
-            spec:
-              metricsPath: /minio/v2/metrics/resource
-              staticConfigs:
-                - labels:
-                    job: prometheus
-                  targets:
-                    - yggdrasil.kirillorlov.pro:80
         credentials:
           useSecret: true
           existingSecret: velero-credentials
