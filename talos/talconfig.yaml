@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://budimanjojo.github.io/talhelper/latest/schema.json
 
 # renovate: image=ghcr.io/siderolabs/talosctl
-talosVersion: v1.12.5
+talosVersion: v1.12.6
 # renovate: image=registry.k8s.io/kube-apiserver
 kubernetesVersion: v1.35.2
 
