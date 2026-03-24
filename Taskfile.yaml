@@ -1,0 +1,15 @@
+version: "3"
+
+includes:
+  talos:
+    taskfile: ./talos/Taskfile.yaml
+    dir: ./talos
+
+tasks:
+  kubescape:
+    desc: Run Kubescape NSA framework scan
+    cmds:
+      - kubescape scan framework nsa
+    preconditions:
+      - sh: command -v kubescape
+        msg: "kubescape not found - enter the nix dev shell first"

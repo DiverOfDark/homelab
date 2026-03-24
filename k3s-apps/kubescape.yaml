@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubescape
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://kubescape.github.io/helm-charts
+    chart: kubescape-operator
+    targetRevision: 1.25.2
+    helm:
+      valuesObject:
+        clusterName: homelab
+        capabilities:
+          continuousScan: enable
+          vulnerabilityScan: enable
+          nodeScan: enable
+        persistence:
+          storageClass: "ceph-block"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubescape
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

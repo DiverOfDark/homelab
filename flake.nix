@@ -45,6 +45,7 @@
             pkgs.argocd
             pkgs.k9s
             pkgs.krew
+            pkgs.kubescape
 
             # Networking & service mesh
             pkgs.cilium-cli
@@ -117,7 +118,7 @@
             echo ""
             echo "Homelab dev shell ready."
             echo "  IaC:        tofu, packer, talhelper"
-            echo "  Kubernetes: kubectl, kubectx, helm, talosctl, argocd, k9s"
+            echo "  Kubernetes: kubectl, kubectx, helm, talosctl, argocd, k9s, kubescape"
             echo "  Network:    cilium, hubble, cloudflared"
             echo "  Secrets:    sops, age, bao, cmctl"
             echo "  Backup:     velero"
