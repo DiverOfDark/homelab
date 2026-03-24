@@ -147,8 +147,8 @@ resource "zitadel_application_oidc" "phos" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Phos"
-  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback", "http://localhost:3000/api/auth/callback"]
-  post_logout_redirect_uris   = ["https://phos.kirillorlov.pro", "http://localhost:3000"]
+  redirect_uris               = ["https://phos.kirillorlov.pro/api/auth/callback"]
+  post_logout_redirect_uris   = ["https://phos.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
   app_type                    = "OIDC_APP_TYPE_WEB"
@@ -164,8 +164,8 @@ resource "zitadel_application_oidc" "phos_android" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Phos Android"
-  redirect_uris               = ["dev.phos.android://callback"]
-  post_logout_redirect_uris   = ["dev.phos.android://callback"]
+  redirect_uris               = ["dev.phos.android://callback", "http://localhost:3000/callback"]
+  post_logout_redirect_uris   = ["dev.phos.android://callback", "http://localhost:3000"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
   app_type                    = "OIDC_APP_TYPE_NATIVE"
