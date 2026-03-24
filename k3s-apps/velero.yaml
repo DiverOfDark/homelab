@@ -239,6 +239,8 @@ spec:
             schedule: "0 12 * * *" ## 12 hour after yggdrasil backup
             template:
               storageLocation: wasabi
+              volumeSnapshotLocation:
+               - wasabi
               ttl: "240h"
               excludedNamespaces:
                 - github-runner
