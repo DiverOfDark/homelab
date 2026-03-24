@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://kubescape.github.io/helm-charts
     chart: kubescape-operator
-    targetRevision: 1.25.2
+    targetRevision: 1.30.5
     helm:
       valuesObject:
         clusterName: homelab
