@@ -192,6 +192,16 @@ spec:
               region: default
               s3ForcePathStyle: true
               s3Url: https://yggdrasil.kirillorlov.pro/
+          - name: wasabi
+            provider: aws
+            bucket: diverofdark-homelab-backup
+            credential:
+              name: velero-wasabi-credentials
+              key: cloud
+            config:
+              region: eu-central-2
+              s3ForcePathStyle: true
+              s3Url: https://s3.eu-central-2.wasabisys.com
           features: EnableCSI
         deployNodeAgent: true
         initContainers:
