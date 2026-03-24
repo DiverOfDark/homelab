@@ -171,7 +171,7 @@ spec:
             provider: aws
             bucket: ceph-backups
             config:
-              region: default
+              region: us-east-1
               s3ForcePathStyle: true
               s3Url: https://yggdrasil.kirillorlov.pro/
           - name: wasabi
