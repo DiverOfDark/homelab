@@ -217,6 +217,9 @@ spec:
             schedule: "0 0 * * *" ## choose time, when scheduled backups will be make.
             template:
               ttl: "240h" ## choose ttl, after which the backups will be removed.
+              storageLocation: default
+              volumeSnapshotLocations:
+               - default
               excludedNamespaces:
                 - github-runner
               snapshotVolumes: true
