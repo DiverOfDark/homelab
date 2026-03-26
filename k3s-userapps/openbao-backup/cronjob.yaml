@@ -18,7 +18,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: export-secrets
-              image: ghcr.io/openbao/openbao:2.5.1
+              image: ghcr.io/openbao/openbao:2.5.2
               command: ["/bin/sh", "/scripts/export-secrets.sh"]
               env:
                 - name: BAO_ADDR
