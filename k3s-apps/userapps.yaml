@@ -36,6 +36,7 @@ spec:
           kind: CustomResourceDefinition
           jqPathExpressions:
             - '.spec.conversion'
+            - '.spec.versions'
         - group: kubevirt.io
           kind: VirtualMachine
           jqPathExpressions:
