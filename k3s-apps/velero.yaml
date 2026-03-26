@@ -15,11 +15,24 @@ spec:
           extraArgs:
             - --resource-timeout=2h
             - --data-mover-prepare-timeout=2h
+            - --node-agent-configmap=node-agent-config
         kubectl:
           image:
             repository: public.ecr.aws/bitnami/kubectl
 
         extraObjects:
+          - apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: node-agent-config
+              namespace: velero
+            data:
+              node-agent-config.json: |
+                {
+                  "loadConcurrency": {
+                    "globalConfig": 3
+                  }
+                }
           - apiVersion: v1
             kind: ConfigMap
             metadata:
