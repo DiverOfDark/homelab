@@ -32,6 +32,15 @@ spec:
             - .metadata.annotations."gethomepage.dev/widget.key"
             - .metadata.annotations."gethomepage.dev/widget.tunnelid"
           kind: Ingress
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          jqPathExpressions:
+            - '.spec.conversion'
+        - group: kubevirt.io
+          kind: VirtualMachine
+          jqPathExpressions:
+            - '.spec.template.spec.domain.firmware'
+            - '.spec.dataVolumeTemplates[]?.metadata.creationTimestamp'
       syncPolicy:
         automated:
           prune: true
