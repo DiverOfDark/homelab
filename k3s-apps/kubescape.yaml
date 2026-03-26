@@ -21,6 +21,27 @@ spec:
         persistence:
           storageClass: "ceph-block"
 
+  ignoreDifferences:
+    - group: ''
+      kind: Secret
+      jqPathExpressions:
+        - '.data'
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - '.webhooks[]?.clientConfig.caBundle'
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jqPathExpressions:
+        - '.spec.conversion'
+    - group: apiregistration.k8s.io
+      kind: APIService
+      jqPathExpressions:
+        - '.spec.caBundle'
+    - group: batch
+      kind: CronJob
+      jqPathExpressions:
+        - '.spec.schedule'
   destination:
     server: https://kubernetes.default.svc
     namespace: kubescape
