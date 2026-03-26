@@ -36,6 +36,10 @@ spec:
           kind: CustomResourceDefinition
           jqPathExpressions:
             - '.spec.conversion'
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          name: cdis.cdi.kubevirt.io
+          jqPathExpressions:
             - '.spec.versions'
         - group: kubevirt.io
           kind: VirtualMachine
