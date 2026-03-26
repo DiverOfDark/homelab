@@ -11,10 +11,28 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    chart: open-telemetry-operator
-    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
-    targetRevision: 0.70.0
+    chart: opentelemetry-operator
+    repoURL: ghcr.io/open-telemetry/opentelemetry-helm-charts
+    targetRevision: 0.109.0
+    helm:
+      values: |
+        admissionWebhooks:
+          certManager:
+            enabled: true
+        manager:
+          collectorImage:
+            repository: otel/opentelemetry-collector-contrib
+          serviceMonitor:
+            enabled: true
+          createRbacPermissions: true
+          prometheusRule:
+            enabled: true 
+            defaultRules:
+              enabled: true
   syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     automated:
       prune: true
     syncOptions:
