@@ -20,6 +20,13 @@ spec:
            global: true
          serviceMonitor:
            enabled: true
+         args:
+           - --delete-successful-after=15m
+           - --delete-failed-after=120m
+           - --delete-pending-pods-after=60m
+           - --delete-evicted-pods-after=60m
+           - --delete-orphaned-pods-after=60m
+           - --legacy-mode=false
   syncPolicy:
     automated:
       prune: true
