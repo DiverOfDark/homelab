@@ -73,6 +73,7 @@ data:
 
     if [ "$NEW_HASH" = "$OLD_HASH" ]; then
       echo "No changes to commit (plaintext hash unchanged)."
+      exit 0
     else
       cp /shared/openbao-secrets.sops.json "${REPO_DIR}/backups/openbao-secrets.sops.json"
       cp /shared/secrets.sha256 "${REPO_DIR}/backups/openbao-secrets.sha256"
