@@ -16,15 +16,6 @@ spec:
 
         githubConfigSecret: github-secret
 
-        containerMode:
-          type: "kubernetes"
-          kubernetesModeWorkVolumeClaim:
-            accessModes: ["ReadWriteMany"]
-            storageClassName: "ceph-filesystem"
-            resources:
-              requests:
-                storage: 75Gi
-
         maxRunners: 5
         minRunners: 1
         controllerServiceAccount:
@@ -34,13 +25,38 @@ spec:
         template:
           spec:
             restartPolicy: Never
-            initContainers:
-              - name: init-k8s-volume-permissions
+            containers:
+              - name: runner
                 image: ghcr.io/actions/actions-runner:latest
-                command: [ "sudo", "chown", "-R", "runner", "/home/runner/_work" ]
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: DOCKER_HOST
+                    value: unix:///var/run/docker.sock
                 volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+              - name: dind
+                image: docker:dind
+                securityContext:
+                  privileged: true
+                volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-storage
+                    mountPath: /var/lib/docker
+            volumes:
+              - name: work
+                persistentVolumeClaim:
+                  claimName: peelbox-work
+              - name: dind-sock
+                emptyDir: {}
+              - name: dind-storage
+                emptyDir:
+                  sizeLimit: 75Gi
   destination:
     server: https://kubernetes.default.svc
     namespace: github-runner
