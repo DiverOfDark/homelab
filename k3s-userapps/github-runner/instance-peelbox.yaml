@@ -23,7 +23,7 @@ spec:
             storageClassName: "ceph-filesystem"
             resources:
               requests:
-                storage: 5Gi
+                storage: 75Gi
 
         maxRunners: 5
         minRunners: 1
