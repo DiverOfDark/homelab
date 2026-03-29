@@ -50,8 +50,7 @@ spec:
                     mountPath: /var/lib/docker
             volumes:
               - name: work
-                persistentVolumeClaim:
-                  claimName: peelbox-work
+                emptyDir: {}
               - name: dind-sock
                 emptyDir: {}
               - name: dind-storage
