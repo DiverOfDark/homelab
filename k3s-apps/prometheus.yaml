@@ -132,7 +132,7 @@ spec:
               routes:
                 - receiver: 'null'
                   matchers:
-                    - alertname = "Watchdog"
+                    - alertname =~ "Watchdog|InfoInhibitor"
             receivers:
               - name: 'null'
               - name: 'telegram-homelab'
