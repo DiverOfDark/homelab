@@ -129,7 +129,7 @@ spec:
                   token_url: "https://auth.kirillorlov.pro/oauth/v2/token"
                   api_url: "https://auth.kirillorlov.pro/oidc/v1/userinfo"
                   role_attribute_path: "'Admin'"
-                  skip_org_role_sync: "true"
+                  skip_org_role_sync: "false"
               ingress:
                 metadata:
                   annotations:
