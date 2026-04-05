@@ -133,7 +133,7 @@ spec:
               routes:
                 - receiver: 'null'
                   matchers:
-                    - alertname =~ "Watchdog|InfoInhibitor"
+                    - alertname =~ "Watchdog|InfoInhibitor|KubeClientCertificateExpiration"
             receivers:
               - name: 'null'
               - name: 'telegram-homelab'
