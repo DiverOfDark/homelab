@@ -40,7 +40,8 @@ spec:
         defaultRules:
           rules:
             kubeProxy: false
-            kubeClientCertificateExpiration: false
+          disabled:
+            KubeClientCertificateExpiration: true
         kubeProxy:
           enabled: false
         kubeEtcd:
