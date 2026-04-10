@@ -8,9 +8,13 @@
       url = "github:DiverOfDark/peelbox";
       flake = false;
     };
+    appbahn = {
+      url = "github:diverofdark/appbahn";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, peelbox }:
+  outputs = { self, nixpkgs, flake-utils, peelbox, appbahn }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
@@ -25,8 +29,18 @@
           RUSTONIG_SYSTEM_LIBONIG = 1;
           doCheck = false;
         };
+        appbahnPkg = pkgs.buildGoModule {
+          pname = "appbahn";
+          version = "0.1.0";
+          src = "${appbahn}/cli";
+          vendorHash = "sha256-l0A6g8Fc+ZU35n8HH98JntIi25CVOKnSVKCqforPETY=";
+          postInstall = ''
+            mv $out/bin/cli $out/bin/appbahn
+          '';
+        };
       in {
         packages.peelbox = peelboxPkg;
+        packages.appbahn = appbahnPkg;
         packages.packer = pkgs.packer;
 
         devShells.default = pkgs.mkShell {
@@ -67,6 +81,9 @@
 
             # Container tooling
             peelboxPkg
+
+            # AppBahn CLI
+            appbahnPkg
 
             # Task runner
             pkgs.go-task
@@ -124,6 +141,7 @@
             echo "  Backup:     velero"
             echo "  Cloud:      hcloud"
             echo "  Container:  peelbox"
+            echo "  Platform:   appbahn"
             echo "  Task:       go-task"
             echo "  Utils:      yq, dos2unix, pre-commit"
             echo ""

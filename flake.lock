@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "appbahn": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775691969,
+        "narHash": "sha256-bgqkMCE/iTRf3apL8fb5rGY4bSkL9tO5o6WGpbWs0KE=",
+        "owner": "diverofdark",
+        "repo": "appbahn",
+        "rev": "06409618497bbb8f040ab1933a2d4e24add79692",
+        "type": "github"
+      },
+      "original": {
+        "owner": "diverofdark",
+        "repo": "appbahn",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -52,6 +68,7 @@
     },
     "root": {
       "inputs": {
+        "appbahn": "appbahn",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "peelbox": "peelbox"
