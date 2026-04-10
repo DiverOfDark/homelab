@@ -14,7 +14,7 @@ spec:
     helm:
       valuesObject:
         server:
-          updateStrategy: "RollingUpdate"
+          updateStrategyType: "RollingUpdate"
           podManagementPolicy: "Parallel"
           volumes:
             - name: seal-key
