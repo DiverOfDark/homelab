@@ -80,6 +80,13 @@ locals {
       short = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
+    }, {
+      short = "appbahn"
+      hostname = "appbahn.kirillorlov.pro"
+      service  = "https://traefik.kube-system.svc.cluster.local:443"
+      originRequest = {
+        noTLSVerify = true
+      }
     }
   ]
 }

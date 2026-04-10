@@ -177,6 +177,40 @@ resource "zitadel_application_oidc" "phos_android" {
   id_token_userinfo_assertion = true
 }
 
+resource "zitadel_application_oidc" "appbahn_platform" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "AppBahn Platform"
+  redirect_uris               = ["https://appbahn.kirillorlov.pro/login/oauth2/code/appbahn"]
+  post_logout_redirect_uris   = ["https://appbahn.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "appbahn_operator" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "AppBahn Operator"
+  redirect_uris               = []
+  post_logout_redirect_uris   = []
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_CLIENT_CREDENTIALS"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
 resource "zitadel_application_saml" "ceph_dashboard" {
   org_id       = var.zitadel_org_id
   project_id   = zitadel_project.homelab.id
@@ -233,8 +267,10 @@ locals {
     actual_budget = zitadel_application_oidc.actual_budget
     vaultwarden   = zitadel_application_oidc.vaultwarden
     readur        = zitadel_application_oidc.readur
-    phos          = zitadel_application_oidc.phos
-    phos_android  = zitadel_application_oidc.phos_android
+    phos             = zitadel_application_oidc.phos
+    phos_android     = zitadel_application_oidc.phos_android
+    appbahn_platform = zitadel_application_oidc.appbahn_platform
+    appbahn_operator = zitadel_application_oidc.appbahn_operator
   }
 }
 
