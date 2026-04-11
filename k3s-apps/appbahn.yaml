@@ -1,0 +1,251 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: appbahn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: appbahn
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: ghcr.io/diverofdark/appbahn/charts
+    targetRevision: 2026.04.11-2
+    chart: appbahn
+    helm:
+      valuesObject:
+        platform:
+          domain:
+            base: "appbahn.kirillorlov.pro"
+          namespacePrefix: "abp"
+          database:
+            url: "jdbc:postgresql://appbahn-db-rw.appbahn.svc.cluster.local:5432/appbahn"
+            credentialRef: "appbahn-db-app"
+          auth:
+            issuerUrl: "https://auth.kirillorlov.pro"
+            audience: "appbahn"
+            existingSecret: "appbahn-platform-oidc"
+          ingress:
+            className: "traefik"
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/name: "AppBahn"
+              gethomepage.dev/description: "Platform Management"
+              gethomepage.dev/group: "Infra"
+              gethomepage.dev/href: "https://appbahn.kirillorlov.pro"
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=appbahn-platform"
+            tls: true
+          branding:
+            instanceName: "Homelab AppBahn"
+            loginButtonText: "Log in with Homelab SSO"
+        operator:
+          clusterName: "homelab"
+          ingressClassName: "traefik"
+          clusterIssuer: "acme-issuer"
+          auth:
+            existingSecret: "appbahn-operator-oidc"
+            tokenEndpoint: "https://auth.kirillorlov.pro/oauth/v2/token"
+        serviceMonitor:
+          enabled: true
+        additionalObjects:
+          # --- OIDC credentials from OpenBao ---
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: appbahn-platform-oidc
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: appbahn-platform-oidc
+                creationPolicy: Owner
+                deletionPolicy: Retain
+                template:
+                  type: Opaque
+                  data:
+                    client-id: "{{`{{ .client_id }}`}}"
+                    client-secret: "{{`{{ .client_secret }}`}}"
+              data:
+                - secretKey: client_id
+                  remoteRef:
+                    key: zitadel/appbahn_platform-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/appbahn_platform-credentials
+                    property: client_secret
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: appbahn-operator-oidc
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: appbahn-operator-oidc
+                creationPolicy: Owner
+                deletionPolicy: Retain
+                template:
+                  type: Opaque
+                  data:
+                    client-id: "{{`{{ .client_id }}`}}"
+                    client-secret: "{{`{{ .client_secret }}`}}"
+              data:
+                - secretKey: client_id
+                  remoteRef:
+                    key: zitadel/appbahn_operator-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/appbahn_operator-credentials
+                    property: client_secret
+          # --- CNPG backup credentials ---
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: cnpg-backup-yggdrasil-creds
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: cnpg-backup-yggdrasil-creds
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: ACCESS_KEY_ID
+                  remoteRef:
+                    key: yggdrasil-s3
+                    property: access_key
+                - secretKey: ACCESS_SECRET_KEY
+                  remoteRef:
+                    key: yggdrasil-s3
+                    property: secret_key
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: cnpg-backup-wasabi-creds
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: cnpg-backup-wasabi-creds
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: ACCESS_KEY_ID
+                  remoteRef:
+                    key: wasabi
+                    property: access_key
+                - secretKey: ACCESS_SECRET_KEY
+                  remoteRef:
+                    key: wasabi
+                    property: secret_key
+          # --- CNPG backup object stores ---
+          - apiVersion: barmancloud.cnpg.io/v1
+            kind: ObjectStore
+            metadata:
+              name: yggdrasil-store
+            spec:
+              configuration:
+                destinationPath: s3://cnpg-backups/appbahn/appbahn-db/
+                endpointURL: https://yggdrasil.kirillorlov.pro
+                s3Credentials:
+                  accessKeyId:
+                    name: cnpg-backup-yggdrasil-creds
+                    key: ACCESS_KEY_ID
+                  secretAccessKey:
+                    name: cnpg-backup-yggdrasil-creds
+                    key: ACCESS_SECRET_KEY
+                wal:
+                  compression: gzip
+                  maxParallel: 2
+                data:
+                  compression: gzip
+              retentionPolicy: "30d"
+          - apiVersion: barmancloud.cnpg.io/v1
+            kind: ObjectStore
+            metadata:
+              name: wasabi-store
+            spec:
+              configuration:
+                destinationPath: s3://diverofdark-homelab-backup/cnpg-backups/appbahn/appbahn-db/
+                endpointURL: https://s3.eu-central-2.wasabisys.com
+                s3Credentials:
+                  accessKeyId:
+                    name: cnpg-backup-wasabi-creds
+                    key: ACCESS_KEY_ID
+                  secretAccessKey:
+                    name: cnpg-backup-wasabi-creds
+                    key: ACCESS_SECRET_KEY
+                wal:
+                  compression: gzip
+                  maxParallel: 2
+                data:
+                  compression: gzip
+              retentionPolicy: "30d"
+          # --- CNPG PostgreSQL cluster ---
+          - apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            metadata:
+              name: appbahn-db
+            spec:
+              instances: 2
+              imageName: ghcr.io/cloudnative-pg/postgresql:17
+              storage:
+                size: 5Gi
+              bootstrap:
+                initdb:
+                  database: appbahn
+                  owner: appbahn
+              plugins:
+                - name: barman-cloud.cloudnative-pg.io
+                  enabled: true
+                  isWALArchiver: true
+                  parameters:
+                    barmanObjectName: yggdrasil-store
+          # --- CNPG scheduled backups ---
+          - apiVersion: postgresql.cnpg.io/v1
+            kind: ScheduledBackup
+            metadata:
+              name: appbahn-db-backup-yggdrasil
+            spec:
+              schedule: "0 0 0 * * *"
+              backupOwnerReference: self
+              cluster:
+                name: appbahn-db
+              method: plugin
+              pluginConfiguration:
+                name: barman-cloud.cloudnative-pg.io
+                parameters:
+                  barmanObjectName: yggdrasil-store
+          - apiVersion: postgresql.cnpg.io/v1
+            kind: ScheduledBackup
+            metadata:
+              name: appbahn-db-backup-wasabi
+            spec:
+              schedule: "0 0 12 * * *"
+              backupOwnerReference: self
+              cluster:
+                name: appbahn-db
+              method: plugin
+              pluginConfiguration:
+                name: barman-cloud.cloudnative-pg.io
+                parameters:
+                  barmanObjectName: wasabi-store
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
