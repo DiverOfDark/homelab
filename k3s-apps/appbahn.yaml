@@ -17,6 +17,9 @@ spec:
     helm:
       valuesObject:
         platform:
+          resources:
+            limits:
+              memory: 1Gi
           domain:
             base: "appbahn.kirillorlov.pro"
           namespacePrefix: "abp"
@@ -42,6 +45,9 @@ spec:
             instanceName: "Homelab AppBahn"
             loginButtonText: "Log in with Homelab SSO"
         operator:
+          resources:
+            limits:
+              memory: 1Gi
           clusterName: "homelab"
           ingressClassName: "traefik"
           clusterIssuer: "acme-issuer"
