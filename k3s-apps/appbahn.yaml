@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     repoURL: ghcr.io/diverofdark/appbahn/charts
-    targetRevision: 2026.04.12-3
+    targetRevision: 2026.04.12-7
     chart: appbahn
     helm:
       valuesObject:
@@ -71,17 +71,12 @@ spec:
                 name: appbahn-platform-oidc
                 creationPolicy: Owner
                 deletionPolicy: Retain
-                template:
-                  type: Opaque
-                  data:
-                    client-id: "{{`{{ .client_id }}`}}"
-                    client-secret: "{{`{{ .client_secret }}`}}"
               data:
-                - secretKey: client_id
+                - secretKey: client-id
                   remoteRef:
                     key: zitadel/appbahn_platform-credentials
                     property: client_id
-                - secretKey: client_secret
+                - secretKey: client-secret
                   remoteRef:
                     key: zitadel/appbahn_platform-credentials
                     property: client_secret
@@ -98,17 +93,12 @@ spec:
                 name: appbahn-operator-oidc
                 creationPolicy: Owner
                 deletionPolicy: Retain
-                template:
-                  type: Opaque
-                  data:
-                    client-id: "{{`{{ .client_id }}`}}"
-                    client-secret: "{{`{{ .client_secret }}`}}"
               data:
-                - secretKey: client_id
+                - secretKey: client-id
                   remoteRef:
                     key: zitadel/appbahn_operator-credentials
                     property: client_id
-                - secretKey: client_secret
+                - secretKey: client-secret
                   remoteRef:
                     key: zitadel/appbahn_operator-credentials
                     property: client_secret
