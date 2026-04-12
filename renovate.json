@@ -35,6 +35,12 @@
         "patch"
       ],
       "automerge": true
+    },
+    {
+      "description": "Auto-merge all appbahn updates without delay",
+      "matchPackagePatterns": ["appbahn"],
+      "automerge": true,
+      "minimumReleaseAge": "0 days"
     }
   ],
   "customManagers": [
