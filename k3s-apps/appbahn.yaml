@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     repoURL: ghcr.io/diverofdark/appbahn/charts
-    targetRevision: 2026.04.12-7
+    targetRevision: 2026.04.12-8
     chart: appbahn
     helm:
       valuesObject:
