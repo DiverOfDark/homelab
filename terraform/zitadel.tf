@@ -194,21 +194,26 @@ resource "zitadel_application_oidc" "appbahn_platform" {
   id_token_userinfo_assertion = true
 }
 
-resource "zitadel_application_oidc" "appbahn_operator" {
-  org_id                      = var.zitadel_org_id
-  project_id                  = zitadel_project.homelab.id
-  name                        = "AppBahn Operator"
-  redirect_uris               = []
-  post_logout_redirect_uris   = []
-  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
-  grant_types                 = ["OIDC_GRANT_TYPE_CLIENT_CREDENTIALS"]
-  app_type                    = "OIDC_APP_TYPE_WEB"
-  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
-  version                     = "OIDC_VERSION_1_0"
-  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
-  access_token_role_assertion = true
-  id_token_role_assertion     = true
-  id_token_userinfo_assertion = true
+resource "zitadel_machine_user" "appbahn_operator" {
+  org_id            = var.zitadel_org_id
+  username          = "appbahn-operator"
+  name              = "AppBahn Operator"
+  with_secret       = true
+  access_token_type = "ACCESS_TOKEN_TYPE_JWT"
+}
+
+resource "zitadel_project_role" "appbahn_internal" {
+  org_id       = var.zitadel_org_id
+  project_id   = zitadel_project.homelab.id
+  role_key     = "internal"
+  display_name = "AppBahn Internal"
+}
+
+resource "zitadel_user_grant" "appbahn_operator" {
+  org_id     = var.zitadel_org_id
+  project_id = zitadel_project.homelab.id
+  user_id    = zitadel_machine_user.appbahn_operator.id
+  role_keys  = [zitadel_project_role.appbahn_internal.role_key]
 }
 
 resource "zitadel_application_saml" "ceph_dashboard" {
@@ -270,7 +275,6 @@ locals {
     phos             = zitadel_application_oidc.phos
     phos_android     = zitadel_application_oidc.phos_android
     appbahn_platform = zitadel_application_oidc.appbahn_platform
-    appbahn_operator = zitadel_application_oidc.appbahn_operator
   }
 }
 
@@ -286,5 +290,17 @@ resource "vault_kv_secret_v2" "zitadel_credentials" {
     issuer        = "https://auth.kirillorlov.pro"
     project_id    = zitadel_project.homelab.id
 
+  })
+}
+
+resource "vault_kv_secret_v2" "appbahn_operator_credentials" {
+  mount = "secret"
+  name  = "zitadel/appbahn_operator-credentials"
+
+  data_json = jsonencode({
+    client_id     = zitadel_machine_user.appbahn_operator.client_id
+    client_secret = zitadel_machine_user.appbahn_operator.client_secret
+    issuer        = "https://auth.kirillorlov.pro"
+    project_id    = zitadel_project.homelab.id
   })
 }
