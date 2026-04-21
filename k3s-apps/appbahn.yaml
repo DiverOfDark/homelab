@@ -40,7 +40,8 @@ spec:
               gethomepage.dev/group: "Infra"
               gethomepage.dev/href: "https://appbahn.kirillorlov.pro"
               gethomepage.dev/pod-selector: "app.kubernetes.io/name=appbahn-platform"
-            tls: true
+            tls:
+              secretName: "appbahn-platform-tls"
           branding:
             instanceName: "Homelab AppBahn"
             loginButtonText: "Log in with Homelab SSO"
