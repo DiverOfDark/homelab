@@ -39,7 +39,7 @@ jobs:
           echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
           echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)" >> "$GITHUB_ENV"
           echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)" >> "$GITHUB_ENV"
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.1
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.3
       - name: Configure Nix S3 cache
         if: steps.cache.outcome == 'success'
         run: |
@@ -98,7 +98,7 @@ jobs:
           echo "::add-mask::$(decode AWS_SECRET_ACCESS_KEY)"
           echo "AWS_ACCESS_KEY_ID=$(decode AWS_ACCESS_KEY_ID)" >> "$GITHUB_ENV"
           echo "AWS_SECRET_ACCESS_KEY=$(decode AWS_SECRET_ACCESS_KEY)" >> "$GITHUB_ENV"
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.1
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.3
       - name: Configure Nix S3 cache
         if: steps.cache.outcome == 'success'
         run: |
