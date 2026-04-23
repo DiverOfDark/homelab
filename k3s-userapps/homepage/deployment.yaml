@@ -15,8 +15,8 @@ spec:
         app.kubernetes.io/pod: homepage
     spec:
       containers:
-        - image: 'ghcr.io/diverofdark/about/website:0.0.4'
-          imagePullPolicy: IfNotPresent
+        - image: 'ghcr.io/diverofdark/about/website:latest'
+          imagePullPolicy: Always
           name: homepage
           ports:
             - containerPort: 3000
