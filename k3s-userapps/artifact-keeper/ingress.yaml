@@ -1,0 +1,274 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: artifact-keeper
+  namespace: artifact-keeper
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://artifacts.kirillorlov.pro"
+    gethomepage.dev/group: Infra
+    gethomepage.dev/name: ArtifactKeeper
+    gethomepage.dev/icon: "https://artifactkeeper.com/favicon.png"
+    gethomepage.dev/pod-selector: "app=artifact-keeper-backend"
+spec:
+  rules:
+    - host: artifacts.kirillorlov.pro
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /ready
+            pathType: Exact
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /v2
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /maven
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /npm
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /pypi
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /nuget
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /cargo
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /gems
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /go
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /helm
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /debian
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /rpm
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /alpine
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /composer
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /conan
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /conda
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /swift
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /terraform
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /cocoapods
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /hex
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /pub
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /lfs
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /ivy
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /chef
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /puppet
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /ansible
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /cran
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /huggingface
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /jetbrains
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /vscode
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /proto
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /incus
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /ext
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-backend
+                port:
+                  name: backend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: artifact-keeper-frontend
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - artifacts.kirillorlov.pro
+      secretName: artifact-keeper-tls

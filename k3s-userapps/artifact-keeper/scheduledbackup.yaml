@@ -1,0 +1,31 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: artifact-keeper-db-backup-yggdrasil
+  namespace: artifact-keeper
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: artifact-keeper-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: yggdrasil-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: artifact-keeper-db-backup-wasabi
+  namespace: artifact-keeper
+spec:
+  schedule: "0 0 12 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: artifact-keeper-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: wasabi-store

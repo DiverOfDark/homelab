@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: meilisearch
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 7700
+  selector:
+    app: meilisearch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifact-keeper-backend
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: backend
+  selector:
+    app: artifact-keeper-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifact-keeper-frontend
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+  selector:
+    app: artifact-keeper-frontend

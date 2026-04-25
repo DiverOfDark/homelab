@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meilisearch
+  namespace: artifact-keeper
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meilisearch
+  template:
+    metadata:
+      labels:
+        app: meilisearch
+    spec:
+      containers:
+        - name: meilisearch
+          image: getmeili/meilisearch:v1.40
+          ports:
+            - containerPort: 7700
+          env:
+            - name: MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE
+              value: "true"
+            - name: MEILI_MASTER_KEY
+              value: "artifact-keeper-dev-key" # Should be in secret
+            - name: MEILI_ENV
+              value: "production"
+          volumeMounts:
+            - name: data
+              mountPath: /meili_data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: meilisearch-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifact-keeper-backend
+  namespace: artifact-keeper
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: artifact-keeper-backend
+  template:
+    metadata:
+      labels:
+        app: artifact-keeper-backend
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: artifact-keeper-backend
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: backend
+          image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.6
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-db-app
+                  key: uri
+            - name: STORAGE_PATH
+              value: "/data/storage"
+            - name: MEILISEARCH_URL
+              value: "http://meilisearch:7700"
+            - name: MEILISEARCH_API_KEY
+              value: "artifact-keeper-dev-key"
+            - name: RUST_LOG
+              value: "info"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: JWT_SECRET
+            - name: SSO_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: SSO_ENCRYPTION_KEY
+            - name: OIDC_ISSUER
+              value: "https://auth.kirillorlov.pro"
+            - name: OIDC_REDIRECT_URI
+              value: "https://artifacts.kirillorlov.pro/api/v1/auth/oidc/callback"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-zitadel
+                  key: client_id
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-zitadel
+                  key: client_secret
+          volumeMounts:
+            - name: storage
+              mountPath: /data/storage
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: artifact-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifact-keeper-frontend
+  namespace: artifact-keeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artifact-keeper-frontend
+  template:
+    metadata:
+      labels:
+        app: artifact-keeper-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/artifact-keeper/artifact-keeper-web:1.1.3
+          ports:
+            - containerPort: 3000
+          env:
+            - name: BACKEND_URL
+              value: "http://artifact-keeper-backend:8080"

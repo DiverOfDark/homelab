@@ -1,0 +1,45 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: yggdrasil-store
+  namespace: artifact-keeper
+spec:
+  configuration:
+    destinationPath: s3://cnpg-backups/artifact-keeper/artifact-keeper-db/
+    endpointURL: https://yggdrasil.kirillorlov.pro
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-yggdrasil-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: wasabi-store
+  namespace: artifact-keeper
+spec:
+  configuration:
+    destinationPath: s3://diverofdark-homelab-backup/cnpg-backups/artifact-keeper/artifact-keeper-db/
+    endpointURL: https://s3.eu-central-2.wasabisys.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-wasabi-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"

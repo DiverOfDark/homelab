@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: artifact-keeper-db
+  namespace: artifact-keeper
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  storage:
+    size: 10Gi
+    storageClass: ceph-block
+  bootstrap:
+    initdb:
+      database: artifact_registry
+      owner: registry
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: yggdrasil-store
