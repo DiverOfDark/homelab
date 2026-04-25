@@ -164,11 +164,6 @@ patches:
               - https://artifacts.kirillorlov.pro/v2/docker-hub
               - https://registry-1.docker.io/v2
             overridePath: true
-          ghcr.io:
-            endpoints:
-              - https://artifacts.kirillorlov.pro/v2/ghcr
-              - https://ghcr.io/v2
-            overridePath: true
           quay.io:
             endpoints:
               - https://artifacts.kirillorlov.pro/v2/quay

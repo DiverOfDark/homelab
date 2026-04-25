@@ -72,27 +72,3 @@ resource "restapi_object" "repository_docker_proxy" {
   })
 }
 
-# GitHub Container Registry proxy needs explicit basic auth as a workaround
-# for an AK 1.1.6 bug: same-host realm auth (ghcr.io issues tokens at
-# ghcr.io/token) doesn't complete the anonymous-token exchange. With basic
-# auth + a read:packages PAT, AK skips the token dance entirely.
-# Expected OpenBao key: github_pat (read:packages scope)
-resource "restapi_object" "repository_ghcr" {
-  provider = restapi.artifact_keeper
-
-  path         = "/api/v1/repositories"
-  id_attribute = "key"
-
-  data = jsonencode({
-    key                = "ghcr"
-    name               = "GitHub Container Registry"
-    format             = "docker"
-    repo_type          = "remote"
-    description        = "Proxy for https://ghcr.io"
-    is_public          = true
-    upstream_url       = "https://ghcr.io"
-    upstream_auth_type = "basic"
-    upstream_username  = "DiverOfDark"
-    upstream_password  = data.vault_kv_secret_v2.artifact_keeper.data["github_pat"]
-  })
-}
