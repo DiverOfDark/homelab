@@ -298,7 +298,7 @@ spec:
             - name: storage
               mountPath: /data/storage
         - name: frontend
-          image: ghcr.io/artifact-keeper/artifact-keeper-web:1.1.0-rc.3
+          image: ghcr.io/artifact-keeper/artifact-keeper-web:1.1.6
           ports:
             - containerPort: 3000
           env:
