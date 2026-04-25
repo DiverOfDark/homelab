@@ -251,7 +251,7 @@ metadata:
   name: artifact-keeper
   namespace: artifact-keeper
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: artifact-keeper
@@ -272,7 +272,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
         - name: backend
-          image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.0-rc.3
+          image: ghcr.io/artifact-keeper/artifact-keeper-backend:1.1.6
           ports:
             - containerPort: 8080
           env:
