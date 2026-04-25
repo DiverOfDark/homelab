@@ -28,7 +28,7 @@ spec:
           persistentVolumeClaim:
             claimName: rclone-seedbox
       containers:
-        - image: 'linuxserver/radarr:6.0.4'
+        - image: 'ghcr.io/linuxserver/radarr:6.0.4'
           imagePullPolicy: IfNotPresent
           name: radarr
           env:
