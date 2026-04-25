@@ -3,7 +3,7 @@
 # renovate: image=ghcr.io/siderolabs/talosctl
 talosVersion: v1.12.6
 # renovate: image=registry.k8s.io/kube-apiserver
-kubernetesVersion: v1.35.2
+kubernetesVersion: v1.35.3
 
 clusterName: homelab
 endpoint: https://192.168.179.2:6443
@@ -155,6 +155,35 @@ patches:
     kind: KmsgLogConfig
     name: remote-log
     url: udp://127.0.0.1:5051/
+  - |-
+    machine:
+      registries:
+        mirrors:
+          docker.io:
+            endpoints:
+              - https://artifacts.kirillorlov.pro/v2/docker-hub
+              - https://registry-1.docker.io/v2
+            overridePath: true
+          ghcr.io:
+            endpoints:
+              - https://artifacts.kirillorlov.pro/v2/ghcr
+              - https://ghcr.io/v2
+            overridePath: true
+          quay.io:
+            endpoints:
+              - https://artifacts.kirillorlov.pro/v2/quay
+              - https://quay.io/v2
+            overridePath: true
+          registry.k8s.io:
+            endpoints:
+              - https://artifacts.kirillorlov.pro/v2/registry-k8s
+              - https://registry.k8s.io/v2
+            overridePath: true
+          public.ecr.aws:
+            endpoints:
+              - https://artifacts.kirillorlov.pro/v2/ecr-public
+              - https://public.ecr.aws/v2
+            overridePath: true
 
 controlPlane:
   patches:
