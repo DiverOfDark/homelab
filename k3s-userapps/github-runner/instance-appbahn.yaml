@@ -21,7 +21,7 @@ spec:
         containerMode:
           type: "dind"
 
-        maxRunners: 2
+        maxRunners: 4
         minRunners: 1
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
