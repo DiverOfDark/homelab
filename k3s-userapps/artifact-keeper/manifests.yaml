@@ -190,11 +190,40 @@ spec:
       type: Opaque
       data:
         JWT_SECRET: "{{`{{ .password }}`}}"
+        SSO_ENCRYPTION_KEY: "{{`{{ .sso_encryption_key }}`}}"
   data:
     - secretKey: password
       remoteRef:
         key: artifact-keeper
         property: jwt_secret
+    - secretKey: sso_encryption_key
+      remoteRef:
+        key: artifact-keeper
+        property: sso_encryption_key
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: artifact-keeper-zitadel
+  namespace: artifact-keeper
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: artifact-keeper-zitadel
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: client_id
+      remoteRef:
+        key: zitadel/artifact_keeper-credentials
+        property: client_id
+    - secretKey: client_secret
+      remoteRef:
+        key: zitadel/artifact_keeper-credentials
+        property: client_secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -294,6 +323,25 @@ spec:
                 secretKeyRef:
                   name: artifact-keeper-secrets
                   key: JWT_SECRET
+            - name: SSO_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: SSO_ENCRYPTION_KEY
+            - name: OIDC_ISSUER
+              value: "https://auth.kirillorlov.pro"
+            - name: OIDC_REDIRECT_URI
+              value: "https://artifacts.kirillorlov.pro/api/v1/auth/oidc/callback"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-zitadel
+                  key: client_id
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-zitadel
+                  key: client_secret
           volumeMounts:
             - name: storage
               mountPath: /data/storage
