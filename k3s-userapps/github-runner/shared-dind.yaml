@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-dind-data
+  namespace: github-runner
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: ceph-block
+  resources:
+    requests:
+      storage: 200Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-dind
+  namespace: github-runner
+  labels:
+    app: shared-dind
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: shared-dind
+  template:
+    metadata:
+      labels:
+        app: shared-dind
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: dind
+          image: docker:27-dind
+          args:
+            - dockerd
+            - --host=tcp://0.0.0.0:2375
+            - --host=unix:///var/run/docker.sock
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          ports:
+            - name: docker
+              containerPort: 2375
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/docker
+            - name: run
+              mountPath: /var/run
+          readinessProbe:
+            tcpSocket:
+              port: 2375
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 2375
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 8Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: shared-dind-data
+        - name: run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-dind
+  namespace: github-runner
+spec:
+  selector:
+    app: shared-dind
+  ports:
+    - name: docker
+      port: 2375
+      targetPort: 2375
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: shared-dind
+  namespace: github-runner
+spec:
+  podSelector:
+    matchLabels:
+      app: shared-dind
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: github-runner
+      ports:
+        - protocol: TCP
+          port: 2375
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: shared-dind-prune
+  namespace: github-runner
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: prune
+              image: docker:27-cli
+              env:
+                - name: DOCKER_HOST
+                  value: tcp://shared-dind:2375
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  docker container prune -f --filter "until=24h"
+                  docker image prune -af --filter "until=168h"
+                  docker volume prune -f
+                  docker builder prune -af --filter "until=168h"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
