@@ -119,7 +119,7 @@ spec:
             - name: ALPINE_OIDC_USER_PROVISIONING
               value: "true"
             - name: JAVA_OPTIONS
-              value: "-Xmx1500m"
+              value: "-Xmx4g"
           volumeMounts:
             - name: data
               mountPath: /data
@@ -127,10 +127,10 @@ spec:
               mountPath: /tmp
           resources:
             requests:
-              cpu: 250m
-              memory: 1Gi
+              cpu: 500m
+              memory: 4Gi
             limits:
-              memory: 2Gi
+              memory: 5Gi
           livenessProbe:
             httpGet:
               path: /api/version
