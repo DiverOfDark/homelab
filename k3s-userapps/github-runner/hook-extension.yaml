@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hook-extension
+  namespace: github-runner
+data:
+  template.yaml: |
+    spec:
+      containers:
+        - name: $job
+          env:
+            - name: DOCKER_HOST
+              value: tcp://shared-dind.github-runner.svc:2375
