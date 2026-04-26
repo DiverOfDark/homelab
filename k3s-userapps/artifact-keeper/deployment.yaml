@@ -178,7 +178,7 @@ spec:
             - containerPort: 8080
           env:
             - name: API_BASE_URL
-              value: "https://dtrack.kirillorlov.pro/api"
+              value: "https://dtrack.kirillorlov.pro"
             - name: OIDC_ISSUER
               value: "https://auth.kirillorlov.pro"
             - name: OIDC_CLIENT_ID
