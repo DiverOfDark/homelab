@@ -32,7 +32,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: dind
-          image: docker:27-dind
+          image: docker:28-dind
           args:
             - dockerd
             - --host=tcp://0.0.0.0:2375
@@ -105,7 +105,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: prune
-              image: docker:27-cli
+              image: docker:28-cli
               env:
                 - name: DOCKER_HOST
                   value: tcp://shared-dind:2375
