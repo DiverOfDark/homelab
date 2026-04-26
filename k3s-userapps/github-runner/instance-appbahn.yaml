@@ -19,13 +19,7 @@ spec:
         githubConfigSecret: github-secret
 
         containerMode:
-          type: "kubernetes"
-          kubernetesModeWorkVolumeClaim:
-            accessModes: ["ReadWriteMany"]
-            storageClassName: "ceph-filesystem"
-            resources:
-              requests:
-                storage: 5Gi
+          type: "kubernetes-novolume"
 
         maxRunners: 4
         minRunners: 1
@@ -36,13 +30,6 @@ spec:
         template:
           spec:
             restartPolicy: Never
-            initContainers:
-              - name: init-k8s-volume-permissions
-                image: ghcr.io/actions/actions-runner:latest
-                command: ["sudo", "chown", "-R", "runner", "/home/runner/_work"]
-                volumeMounts:
-                  - name: work
-                    mountPath: /home/runner/_work
             containers:
               - name: runner
                 image: ghcr.io/actions/actions-runner:latest
