@@ -22,7 +22,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: trivy
-          image: aquasec/trivy:0.62.1
+          image: aquasec/trivy:0.69.3
           args:
             - server
             - --listen
