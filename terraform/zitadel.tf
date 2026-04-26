@@ -198,7 +198,7 @@ resource "zitadel_application_oidc" "artifact_keeper" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "ArtifactKeeper"
-  redirect_uris               = ["https://artifacts.kirillorlov.pro/api/v1/auth/oidc/callback"]
+  redirect_uris               = ["https://artifacts.kirillorlov.pro/api/v1/auth/sso/oidc/callback"]
   post_logout_redirect_uris   = ["https://artifacts.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
