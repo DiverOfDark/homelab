@@ -34,3 +34,42 @@ spec:
       name: http
   selector:
     app: artifact-keeper-frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trivy
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 8090
+      targetPort: 8090
+      name: http
+  selector:
+    app: trivy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dependency-track
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: dependency-track
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dependency-track-frontend
+  namespace: artifact-keeper
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: dependency-track-frontend

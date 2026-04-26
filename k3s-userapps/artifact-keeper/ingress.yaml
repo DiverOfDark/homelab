@@ -272,3 +272,40 @@ spec:
     - hosts:
         - artifacts.kirillorlov.pro
       secretName: artifact-keeper-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dependency-track
+  namespace: artifact-keeper
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://dtrack.kirillorlov.pro"
+    gethomepage.dev/group: Infra
+    gethomepage.dev/name: DependencyTrack
+    gethomepage.dev/icon: "https://avatars.githubusercontent.com/u/35968329?s=128"
+    gethomepage.dev/pod-selector: "app=dependency-track"
+spec:
+  rules:
+    - host: dtrack.kirillorlov.pro
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: dependency-track
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dependency-track-frontend
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - dtrack.kirillorlov.pro
+      secretName: dependency-track-tls

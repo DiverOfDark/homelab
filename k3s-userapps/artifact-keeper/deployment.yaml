@@ -1,6 +1,207 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: trivy
+  namespace: artifact-keeper
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trivy
+  template:
+    metadata:
+      labels:
+        app: trivy
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 10000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: trivy
+          image: aquasec/trivy:0.62.1
+          args:
+            - server
+            - --listen
+            - 0.0.0.0:8090
+            - --cache-dir
+            - /home/trivy/.cache
+          ports:
+            - containerPort: 8090
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: cache
+              mountPath: /home/trivy/.cache
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: trivy-cache
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dependency-track
+  namespace: artifact-keeper
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dependency-track
+  template:
+    metadata:
+      labels:
+        app: dependency-track
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: apiserver
+          image: dependencytrack/apiserver:4.11.4
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ALPINE_DATABASE_MODE
+              value: "external"
+            - name: ALPINE_DATABASE_URL
+              value: "jdbc:postgresql://artifact-keeper-db-rw:5432/dependency_track"
+            - name: ALPINE_DATABASE_DRIVER
+              value: "org.postgresql.Driver"
+            - name: ALPINE_DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-db-app
+                  key: username
+            - name: ALPINE_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-db-app
+                  key: password
+            - name: ALPINE_DATA_DIRECTORY
+              value: "/data"
+            - name: ALPINE_ENFORCE_AUTHENTICATION
+              value: "true"
+            - name: ALPINE_OIDC_ENABLED
+              value: "true"
+            - name: ALPINE_OIDC_ISSUER
+              value: "https://auth.kirillorlov.pro"
+            - name: ALPINE_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: dtrack-zitadel
+                  key: client_id
+            - name: ALPINE_OIDC_USERNAME_CLAIM
+              value: "preferred_username"
+            - name: ALPINE_OIDC_USER_PROVISIONING
+              value: "true"
+            - name: JAVA_OPTIONS
+              value: "-Xmx1500m"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /api/version
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/version
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: dtrack-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dependency-track-frontend
+  namespace: artifact-keeper
+spec:
+  revisionHistoryLimit: 1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dependency-track-frontend
+  template:
+    metadata:
+      labels:
+        app: dependency-track-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: dependencytrack/frontend:4.11.4
+          ports:
+            - containerPort: 8080
+          env:
+            - name: API_BASE_URL
+              value: "https://dtrack.kirillorlov.pro/api"
+            - name: OIDC_ISSUER
+              value: "https://auth.kirillorlov.pro"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: dtrack-zitadel
+                  key: client_id
+            - name: OIDC_SCOPE
+              value: "openid profile email"
+            - name: OIDC_FLOW
+              value: "code"
+            - name: OIDC_LOGIN_BUTTON_TEXT
+              value: "Login with Zitadel"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: meilisearch
   namespace: artifact-keeper
 spec:
@@ -95,7 +296,7 @@ spec:
             - name: OIDC_ISSUER
               value: "https://auth.kirillorlov.pro"
             - name: OIDC_REDIRECT_URI
-              value: "https://artifacts.kirillorlov.pro/api/v1/auth/oidc/callback"
+              value: "https://artifacts.kirillorlov.pro/api/v1/auth/sso/oidc/callback"
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -106,6 +307,25 @@ spec:
                 secretKeyRef:
                   name: artifact-keeper-zitadel
                   key: client_secret
+            - name: TRIVY_ENABLED
+              value: "true"
+            - name: TRIVY_URL
+              value: "http://trivy:8090"
+            - name: SCAN_ON_UPLOAD
+              value: "true"
+            - name: VULNERABILITY_SEVERITY_THRESHOLD
+              value: "HIGH"
+            - name: DEPENDENCY_TRACK_ENABLED
+              value: "true"
+            - name: DEPENDENCY_TRACK_URL
+              value: "http://dependency-track:8080"
+            - name: DEPENDENCY_TRACK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: artifact-keeper-secrets
+                  key: DEPENDENCY_TRACK_API_KEY
+            - name: ALLOW_HTTP_INTEGRATIONS
+              value: "true"
           volumeMounts:
             - name: storage
               mountPath: /data/storage

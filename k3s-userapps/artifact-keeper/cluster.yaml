@@ -19,3 +19,14 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: yggdrasil-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: dependency-track
+  namespace: artifact-keeper
+spec:
+  cluster:
+    name: artifact-keeper-db
+  name: dependency_track
+  owner: registry
