@@ -11,3 +11,5 @@ data:
           env:
             - name: DOCKER_HOST
               value: tcp://shared-dind.github-runner.svc:2375
+            - name: TESTCONTAINERS_HOST_OVERRIDE
+              value: shared-dind.github-runner.svc
