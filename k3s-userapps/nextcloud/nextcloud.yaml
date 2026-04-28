@@ -78,3 +78,6 @@ spec:
             timeoutSeconds: 3
             successThreshold: 1
             failureThreshold: 3
+          resources:
+            limits:
+              cpu: "2"
