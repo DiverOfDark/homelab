@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://kubescape.github.io/helm-charts
     chart: kubescape-operator
-    targetRevision: 1.30.6
+    targetRevision: 1.30.7
     helm:
       valuesObject:
         clusterName: homelab
@@ -19,10 +19,19 @@ spec:
           continuousScan: enable
           vulnerabilityScan: enable
           nodeScan: enable
+          # Disabled: the relevant/non-relevant flows race on the same
+          # VulnerabilityManifestSummary name and cause a write storm that
+          # pegs the storage apiserver at ~1.2 CPU. Re-enable only after
+          # upstream confirms the duplicate-write bug is fixed.
+          relevancy: disable
         persistence:
           storageClass: "ceph-block"
           size:
             backingStorage: 25Gi
+        # Move full-cluster vuln sweep from daily-at-midnight to weekly
+        # (Sunday 02:00) to reduce baseline kubevuln + storage load.
+        vulnerabilityScanScheduler:
+          scanSchedule: "0 2 * * 0"
 
   ignoreDifferences:
     - group: ''
