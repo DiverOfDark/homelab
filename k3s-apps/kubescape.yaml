@@ -14,12 +14,15 @@ spec:
     helm:
       valuesObject:
         clusterName: homelab
+        excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,velero,github-runner"
         capabilities:
           continuousScan: enable
           vulnerabilityScan: enable
           nodeScan: enable
         persistence:
           storageClass: "ceph-block"
+          size:
+            backingStorage: 25Gi
 
   ignoreDifferences:
     - group: ''
