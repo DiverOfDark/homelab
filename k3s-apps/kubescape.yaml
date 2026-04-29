@@ -14,7 +14,7 @@ spec:
     helm:
       valuesObject:
         clusterName: homelab
-        excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,velero,github-runner"
+        excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,velero,github-runner,bonsai"
         capabilities:
           continuousScan: enable
           vulnerabilityScan: enable
