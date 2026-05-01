@@ -42,8 +42,8 @@ spec:
                     cpu: 500m
                     memory: 2Gi
                   limits:
-                    cpu: "2"
-                    memory: 8Gi
+                    cpu: "4"
+                    memory: 16Gi
                 volumeMounts:
                   - name: hook-extension
                     mountPath: /etc/hook-extension

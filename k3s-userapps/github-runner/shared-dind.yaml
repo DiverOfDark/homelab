@@ -55,7 +55,7 @@ spec:
               cpu: 500m
               memory: 1Gi
             limits:
-              memory: 8Gi
+              memory: 16Gi
       volumes:
         - name: data
           hostPath:
