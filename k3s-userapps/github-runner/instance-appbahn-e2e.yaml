@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-appbahn-e2e
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.14.0
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+
+        ## githubConfigUrl is the GitHub url for where you want to configure runners
+        ## ex: https://github.com/myorg/myrepo or https://github.com/myorg
+        githubConfigUrl: "https://github.com/diverofdark/appbahn-internal"
+
+        githubConfigSecret: github-secret
+
+        containerMode:
+          type: "kubernetes-novolume"
+
+        maxRunners: 1
+        minRunners: 1
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner-instance"
+
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
+                    value: /etc/hook-extension/template.yaml
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 2Gi
+                  limits:
+                    cpu: "4"
+                    memory: 16Gi
+                volumeMounts:
+                  - name: hook-extension
+                    mountPath: /etc/hook-extension
+                    readOnly: true
+            volumes:
+              - name: hook-extension
+                configMap:
+                  name: hook-extension
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
