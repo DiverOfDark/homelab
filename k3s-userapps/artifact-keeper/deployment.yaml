@@ -173,7 +173,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: dependencytrack/frontend:4.11.4
+          image: dependencytrack/frontend:4.14.1
           ports:
             - containerPort: 8080
           env:
