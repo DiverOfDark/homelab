@@ -6,7 +6,7 @@ terraform {
     }
     kubernetes = {
       source  = "registry.opentofu.org/hashicorp/kubernetes"
-      version = "3.0.1"
+      version = "3.1.0"
     }
     zitadel = {
       source  = "zitadel/zitadel"
