@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inker
+  namespace: inker
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: inker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: inker
+    spec:
+      volumes:
+        - name: inker
+          persistentVolumeClaim:
+            claimName: inker
+      containers:
+        - image: 'docker.io/wojooo/inker:0.3.3'
+          name: inker
+          ports:
+            - containerPort: 80
+              protocol: TCP
+              name: http
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: DEFAULT_TIMEZONE
+              value: Europe/Berlin
+            - name: INKER_PORT
+              value: "80"
+            - name: CORS_ORIGINS
+              value: "https://inker.kirillorlov.pro"
+            - name: ADMIN_PIN
+              valueFrom:
+                secretKeyRef:
+                  name: inker-secret
+                  key: ADMIN_PIN
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/17/main
+              name: inker
+              subPath: postgres
+            - mountPath: /data
+              name: inker
+              subPath: redis
+            - mountPath: /app/uploads
+              name: inker
+              subPath: uploads
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi

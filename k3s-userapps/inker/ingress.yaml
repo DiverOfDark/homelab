@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://inker.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Inker
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/164423030?s=48&v=4
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=inker"
+    gethomepage.dev/description: "Self-hosted e-ink device manager"
+  name: inker
+  namespace: inker
+spec:
+  rules:
+    - host: inker.kirillorlov.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: inker
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - inker.kirillorlov.pro
+      secretName: inker-tls
