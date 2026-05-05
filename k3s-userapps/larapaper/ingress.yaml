@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://larapaper.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: LaraPaper
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/164423030?s=48&v=4
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=larapaper"
+    gethomepage.dev/description: "TRMNL self-hosted server (Laravel)"
+  name: larapaper
+  namespace: larapaper
+spec:
+  rules:
+    - host: larapaper.kirillorlov.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: larapaper
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - larapaper.kirillorlov.pro
+      secretName: larapaper-tls
