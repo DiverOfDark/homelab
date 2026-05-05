@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://terminus.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Terminus
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/164423030?s=48&v=4
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=terminus"
+    gethomepage.dev/description: "TRMNL self-hosted server"
+  name: terminus
+  namespace: terminus
+spec:
+  rules:
+    - host: terminus.kirillorlov.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: terminus
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - terminus.kirillorlov.pro
+      secretName: terminus-tls
