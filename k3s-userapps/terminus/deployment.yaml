@@ -24,7 +24,7 @@ spec:
           persistentVolumeClaim:
             claimName: terminus
       containers:
-        - image: 'docker.io/valkey/valkey:8-alpine'
+        - image: 'docker.io/valkey/valkey:9-alpine'
           name: valkey
           ports:
             - containerPort: 6379
