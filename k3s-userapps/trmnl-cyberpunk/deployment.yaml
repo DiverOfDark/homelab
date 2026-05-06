@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trmnl-cyberpunk
+  namespace: trmnl-cyberpunk
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: trmnl-cyberpunk
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: trmnl-cyberpunk
+    spec:
+      containers:
+        - image: 'ghcr.io/diverofdark/trmnl-cyberpunk:main'
+          imagePullPolicy: Always
+          name: trmnl-cyberpunk
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: http
+          envFrom:
+            - configMapRef:
+                name: trmnl-cyberpunk
+            - secretRef:
+                name: trmnl-cyberpunk
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi

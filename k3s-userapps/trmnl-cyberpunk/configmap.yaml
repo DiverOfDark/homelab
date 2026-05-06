@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trmnl-cyberpunk
+  namespace: trmnl-cyberpunk
+data:
+  BASE_URL: "https://trmnl.kirillorlov.pro"
+  REFRESH_SECS: "3600"
+  RUST_LOG: "trmnl_cyberpunk=info"
