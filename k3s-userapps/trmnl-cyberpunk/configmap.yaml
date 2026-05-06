@@ -11,7 +11,7 @@ data:
   PROMETHEUS_URL: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
   ALERTMANAGER_URL: "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093"
 
-  ACTUALBUDGET_URL: "http://actualbudget.actualbudget.svc.cluster.local"
+  ACTUALBUDGET_URL: "https://money-api.kirillorlov.pro/v1/"
 
   WEATHER_LAT: "52.50"
   WEATHER_LON: "13.33"
