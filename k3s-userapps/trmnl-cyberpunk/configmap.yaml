@@ -16,3 +16,4 @@ data:
   WEATHER_LAT: "52.50"
   WEATHER_LON: "13.33"
   WEATHER_TZ: "Europe/Berlin"
+  TZ: "Europe/Berlin"
