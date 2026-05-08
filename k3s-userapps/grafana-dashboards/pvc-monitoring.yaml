@@ -14,9 +14,9 @@ spec:
         - alert: KubernetesPVCNearlyFull
           expr: |
             (
-              kubelet_volume_stats_used_bytes
-                / on(namespace, persistentvolumeclaim)
-              kubelet_volume_stats_capacity_bytes
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+              /
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
             ) > 0.85
           for: 10m
           labels:
@@ -27,9 +27,9 @@ spec:
         - alert: KubernetesPVCCritical
           expr: |
             (
-              kubelet_volume_stats_used_bytes
-                / on(namespace, persistentvolumeclaim)
-              kubelet_volume_stats_capacity_bytes
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+              /
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
             ) > 0.95
           for: 5m
           labels:
@@ -40,12 +40,14 @@ spec:
         - alert: KubernetesPVCFillingUpFast
           expr: |
             (
-              kubelet_volume_stats_used_bytes
-                / on(namespace, persistentvolumeclaim)
-              kubelet_volume_stats_capacity_bytes
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+              /
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
             ) > 0.50
             and
-            predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+            max by(namespace, persistentvolumeclaim) (
+              predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600)
+            ) < 0
           for: 1h
           labels:
             severity: warning
@@ -55,9 +57,9 @@ spec:
         - alert: KubernetesPVCInodesNearlyFull
           expr: |
             (
-              kubelet_volume_stats_inodes_used
-                / on(namespace, persistentvolumeclaim)
-              kubelet_volume_stats_inodes
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_inodes_used)
+              /
+              max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_inodes)
             ) > 0.85
           for: 10m
           labels:
@@ -106,7 +108,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "count(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "expr": "count(max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}))",
               "refId": "A",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             }
@@ -136,7 +138,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "count((kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) > 0.85) or vector(0)",
+              "expr": "count((max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) / max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})) > 0.85) or vector(0)",
               "refId": "A",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             }
@@ -172,7 +174,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "sum(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "expr": "sum(max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}))",
               "refId": "A",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             }
@@ -202,7 +204,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "sum(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "expr": "sum(max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}))",
               "refId": "A",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             }
@@ -232,7 +234,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "avg(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "expr": "avg(max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) / max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}))",
               "refId": "A",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             }
@@ -271,28 +273,28 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "Capacity",
               "format": "table",
               "instant": true,
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             },
             {
-              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "Used",
               "format": "table",
               "instant": true,
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             },
             {
-              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "Available",
               "format": "table",
               "instant": true,
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
             },
             {
-              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) / max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "UsagePct",
               "format": "table",
               "instant": true,
@@ -430,7 +432,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) / max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "A",
               "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
@@ -474,7 +476,7 @@ spec:
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "targets": [
             {
-              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "max by(namespace, persistentvolumeclaim) (kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
               "refId": "A",
               "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
               "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
