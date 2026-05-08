@@ -527,6 +527,7 @@ spec:
             "current": {"text": "All", "value": "$__all"},
             "hide": 0,
             "includeAll": true,
+            "allValue": ".+",
             "multi": true,
             "refresh": 2,
             "sort": 1
@@ -540,6 +541,7 @@ spec:
             "current": {"text": "All", "value": "$__all"},
             "hide": 0,
             "includeAll": true,
+            "allValue": ".+",
             "multi": true,
             "refresh": 2,
             "sort": 1
