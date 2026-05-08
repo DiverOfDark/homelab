@@ -11,19 +11,6 @@ spec:
       targets:
         - 192.168.178.2:9100
 ---
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: raspberry-pihole-exporter
-  namespace: externaldns
-spec:
-  metricsPath: metrics
-  staticConfigs:
-    - labels:
-        job: prometheus
-      targets:
-        - 192.168.178.2:9617
----
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
