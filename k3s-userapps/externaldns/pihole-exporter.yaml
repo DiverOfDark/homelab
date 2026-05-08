@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: pihole-exporter
-          image: ekofr/pihole-exporter:1.2.0
+          image: ekofr/pihole-exporter:v1.2.0
           env:
             - name: PIHOLE_HOSTNAME
               value: "192.168.178.2"
