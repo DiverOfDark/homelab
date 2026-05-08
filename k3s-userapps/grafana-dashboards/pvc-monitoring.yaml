@@ -1,0 +1,559 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pvc-storage-rules
+  namespace: prometheus
+  labels:
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    release: prometheus
+spec:
+  groups:
+    - name: pvc-storage.rules
+      interval: 1m
+      rules:
+        - alert: KubernetesPVCNearlyFull
+          expr: |
+            (
+              kubelet_volume_stats_used_bytes
+                / on(namespace, persistentvolumeclaim)
+              kubelet_volume_stats_capacity_bytes
+            ) > 0.85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"
+            description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has been above 85% usage for more than 10 minutes. Consider expanding the volume or freeing up space."
+        - alert: KubernetesPVCCritical
+          expr: |
+            (
+              kubelet_volume_stats_used_bytes
+                / on(namespace, persistentvolumeclaim)
+              kubelet_volume_stats_capacity_bytes
+            ) > 0.95
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"
+            description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has been above 95% usage for more than 5 minutes. The volume is about to run out of space."
+        - alert: KubernetesPVCFillingUpFast
+          expr: |
+            (
+              kubelet_volume_stats_used_bytes
+                / on(namespace, persistentvolumeclaim)
+              kubelet_volume_stats_capacity_bytes
+            ) > 0.50
+            and
+            predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is filling up"
+            description: "Based on recent usage, PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is expected to run out of space within 4 days."
+        - alert: KubernetesPVCInodesNearlyFull
+          expr: |
+            (
+              kubelet_volume_stats_inodes_used
+                / on(namespace, persistentvolumeclaim)
+              kubelet_volume_stats_inodes
+            ) > 0.85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} inode usage is {{ $value | humanizePercentage }}"
+            description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has used more than 85% of its inodes for over 10 minutes."
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: pvc-usage
+  namespace: kube-system
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Total PVCs",
+          "id": 1,
+          "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "count(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]},
+              "unit": "none"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "PVCs > 85% Used",
+          "id": 2,
+          "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "count((kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}) > 0.85) or vector(0)",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "orange", "value": 1}
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Total Capacity",
+          "id": 3,
+          "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "sum(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]},
+              "unit": "bytes"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Total Used",
+          "id": 4,
+          "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "sum(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]},
+              "unit": "bytes"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Average Usage",
+          "id": 5,
+          "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "avg(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"})",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "orange", "value": 0.85},
+                  {"color": "red", "value": 0.95}
+                ]
+              },
+              "unit": "percentunit",
+              "min": 0,
+              "max": 1
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "table",
+          "title": "PVC Usage Overview",
+          "id": 6,
+          "gridPos": {"h": 12, "w": 24, "x": 0, "y": 4},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "Capacity",
+              "format": "table",
+              "instant": true,
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            },
+            {
+              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "Used",
+              "format": "table",
+              "instant": true,
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            },
+            {
+              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "Available",
+              "format": "table",
+              "instant": true,
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            },
+            {
+              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "UsagePct",
+              "format": "table",
+              "instant": true,
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "transformations": [
+            {
+              "id": "joinByField",
+              "options": {"byField": "persistentvolumeclaim", "mode": "outer"}
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Time 1": true,
+                  "Time 2": true,
+                  "Time 3": true,
+                  "Time 4": true,
+                  "__name__": true,
+                  "__name__ 1": true,
+                  "__name__ 2": true,
+                  "__name__ 3": true,
+                  "__name__ 4": true,
+                  "endpoint": true,
+                  "endpoint 1": true,
+                  "endpoint 2": true,
+                  "endpoint 3": true,
+                  "endpoint 4": true,
+                  "instance": true,
+                  "instance 1": true,
+                  "instance 2": true,
+                  "instance 3": true,
+                  "instance 4": true,
+                  "job": true,
+                  "job 1": true,
+                  "job 2": true,
+                  "job 3": true,
+                  "job 4": true,
+                  "metrics_path": true,
+                  "metrics_path 1": true,
+                  "metrics_path 2": true,
+                  "metrics_path 3": true,
+                  "metrics_path 4": true,
+                  "namespace 2": true,
+                  "namespace 3": true,
+                  "namespace 4": true,
+                  "node": true,
+                  "node 1": true,
+                  "node 2": true,
+                  "node 3": true,
+                  "node 4": true,
+                  "service": true,
+                  "service 1": true,
+                  "service 2": true,
+                  "service 3": true,
+                  "service 4": true
+                },
+                "indexByName": {
+                  "namespace 1": 0,
+                  "persistentvolumeclaim": 1,
+                  "Value #Capacity": 2,
+                  "Value #Used": 3,
+                  "Value #Available": 4,
+                  "Value #UsagePct": 5
+                },
+                "renameByName": {
+                  "namespace 1": "Namespace",
+                  "persistentvolumeclaim": "PVC",
+                  "Value #Capacity": "Capacity",
+                  "Value #Used": "Used",
+                  "Value #Available": "Available",
+                  "Value #UsagePct": "Usage %"
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {"align": "auto", "displayMode": "auto"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{"color": "green", "value": null}]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {"id": "byName", "options": "Capacity"},
+                "properties": [{"id": "unit", "value": "bytes"}]
+              },
+              {
+                "matcher": {"id": "byName", "options": "Used"},
+                "properties": [{"id": "unit", "value": "bytes"}]
+              },
+              {
+                "matcher": {"id": "byName", "options": "Available"},
+                "properties": [{"id": "unit", "value": "bytes"}]
+              },
+              {
+                "matcher": {"id": "byName", "options": "Usage %"},
+                "properties": [
+                  {"id": "unit", "value": "percentunit"},
+                  {"id": "min", "value": 0},
+                  {"id": "max", "value": 1},
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {"type": "gauge", "mode": "gradient"}
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {"color": "green", "value": null},
+                        {"color": "orange", "value": 0.85},
+                        {"color": "red", "value": 0.95}
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "sortBy": [{"displayName": "Usage %", "desc": true}]
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "PVC Usage % over time",
+          "id": 7,
+          "gridPos": {"h": 10, "w": 12, "x": 0, "y": 16},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "A",
+              "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "showPoints": "never"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "orange", "value": 0.85},
+                  {"color": "red", "value": 0.95}
+                ]
+              },
+              "unit": "percentunit",
+              "min": 0,
+              "max": 1
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "PVC Available bytes",
+          "id": 8,
+          "gridPos": {"h": 10, "w": 12, "x": 12, "y": 16},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {
+              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\", persistentvolumeclaim=~\"$pvc\"}",
+              "refId": "A",
+              "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+              "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"}
+            }
+          ],
+          "options": {
+            "legend": {"calcs": ["lastNotNull", "min"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "asc"}
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "",
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "showPoints": "never"
+              },
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "bytes",
+              "min": 0
+            },
+            "overrides": []
+          }
+        }
+      ],
+      "refresh": "1m",
+      "schemaVersion": 39,
+      "tags": ["kubernetes", "storage", "pvc"],
+      "templating": {
+        "list": [
+          {
+            "name": "DS_PROMETHEUS",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": {"text": "Prometheus", "value": "Prometheus"},
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "refresh": 1
+          },
+          {
+            "name": "namespace",
+            "type": "query",
+            "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+            "definition": "label_values(kubelet_volume_stats_capacity_bytes, namespace)",
+            "query": {"query": "label_values(kubelet_volume_stats_capacity_bytes, namespace)", "refId": "namespace"},
+            "current": {"text": "All", "value": "$__all"},
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "refresh": 2,
+            "sort": 1
+          },
+          {
+            "name": "pvc",
+            "type": "query",
+            "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+            "definition": "label_values(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}, persistentvolumeclaim)",
+            "query": {"query": "label_values(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}, persistentvolumeclaim)", "refId": "pvc"},
+            "current": {"text": "All", "value": "$__all"},
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "refresh": 2,
+            "sort": 1
+          }
+        ]
+      },
+      "time": {"from": "now-6h", "to": "now"},
+      "timepicker": {},
+      "timezone": "",
+      "title": "Persistent Volume Claims",
+      "uid": "pvc-usage",
+      "version": 1,
+      "weekStart": ""
+    }
