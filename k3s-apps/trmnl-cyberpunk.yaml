@@ -1,0 +1,129 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trmnl-cyberpunk
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's main branch.
+    # The chart lives at helm/trmnl-cyberpunk and moves in lockstep with
+    # the Rust code that produces the image, so chart-version drift and
+    # image-version drift can't diverge.
+    repoURL: https://github.com/DiverOfDark/trmnl-cyberpunk.git
+    targetRevision: main
+    path: helm/trmnl-cyberpunk
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/trmnl-cyberpunk:sha-<7-char-sha> for
+      # every commit, so this resolves to the exact image built from the
+      # commit Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        image:
+          repository: ghcr.io/diverofdark/trmnl-cyberpunk
+          pullPolicy: Always
+
+        # gethomepage's pod-selector annotation expects this exact label.
+        podLabels:
+          app.kubernetes.io/pod: trmnl-cyberpunk
+
+        baseUrl: "https://trmnl.kirillorlov.pro"
+        refreshSecs: "3600"
+        timezone: "Europe/Berlin"
+
+        prometheusUrl: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+        alertmanagerUrl: "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093"
+
+        actualbudgetUrl: "https://money-api.kirillorlov.pro/v1/"
+
+        weatherLat: "52.50"
+        weatherLon: "13.33"
+        weatherTz: "Europe/Berlin"
+
+        # Pull every secret from OpenBao via external-secrets-operator. The
+        # ExternalSecret produces a plain Secret named "trmnl-cyberpunk"
+        # which the deployment consumes via envFrom.
+        existingSecret: trmnl-cyberpunk
+
+        additionalObjects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: trmnl-cyberpunk
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: trmnl-cyberpunk
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: TRMNL_API_KEY
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: api_key
+                - secretKey: ICS_URLS
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: ics_urls
+                - secretKey: ACTUALBUDGET_KEY
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: actualbudget_key
+                - secretKey: ACTUALBUDGET_SYNC_ID
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: actualbudget_syncid
+                - secretKey: ACTUALBUDGET_PASSWORD
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: actualbudget_encryption
+
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://trmnl.kirillorlov.pro/dashboard.png"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: TRMNL Cyberpunk
+            gethomepage.dev/icon: https://avatars.githubusercontent.com/u/164423030?s=48&v=4
+            gethomepage.dev/pod-selector: "app.kubernetes.io/pod=trmnl-cyberpunk"
+            gethomepage.dev/description: "Spectra 6-color e-ink dashboard"
+          hosts:
+            - host: trmnl.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - trmnl.kirillorlov.pro
+              secretName: trmnl-cyberpunk-tls
+
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trmnl-cyberpunk
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
