@@ -13,7 +13,7 @@ spec:
   source:
     chart: kata-pulse
     repoURL: oci://ghcr.io/diverofdark/kata-pulse/kata-pulse-chart
-    targetRevision: 1.0.10
+    targetRevision: 1.0.11
     helm:
       releaseName: kata-pulse
       valuesObject:
