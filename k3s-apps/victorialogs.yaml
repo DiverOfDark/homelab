@@ -23,8 +23,11 @@ spec:
           role: Agent
           dataDir: /vector-data-dir
           resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
             limits:
-              memory: 4Gi
+              memory: 1Gi
           podMonitor:
             enabled: true
           args:
@@ -135,12 +138,12 @@ spec:
         server:
           replicaCount: 2
           retentionPeriod: 7d
-          retentionDiskSpaceUsage: 10 # GB
+          retentionDiskSpaceUsage: 15 # GB
 
           persistentVolume:
             enabled: true
             storageClassName: ceph-block
-            size: 10Gi
+            size: 20Gi
 
           ingress:
             enabled: true
