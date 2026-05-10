@@ -143,7 +143,7 @@ spec:
           persistentVolume:
             enabled: true
             storageClassName: ceph-block
-            size: 20Gi
+            size: 10Gi
 
           ingress:
             enabled: true
