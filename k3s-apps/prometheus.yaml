@@ -68,6 +68,7 @@ spec:
               {{ define "telegram.message" }}
               {{- $status := .Status | toUpper -}}
               {{- $isFiring := eq .Status "firing" -}}
+              {{- $maxAlerts := 3 -}}
               <b>{{ if $isFiring }}🚨{{ else }}✅{{ end }} {{ $status }}</b>
               <b>Namespace:</b> {{ .GroupLabels.namespace }}
               <b>Alerts:</b> {{ len .Alerts }}
@@ -75,28 +76,35 @@ spec:
               <b>Severity:</b> {{ .CommonLabels.severity }}
               {{- end }}
 
-              {{- range .Alerts }}
+              {{- range $i, $alert := .Alerts }}
+              {{- if lt $i $maxAlerts }}
 
-              <b>{{ .Labels.alertname }}</b>{{ if .Labels.instance }} <code>{{ .Labels.instance }}</code>{{ end }}
-              {{- if .Annotations.summary }}
-              {{ .Annotations.summary }}
-              {{- else if .Annotations.message }}
-              {{ .Annotations.message }}
-              {{- else if .Annotations.description }}
-              {{ .Annotations.description }}
+              <b>{{ $alert.Labels.alertname }}</b>{{ if $alert.Labels.instance }} <code>{{ $alert.Labels.instance }}</code>{{ end }}
+              {{- if $alert.Annotations.summary }}
+              {{ $alert.Annotations.summary }}
+              {{- else if $alert.Annotations.message }}
+              {{ $alert.Annotations.message }}
+              {{- else if $alert.Annotations.description }}
+              {{ $alert.Annotations.description }}
               {{- end }}
-              {{- if .Labels.pod }}
-              <b>Pod:</b> <code>{{ .Labels.pod }}</code>
+              {{- if $alert.Labels.pod }}
+              <b>Pod:</b> <code>{{ $alert.Labels.pod }}</code>
               {{- end }}
-              {{- if .Labels.node }}
-              <b>Node:</b> <code>{{ .Labels.node }}</code>
+              {{- if $alert.Labels.node }}
+              <b>Node:</b> <code>{{ $alert.Labels.node }}</code>
               {{- end }}
-              {{- if .Labels.job }}
-              <b>Job:</b> <code>{{ .Labels.job }}</code>
+              {{- if $alert.Labels.job }}
+              <b>Job:</b> <code>{{ $alert.Labels.job }}</code>
               {{- end }}
-              {{- if .GeneratorURL }}
-              <a href="{{ .GeneratorURL }}">source</a>
+              {{- if $alert.GeneratorURL }}
+              <a href="{{ $alert.GeneratorURL }}">source</a>
               {{- end }}
+              {{- end }}
+              {{- end }}
+
+              {{- if gt (len .Alerts) $maxAlerts }}
+
+              <i>Additional alerts omitted to fit Telegram limits.</i>
               {{- end }}
               {{ end }}
           config:
