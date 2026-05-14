@@ -16,24 +16,14 @@ spec:
     targetRevision: 3.8.0
     helm:
       valuesObject:
+        # Kyverno's policy-validation webhook checks that BOTH the admission
+        # and background controllers hold permissions for every resource the
+        # generate policy touches, so both get the same extraResources block.
         admissionController:
           replicas: 2
-          # Read access to the CNPG Cluster trigger so the admission
-          # controller can build generate requests for the backup policy.
           rbac:
             clusterRole:
-              extraResources:
-                - apiGroups: ["postgresql.cnpg.io"]
-                  resources: ["clusters"]
-                  verbs: ["get", "list", "watch"]
-        backgroundController:
-          replicas: 2
-          # The background controller fulfils the generate policy: it reads
-          # CNPG Clusters and creates/syncs the ObjectStore, ScheduledBackup
-          # and ExternalSecret resources in each cluster's namespace.
-          rbac:
-            clusterRole:
-              extraResources:
+              extraResources: &cnpgBackupRbac
                 - apiGroups: ["postgresql.cnpg.io"]
                   resources: ["clusters"]
                   verbs: ["get", "list", "watch"]
@@ -46,6 +36,11 @@ spec:
                 - apiGroups: ["external-secrets.io"]
                   resources: ["externalsecrets"]
                   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+        backgroundController:
+          replicas: 2
+          rbac:
+            clusterRole:
+              extraResources: *cnpgBackupRbac
         reportsController:
           replicas: 1
         cleanupController:
