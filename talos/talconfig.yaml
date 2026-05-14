@@ -93,6 +93,10 @@ schematic:
       - talos.platform=metal
       - talos.logging.kernel=udp://127.0.0.1:5051
       - cpufreq.default_governor=conservative
+      # Disable NVMe APST and PCIe ASPM: consumer NVMe controllers can wedge in a
+      # deep power state and fail controller reset (-ENODEV), crashing the OSD.
+      - nvme_core.default_ps_max_latency_us=0
+      - pcie_aspm=off
     systemExtensions:
       officialExtensions:
         - siderolabs/amd-ucode
