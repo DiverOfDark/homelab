@@ -44,6 +44,20 @@ data "vault_kv_secret_v2" "twilio" {
   name  = "twilio"
 }
 
+# Wasabi credentials from OpenBao
+# Expected keys: access_key, secret_key
+data "vault_kv_secret_v2" "wasabi" {
+  mount = "secret"
+  name  = "wasabi"
+}
+
+# Bunny.net API key from OpenBao
+# Expected keys: api_key
+data "vault_kv_secret_v2" "bunny" {
+  mount = "secret"
+  name  = "bunny"
+}
+
 # OpenBao backup read-only policy and role
 resource "vault_policy" "openbao_backup" {
   name   = "openbao-backup-policy"

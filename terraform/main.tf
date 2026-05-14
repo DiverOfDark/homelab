@@ -20,6 +20,14 @@ terraform {
       source  = "Mastercard/restapi"
       version = "~> 3.0"
     }
+    aws = {
+      source  = "registry.terraform.io/hashicorp/aws"
+      version = "~> 6.0"
+    }
+    bunnynet = {
+      source  = "registry.terraform.io/BunnyWay/bunnynet"
+      version = "0.14.1"
+    }
   }
 
   backend "kubernetes" {
