@@ -22,12 +22,5 @@ spec:
       database: zitadel
       owner: zitadel
 
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      enabled: true
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: yggdrasil-store
-
   monitoring:
     enablePodMonitor: true

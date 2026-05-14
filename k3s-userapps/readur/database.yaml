@@ -17,9 +17,3 @@ spec:
     initdb:
       database: readur
       owner: readur
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      enabled: true
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: yggdrasil-store
