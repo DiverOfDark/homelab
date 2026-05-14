@@ -1,0 +1,49 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cnpg-wal-archiver
+  annotations:
+    # Lives in the k3s-objects ArgoCD app, separate from the kyverno
+    # Application. On a fresh cluster ArgoCD may try to apply this before the
+    # kyverno.io CRDs exist; the sync fails and self-heals on retry.
+    policies.kyverno.io/title: CNPG WAL Archiver
+    policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/description: >-
+      Injects the barman-cloud WAL-archiver plugin block into every
+      CloudNativePG Cluster, so the WAL archive target is managed centrally
+      here instead of being hand-written on each Cluster manifest. The rule is
+      gated on a precondition so it only patches a Cluster that is missing the
+      plugin - the patch is never re-applied, so there is no list duplication
+      and no reconcile churn (unlike a generate+synchronize loop).
+spec:
+  # mutate-existing: patches Clusters already in the cluster, re-runs on policy
+  # create/update, and reconciles ~hourly as a self-healing backstop. Note:
+  # this is the background path, so a newly created Cluster exists briefly
+  # without the plugin block until the background controller processes it.
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: inject-wal-archiver-existing
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.plugins[?name=='barman-cloud.cloudnative-pg.io'] || `[]` | length(@) }}"
+            operator: Equals
+            value: 0
+      mutate:
+        targets:
+          - apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            namespace: "{{ request.object.metadata.namespace }}"
+            name: "{{ request.object.metadata.name }}"
+        patchStrategicMerge:
+          spec:
+            plugins:
+              - name: barman-cloud.cloudnative-pg.io
+                enabled: true
+                isWALArchiver: true
+                parameters:
+                  barmanObjectName: yggdrasil-store

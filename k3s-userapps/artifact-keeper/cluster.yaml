@@ -18,12 +18,6 @@ spec:
     initdb:
       database: artifact_registry
       owner: registry
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      enabled: true
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: yggdrasil-store
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
