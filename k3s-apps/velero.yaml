@@ -203,6 +203,36 @@ spec:
                   remoteRef:
                     key: wasabi
                     property: secret_key
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: "velero-bunny-secret"
+              namespace: velero
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: velero-bunny-credentials
+                creationPolicy: 'Owner'
+                deletionPolicy: "Retain"
+                template:
+                  type: Opaque
+                  data:
+                    cloud: |
+                      [default]
+                      aws_access_key_id={{`{{ .access_key }}`}}
+                      aws_secret_access_key={{`{{ .secret_key }}`}}
+              data:
+                - secretKey: access_key
+                  remoteRef:
+                    key: bunny/storage
+                    property: access_key
+                - secretKey: secret_key
+                  remoteRef:
+                    key: bunny/storage
+                    property: secret_key
         credentials:
           useSecret: true
           existingSecret: velero-credentials
@@ -231,6 +261,16 @@ spec:
               region: eu-central-2
               s3ForcePathStyle: true
               s3Url: https://s3.eu-central-2.wasabisys.com
+          - name: bunny
+            provider: aws
+            bucket: diverofdark-homelab-backups
+            credential:
+              name: velero-bunny-credentials
+              key: cloud
+            config:
+              region: de
+              s3ForcePathStyle: true
+              s3Url: https://de-s3.storage.bunnycdn.com
           volumeSnapshotLocation:
           - name: yggdrasil
             provider: aws
@@ -252,6 +292,16 @@ spec:
               region: eu-central-2
               s3ForcePathStyle: true
               s3Url: https://s3.eu-central-2.wasabisys.com
+          - name: bunny
+            provider: aws
+            bucket: diverofdark-homelab-backups
+            credential:
+              name: velero-bunny-credentials
+              key: cloud
+            config:
+              region: de
+              s3ForcePathStyle: true
+              s3Url: https://de-s3.storage.bunnycdn.com
           features: EnableCSI
         deployNodeAgent: true
         initContainers:
@@ -294,6 +344,31 @@ spec:
               storageLocation: wasabi
               volumeSnapshotLocations:
                - wasabi
+              ttl: "240h"
+              excludedNamespaces:
+                - github-runner
+              snapshotVolumes: true
+              snapshotMoveData: true
+              defaultVolumesToFsBackup: true
+              itemOperationTimeout: "1h"
+              resourcePolicy:
+                kind: configmap
+                name: resource-policy-configmap
+              uploaderConfig:
+                parallelFilesUpload: 10
+              metadata:
+                labels:
+                  app.kubernetes.io/instance: ""
+                  app.kubernetes.io/managed-by: ""
+                  app.kubernetes.io/name: ""
+                  argocd.argoproj.io/instance: ""
+          talos-bunny:
+            disabled: false
+            schedule: "0 18 * * *" ## 6 hour after wasabi backup
+            template:
+              storageLocation: bunny
+              volumeSnapshotLocations:
+               - bunny
               ttl: "240h"
               excludedNamespaces:
                 - github-runner
