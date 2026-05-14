@@ -47,6 +47,15 @@ spec:
           replicas: 1
         cleanupController:
           replicas: 1
+  ignoreDifferences:
+    # The Kyverno chart ships these CRDs without spec.conversion and with an
+    # empty metadata.labels map; the apiserver defaults the former and strips
+    # the latter, producing a permanent diff.
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jqPathExpressions:
+        - '.spec.conversion'
+        - '.metadata.labels'
   syncPolicy:
     automated:
       prune: true
