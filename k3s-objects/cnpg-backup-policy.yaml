@@ -1,0 +1,359 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cnpg-backup-targets
+  annotations:
+    # Lives in the k3s-objects ArgoCD app, separate from the kyverno
+    # Application. On a fresh cluster ArgoCD may try to apply this before the
+    # kyverno.io CRDs exist; the sync simply fails and self-heals on retry
+    # once the kyverno Application has installed its CRDs.
+    policies.kyverno.io/title: CNPG Backup Targets
+    policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/description: >-
+      For every CloudNativePG Cluster, generate the backup-credential
+      ExternalSecrets and the yggdrasil / wasabi / bunny ObjectStore and
+      ScheduledBackup resources in the same namespace. destinationPath is
+      derived from the cluster's namespace and name. Note: the Cluster's own
+      spec.plugins block (which sets isWALArchiver and the WAL archive target)
+      still has to be declared on each Cluster manifest - a generate policy
+      cannot own a field inside the trigger resource.
+spec:
+  # Also generate for Clusters that already exist, not just newly created ones.
+  generateExisting: true
+  rules:
+    # --- yggdrasil (remote Garage S3) ---
+    - name: yggdrasil-creds
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        name: cnpg-backup-yggdrasil-creds
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            secretStoreRef:
+              name: openbao-store
+              kind: ClusterSecretStore
+            refreshInterval: "1h"
+            target:
+              name: cnpg-backup-yggdrasil-creds
+              creationPolicy: Owner
+              deletionPolicy: Retain
+            data:
+              - secretKey: ACCESS_KEY_ID
+                remoteRef:
+                  key: yggdrasil-s3
+                  property: access_key
+              - secretKey: ACCESS_SECRET_KEY
+                remoteRef:
+                  key: yggdrasil-s3
+                  property: secret_key
+    - name: yggdrasil-store
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: barmancloud.cnpg.io/v1
+        kind: ObjectStore
+        name: yggdrasil-store
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            configuration:
+              destinationPath: "s3://cnpg-backups/{{request.object.metadata.namespace}}/{{request.object.metadata.name}}/"
+              endpointURL: https://yggdrasil.kirillorlov.pro
+              s3Credentials:
+                accessKeyId:
+                  name: cnpg-backup-yggdrasil-creds
+                  key: ACCESS_KEY_ID
+                secretAccessKey:
+                  name: cnpg-backup-yggdrasil-creds
+                  key: ACCESS_SECRET_KEY
+              wal:
+                compression: gzip
+                maxParallel: 2
+              data:
+                compression: gzip
+            retentionPolicy: "30d"
+    - name: yggdrasil-scheduledbackup
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: postgresql.cnpg.io/v1
+        kind: ScheduledBackup
+        name: "{{request.object.metadata.name}}-backup-yggdrasil"
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            schedule: "0 0 0 * * *"
+            backupOwnerReference: self
+            cluster:
+              name: "{{request.object.metadata.name}}"
+            method: plugin
+            pluginConfiguration:
+              name: barman-cloud.cloudnative-pg.io
+              parameters:
+                barmanObjectName: yggdrasil-store
+    # --- wasabi (cloud S3) ---
+    - name: wasabi-creds
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        name: cnpg-backup-wasabi-creds
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            secretStoreRef:
+              name: openbao-store
+              kind: ClusterSecretStore
+            refreshInterval: "1h"
+            target:
+              name: cnpg-backup-wasabi-creds
+              creationPolicy: Owner
+              deletionPolicy: Retain
+            data:
+              - secretKey: ACCESS_KEY_ID
+                remoteRef:
+                  key: wasabi
+                  property: access_key
+              - secretKey: ACCESS_SECRET_KEY
+                remoteRef:
+                  key: wasabi
+                  property: secret_key
+    - name: wasabi-store
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: barmancloud.cnpg.io/v1
+        kind: ObjectStore
+        name: wasabi-store
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            configuration:
+              destinationPath: "s3://diverofdark-homelab-backup/cnpg-backups/{{request.object.metadata.namespace}}/{{request.object.metadata.name}}/"
+              endpointURL: https://s3.eu-central-2.wasabisys.com
+              s3Credentials:
+                accessKeyId:
+                  name: cnpg-backup-wasabi-creds
+                  key: ACCESS_KEY_ID
+                secretAccessKey:
+                  name: cnpg-backup-wasabi-creds
+                  key: ACCESS_SECRET_KEY
+              wal:
+                compression: gzip
+                maxParallel: 2
+              data:
+                compression: gzip
+            retentionPolicy: "30d"
+    - name: wasabi-scheduledbackup
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: postgresql.cnpg.io/v1
+        kind: ScheduledBackup
+        name: "{{request.object.metadata.name}}-backup-wasabi"
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            schedule: "0 0 12 * * *"
+            backupOwnerReference: self
+            cluster:
+              name: "{{request.object.metadata.name}}"
+            method: plugin
+            pluginConfiguration:
+              name: barman-cloud.cloudnative-pg.io
+              parameters:
+                barmanObjectName: wasabi-store
+    # --- bunny (cloud S3) ---
+    - name: bunny-creds
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        name: cnpg-backup-bunny-creds
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            secretStoreRef:
+              name: openbao-store
+              kind: ClusterSecretStore
+            refreshInterval: "1h"
+            target:
+              name: cnpg-backup-bunny-creds
+              creationPolicy: Owner
+              deletionPolicy: Retain
+            data:
+              - secretKey: ACCESS_KEY_ID
+                remoteRef:
+                  key: bunny/storage
+                  property: access_key
+              - secretKey: ACCESS_SECRET_KEY
+                remoteRef:
+                  key: bunny/storage
+                  property: secret_key
+    - name: bunny-store
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: barmancloud.cnpg.io/v1
+        kind: ObjectStore
+        name: bunny-store
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            configuration:
+              destinationPath: "s3://diverofdark-homelab-backups/cnpg-backups/{{request.object.metadata.namespace}}/{{request.object.metadata.name}}/"
+              endpointURL: https://de-s3.storage.bunnycdn.com
+              s3Credentials:
+                accessKeyId:
+                  name: cnpg-backup-bunny-creds
+                  key: ACCESS_KEY_ID
+                secretAccessKey:
+                  name: cnpg-backup-bunny-creds
+                  key: ACCESS_SECRET_KEY
+              wal:
+                compression: gzip
+                maxParallel: 2
+              data:
+                compression: gzip
+            retentionPolicy: "30d"
+    - name: bunny-scheduledbackup
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      generate:
+        apiVersion: postgresql.cnpg.io/v1
+        kind: ScheduledBackup
+        name: "{{request.object.metadata.name}}-backup-bunny"
+        namespace: "{{request.object.metadata.namespace}}"
+        synchronize: true
+        data:
+          metadata:
+            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
+            # and ArgoCD nests these under the (git-managed) Cluster in its
+            # resource tree, instead of flagging them as missing from git.
+            ownerReferences:
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                name: "{{request.object.metadata.name}}"
+                uid: "{{request.object.metadata.uid}}"
+          spec:
+            schedule: "0 0 18 * * *"
+            backupOwnerReference: self
+            cluster:
+              name: "{{request.object.metadata.name}}"
+            method: plugin
+            pluginConfiguration:
+              name: barman-cloud.cloudnative-pg.io
+              parameters:
+                barmanObjectName: bunny-store
