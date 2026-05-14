@@ -102,6 +102,11 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
     size: 5Gi
+  monitoring:
+    enablePodMonitor: true
+  postgresql:
+    parameters:
+      max_slot_wal_keep_size: "2GB"
   bootstrap:
     initdb:
       database: nextcloud

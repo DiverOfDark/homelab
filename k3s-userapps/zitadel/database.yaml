@@ -106,6 +106,7 @@ spec:
   postgresql:
     parameters:
       max_connections: "200"
+      max_slot_wal_keep_size: "2GB"
 
   storage:
     size: 20Gi
