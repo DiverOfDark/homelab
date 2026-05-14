@@ -33,7 +33,14 @@ spec:
         kind: ExternalSecret
         name: cnpg-backup-yggdrasil-creds
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -73,7 +80,14 @@ spec:
         kind: ObjectStore
         name: yggdrasil-store
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -112,7 +126,14 @@ spec:
         kind: ScheduledBackup
         name: "{{request.object.metadata.name}}-backup-yggdrasil"
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -145,7 +166,14 @@ spec:
         kind: ExternalSecret
         name: cnpg-backup-wasabi-creds
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -185,7 +213,14 @@ spec:
         kind: ObjectStore
         name: wasabi-store
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -224,7 +259,14 @@ spec:
         kind: ScheduledBackup
         name: "{{request.object.metadata.name}}-backup-wasabi"
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -257,7 +299,14 @@ spec:
         kind: ExternalSecret
         name: cnpg-backup-bunny-creds
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -297,7 +346,14 @@ spec:
         kind: ObjectStore
         name: bunny-store
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
@@ -336,7 +392,14 @@ spec:
         kind: ScheduledBackup
         name: "{{request.object.metadata.name}}-backup-bunny"
         namespace: "{{request.object.metadata.namespace}}"
-        synchronize: true
+        # synchronize is intentionally false: ExternalSecret has its own
+        # active controller (ESO) that continuously writes back to the object.
+        # With synchronize: true, Kyverno's downstream-watch reacted to every
+        # ESO write, producing an UpdateRequest storm and resourceVersion
+        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
+        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
+        # policy edits to existing generated resources.
+        synchronize: false
         data:
           metadata:
             # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
