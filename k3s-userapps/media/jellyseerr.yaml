@@ -17,12 +17,16 @@ spec:
       labels:
         app.kubernetes.io/pod: jellyseerr
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       volumes:
         - name: jellyseerr
           persistentVolumeClaim:
             claimName: jellyseerr
       containers:
-        - image: 'ghcr.io/fallenbagel/jellyseerr:2.7.3'
+        - image: 'ghcr.io/seerr-team/seerr:v3.2.0'
           imagePullPolicy: IfNotPresent
           name: jellyseerr
           env:
