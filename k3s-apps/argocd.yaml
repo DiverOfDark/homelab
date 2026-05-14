@@ -148,6 +148,8 @@ spec:
                 exec.enabled: true
                 accounts.readonly: apiKey
                 application.resourceTrackingMethod: "annotation+label"
+                resource.compareoptions: |
+                  ServerSideDiff: "true"
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
