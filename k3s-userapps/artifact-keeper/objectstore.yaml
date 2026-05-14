@@ -43,3 +43,26 @@ spec:
     data:
       compression: gzip
   retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: bunny-store
+  namespace: artifact-keeper
+spec:
+  configuration:
+    destinationPath: s3://diverofdark-homelab-backups/cnpg-backups/artifact-keeper/artifact-keeper-db/
+    endpointURL: https://de-s3.storage.bunnycdn.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-bunny-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-bunny-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"

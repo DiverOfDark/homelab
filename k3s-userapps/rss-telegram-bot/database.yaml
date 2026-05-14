@@ -46,6 +46,30 @@ spec:
         key: wasabi
         property: secret_key
 ---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cnpg-backup-bunny-creds
+  namespace: rss-telegram-bot
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cnpg-backup-bunny-creds
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: ACCESS_KEY_ID
+      remoteRef:
+        key: bunny/storage
+        property: access_key
+    - secretKey: ACCESS_SECRET_KEY
+      remoteRef:
+        key: bunny/storage
+        property: secret_key
+---
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
@@ -84,6 +108,29 @@ spec:
         key: ACCESS_KEY_ID
       secretAccessKey:
         name: cnpg-backup-wasabi-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  retentionPolicy: "30d"
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: bunny-store
+  namespace: rss-telegram-bot
+spec:
+  configuration:
+    destinationPath: s3://diverofdark-homelab-backups/cnpg-backups/rss-telegram-bot/rsstt-pg/
+    endpointURL: https://de-s3.storage.bunnycdn.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-bunny-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-bunny-creds
         key: ACCESS_SECRET_KEY
     wal:
       compression: gzip
@@ -149,3 +196,19 @@ spec:
     name: barman-cloud.cloudnative-pg.io
     parameters:
       barmanObjectName: wasabi-store
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: rsstt-pg-backup-bunny
+  namespace: rss-telegram-bot
+spec:
+  schedule: "0 0 18 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: rsstt-pg
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: bunny-store
