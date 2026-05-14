@@ -1,0 +1,45 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cnpg-failover-tuning
+  annotations:
+    # Lives in the k3s-objects ArgoCD app, separate from the kyverno
+    # Application. On a fresh cluster ArgoCD may try to apply this before the
+    # kyverno.io CRDs exist; the sync fails and self-heals on retry.
+    policies.kyverno.io/title: CNPG Failover Tuning
+    policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/description: >-
+      Sets spec.failoverDelay on every CloudNativePG Cluster. The CNPG default
+      is 0 - the operator fails over immediately when it detects an unhealthy
+      primary, so a transient node blip triggers a spurious failover. Each
+      failover bumps the PostgreSQL timeline, and divergent timelines are what
+      trip the known wal-restore loop bug (cloudnative-pg/cloudnative-pg
+      #10419). A non-zero failoverDelay makes the operator ride out brief
+      blips. The precondition only patches Clusters where failoverDelay is
+      still 0/unset, so an explicit per-cluster override in git always wins.
+spec:
+  # mutate-existing: patches Clusters already in the cluster, re-runs on policy
+  # create/update, and reconciles ~hourly. Idempotent - the precondition makes
+  # it a no-op once failoverDelay is set, so there is no reconcile churn.
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: set-failover-delay
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.failoverDelay || `0` }}"
+            operator: Equals
+            value: 0
+      mutate:
+        targets:
+          - apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            namespace: "{{ request.object.metadata.namespace }}"
+            name: "{{ request.object.metadata.name }}"
+        patchStrategicMerge:
+          spec:
+            failoverDelay: 60
