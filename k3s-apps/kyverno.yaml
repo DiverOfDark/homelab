@@ -24,9 +24,11 @@ spec:
           rbac:
             clusterRole:
               extraResources: &cnpgBackupRbac
+                # clusters: read as the generate-policy trigger; update/patch
+                # for the cnpg-wal-archiver mutate-existing policy.
                 - apiGroups: ["postgresql.cnpg.io"]
                   resources: ["clusters"]
-                  verbs: ["get", "list", "watch"]
+                  verbs: ["get", "list", "watch", "update", "patch"]
                 - apiGroups: ["postgresql.cnpg.io"]
                   resources: ["scheduledbackups"]
                   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
