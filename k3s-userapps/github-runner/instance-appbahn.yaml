@@ -21,7 +21,7 @@ spec:
         containerMode:
           type: "kubernetes-novolume"
 
-        maxRunners: 4
+        maxRunners: 3
         minRunners: 1
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
