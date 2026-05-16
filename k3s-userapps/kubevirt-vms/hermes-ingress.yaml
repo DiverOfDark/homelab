@@ -4,25 +4,24 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://openclaw.kirillorlov.pro"
+    gethomepage.dev/href: "https://hermes.kirillorlov.pro"
     gethomepage.dev/group: Apps
-    gethomepage.dev/name: Openclaw
-    gethomepage.dev/icon: "https://openclaw.ai/apple-touch-icon.png"
+    gethomepage.dev/name: Hermes
     gethomepage.dev/pod-selector: "kubevirt.io/domain=claw"
-  name: openclaw
+  name: hermes
 spec:
   rules:
-    - host: openclaw.kirillorlov.pro
+    - host: hermes.kirillorlov.pro
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: claw
+                name: hermes-api
                 port:
-                  name: caddy
+                  name: hermes-api
   tls:
     - hosts:
-        - openclaw.kirillorlov.pro
-      secretName: openclaw-tls
+        - hermes.kirillorlov.pro
+      secretName: hermes-tls
