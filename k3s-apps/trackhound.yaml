@@ -1,0 +1,124 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trackhound
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's main branch.
+    # The chart lives at charts/trackhound and moves in lockstep with
+    # the Rust code that produces the image, so chart-version drift and
+    # image-version drift can't diverge.
+    repoURL: https://github.com/DiverOfDark/trackhound.git
+    targetRevision: main
+    path: charts/trackhound
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/trackhound:sha-<7-char-sha> for every
+      # commit, so this resolves to the exact image built from the commit
+      # Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        image:
+          repository: ghcr.io/diverofdark/trackhound
+          pullPolicy: Always
+
+        persistence:
+          enabled: true
+          size: 1Gi
+          storageClass: ceph-block
+          accessModes:
+            - ReadWriteOnce
+
+        config:
+          bindAddr: 0.0.0.0:8080
+          databaseUrl: sqlite:///data/trackhound.sqlite
+          gmailScanIntervalSeconds: 1800
+          track17SyncIntervalSeconds: 3600
+          gmailQuery: "newer_than:14d (shipment OR tracking OR package OR parcel OR delivery OR amazon OR dhl OR dpd OR ups OR fedex OR gls)"
+          openaiModel: gpt-5-nano
+          openaiUrl: https://api.openai.com/v1/chat/completions
+          gmailImapHost: imap.gmail.com
+          gmailImapPort: 993
+          gmailImapUsername: diverofdark@gmail.com
+          gmailImapMailbox: INBOX
+
+        # Pull every secret from OpenBao via external-secrets-operator. The
+        # ExternalSecret produces a plain Secret named "trackhound" which
+        # the deployment consumes via secretKeyRef.
+        secrets:
+          existingSecret: trackhound
+
+        additionalObjects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: trackhound
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: trackhound
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: OPENAI_API_KEY
+                  remoteRef:
+                    key: trackhound
+                    property: openai_api_key
+                - secretKey: GMAIL_IMAP_PASSWORD
+                  remoteRef:
+                    key: trackhound
+                    property: gmail_imap_password
+                - secretKey: TRACK17_SECURITY_KEY
+                  remoteRef:
+                    key: trackhound
+                    property: track17_security_key
+
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://trackhound.kirillorlov.pro/api-docs"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: Trackhound
+            gethomepage.dev/icon: mdi-package-variant-closed
+            gethomepage.dev/description: "Gmail parcel tracker with 17TRACK sync"
+          hosts:
+            - host: trackhound.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - trackhound.kirillorlov.pro
+              secretName: trackhound-tls
+
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trackhound
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
