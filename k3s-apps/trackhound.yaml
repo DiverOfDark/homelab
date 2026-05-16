@@ -8,12 +8,12 @@ metadata:
 spec:
   project: default
   source:
-    # Pull the helm chart straight from the source repo's main branch.
+    # Pull the helm chart straight from the source repo's master branch.
     # The chart lives at charts/trackhound and moves in lockstep with
     # the Rust code that produces the image, so chart-version drift and
     # image-version drift can't diverge.
     repoURL: https://github.com/DiverOfDark/trackhound.git
-    targetRevision: main
+    targetRevision: master
     path: charts/trackhound
     helm:
       # Image tag is set via --set so Argo's build-environment substitution
