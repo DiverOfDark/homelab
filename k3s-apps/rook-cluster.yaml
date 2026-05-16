@@ -143,6 +143,9 @@ spec:
             cephConfig:
               global:
                 osd_memory_target: "2147483648"
+              mon:
+                mon_data_avail_warn: "5"
+                mon_data_avail_crit: "1"
             dashboard:
               enabled: true
               prometheusEndpoint: http://vmsingle-main.victoriametrics.svc.cluster.local:8429/
