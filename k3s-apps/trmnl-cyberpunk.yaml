@@ -87,6 +87,10 @@ spec:
                   remoteRef:
                     key: trmnl-cyberpunk
                     property: actualbudget_encryption
+                - secretKey: SEVENTEENTRACK_KEY
+                  remoteRef:
+                    key: trmnl-cyberpunk
+                    property: seventeentrack_key
 
         ingress:
           enabled: true
