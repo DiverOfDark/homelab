@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-ceph-compactor
+  namespace: rook-ceph
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rook-ceph-compactor
+  namespace: rook-ceph
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rook-ceph-compactor
+  namespace: rook-ceph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-ceph-compactor
+subjects:
+  - kind: ServiceAccount
+    name: rook-ceph-compactor
+    namespace: rook-ceph
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rook-ceph-osd-compact
+  namespace: rook-ceph
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 10800
+      template:
+        spec:
+          serviceAccountName: rook-ceph-compactor
+          restartPolicy: OnFailure
+          containers:
+            - name: compact
+              image: registry.k8s.io/kubectl:v1.35.3
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  TOOLBOX=$(kubectl -n rook-ceph get pod -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}')
+                  echo "Using toolbox pod: $TOOLBOX"
+                  OSDS=$(kubectl -n rook-ceph exec "$TOOLBOX" -- ceph osd ls)
+                  for osd in $OSDS; do
+                    echo "=== Waiting for HEALTH_OK before compacting osd.$osd ==="
+                    while true; do
+                      STATUS=$(kubectl -n rook-ceph exec "$TOOLBOX" -- ceph health | awk '{print $1}')
+                      if [ "$STATUS" = "HEALTH_OK" ] || [ "$STATUS" = "HEALTH_WARN" ]; then
+                        break
+                      fi
+                      echo "Cluster status: $STATUS, waiting 30s..."
+                      sleep 30
+                    done
+                    echo "=== Compacting osd.$osd ==="
+                    kubectl -n rook-ceph exec "$TOOLBOX" -- ceph tell osd.$osd compact
+                    echo "=== Done osd.$osd, sleeping 60s ==="
+                    sleep 60
+                  done
+                  echo "All OSDs compacted"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
