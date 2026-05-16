@@ -47,6 +47,8 @@ spec:
         weatherLon: "13.33"
         weatherTz: "Europe/Berlin"
 
+        trackhoundBaseUrl: "https://trackhound.kirillorlov.pro"
+
         # Pull every secret from OpenBao via external-secrets-operator. The
         # ExternalSecret produces a plain Secret named "trmnl-cyberpunk"
         # which the deployment consumes via envFrom.
@@ -87,10 +89,6 @@ spec:
                   remoteRef:
                     key: trmnl-cyberpunk
                     property: actualbudget_encryption
-                - secretKey: SEVENTEENTRACK_KEY
-                  remoteRef:
-                    key: trmnl-cyberpunk
-                    property: seventeentrack_key
 
         ingress:
           enabled: true
