@@ -30,6 +30,15 @@ spec:
         template:
           spec:
             restartPolicy: Never
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values:
+                            - asgard
             containers:
               - name: runner
                 image: ghcr.io/actions/actions-runner:latest

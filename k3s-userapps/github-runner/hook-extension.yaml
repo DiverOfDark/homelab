@@ -6,6 +6,15 @@ metadata:
 data:
   template.yaml: |
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - asgard
       containers:
         - name: $job
           env:
