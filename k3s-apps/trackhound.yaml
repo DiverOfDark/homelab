@@ -56,6 +56,12 @@ spec:
         secrets:
           existingSecret: trackhound
 
+        # The chart's built-in ingress template doesn't render a `tls:`
+        # block, so we disable it and emit our own Ingress (with TLS) via
+        # additionalObjects below.
+        ingress:
+          enabled: false
+
         additionalObjects:
           - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
@@ -84,25 +90,34 @@ spec:
                     key: trackhound
                     property: track17_security_key
 
-        ingress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: acme-issuer
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/href: "https://trackhound.kirillorlov.pro/api-docs"
-            gethomepage.dev/group: Apps
-            gethomepage.dev/name: Trackhound
-            gethomepage.dev/icon: mdi-package-variant-closed
-            gethomepage.dev/description: "Gmail parcel tracker with 17TRACK sync"
-          hosts:
-            - host: trackhound.kirillorlov.pro
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - hosts:
-                - trackhound.kirillorlov.pro
-              secretName: trackhound-tls
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: trackhound
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+                gethomepage.dev/enabled: "true"
+                gethomepage.dev/href: "https://trackhound.kirillorlov.pro/api-docs"
+                gethomepage.dev/group: Apps
+                gethomepage.dev/name: Trackhound
+                gethomepage.dev/icon: mdi-package-variant-closed
+                gethomepage.dev/description: "Gmail parcel tracker with 17TRACK sync"
+            spec:
+              rules:
+                - host: trackhound.kirillorlov.pro
+                  http:
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        backend:
+                          service:
+                            name: trackhound-trackhound
+                            port:
+                              name: http
+              tls:
+                - hosts:
+                    - trackhound.kirillorlov.pro
+                  secretName: trackhound-tls
 
         resources:
           limits:
