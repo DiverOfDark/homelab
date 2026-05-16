@@ -140,6 +140,9 @@ spec:
           cephClusterSpec:
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
+            cephConfig:
+              global:
+                osd_memory_target: "2147483648"
             dashboard:
               enabled: true
               prometheusEndpoint: http://vmsingle-main.victoriametrics.svc.cluster.local:8429/
