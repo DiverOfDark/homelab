@@ -52,7 +52,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: compact
-              image: registry.k8s.io/kubectl:v1.35.3
+              image: alpine/kubectl:latest
               command:
                 - /bin/sh
                 - -c
