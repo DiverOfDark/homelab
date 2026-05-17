@@ -19,13 +19,7 @@ spec:
         githubConfigSecret: github-secret
 
         containerMode:
-          type: "kubernetes"
-          kubernetesModeWorkVolumeClaim:
-            accessModes: ["ReadWriteMany"]
-            storageClassName: "ceph-filesystem"
-            resources:
-              requests:
-                storage: 5Gi
+          type: "kubernetes-novolume"
 
         maxRunners: 2
         minRunners: 1
@@ -45,13 +39,28 @@ spec:
                           operator: In
                           values:
                             - asgard
-            initContainers:
-              - name: init-k8s-volume-permissions
+            containers:
+              - name: runner
                 image: ghcr.io/actions/actions-runner:latest
-                command: [ "sudo", "chown", "-R", "runner", "/home/runner/_work" ]
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
+                    value: /etc/hook-extension/template.yaml
+                resources:
+                  requests:
+                    cpu: 250m
+                    memory: 2Gi
+                  limits:
+                    cpu: "4"
+                    memory: 16Gi
                 volumeMounts:
-                  - name: work
-                    mountPath: /home/runner/_work
+                  - name: hook-extension
+                    mountPath: /etc/hook-extension
+                    readOnly: true
+            volumes:
+              - name: hook-extension
+                configMap:
+                  name: hook-extension
   destination:
     server: https://kubernetes.default.svc
     namespace: github-runner
