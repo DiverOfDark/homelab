@@ -73,8 +73,10 @@ spec:
             enabled: true
         resources:
           bot:
+            # 2 CPU reserved fits asgard's headroom; Whisper still bursts to 6
+            # via the limit when cores are free.
             requests:
-              cpu: "3"
+              cpu: "2"
               memory: 4Gi
             limits:
               cpu: "6"
