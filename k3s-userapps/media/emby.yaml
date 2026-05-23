@@ -17,6 +17,7 @@ spec:
       labels:
         app.kubernetes.io/pod: emby
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: emby
           persistentVolumeClaim:
