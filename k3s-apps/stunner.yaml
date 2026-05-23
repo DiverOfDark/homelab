@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stunner
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: stunner-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    # STUNner WebRTC gateway — control plane + gateway operator. The TURN
+    # dataplane is auto-provisioned by the operator per Gateway. CRDs
+    # (stunner.l7mp.io GatewayConfig/UDPRoute/Dataplane) ship with the chart;
+    # standard Gateway API CRDs are already installed cluster-wide.
+    chart: stunner
+    repoURL: https://l7mp.io/stunner
+    targetRevision: 1.2.0
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
