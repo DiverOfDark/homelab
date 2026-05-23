@@ -72,21 +72,20 @@ spec:
           tls:
             enabled: true
         resources:
+          # No cpu limits — let Whisper / Piper burst freely on asgard's
+          # spare cores (CFS throttling hurts tail latency more than it helps
+          # noisy-neighbour isolation here). Memory limits stay.
           bot:
-            # 2 CPU reserved fits asgard's headroom; Whisper still bursts to 6
-            # via the limit when cores are free.
             requests:
               cpu: "2"
               memory: 4Gi
             limits:
-              cpu: "6"
               memory: 8Gi
           initContainer:
             requests:
               cpu: "500m"
               memory: 2Gi
             limits:
-              cpu: "4"
               memory: 6Gi
         # Pin to asgard — has the most CPU/memory headroom; matches the
         # repo's nodeSelector pattern (k3s-userapps/github-runner/shared-dind.yaml).
