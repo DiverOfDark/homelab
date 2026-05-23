@@ -17,11 +17,10 @@ spec:
     path: chart
     helm:
       releaseName: voice-assistant
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
-        image:
-          repository: ghcr.io/diverofdark/pipecat-voice-assistant
-          tag: latest
-          pullPolicy: Always
         # Local LLM — Hermes runs on a KubeVirt VM in this cluster.
         hermes:
           baseUrl: http://hermes-api.kubevirt-vms.svc.cluster.local:8642/v1
