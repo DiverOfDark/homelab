@@ -35,7 +35,7 @@ spec:
               remoteKey: voice-assistant/hermes
               property: api_key
         whisper:
-          model: medium
+          model: deepdml/faster-whisper-large-v3-turbo-ct2
           computeType: int8
           ompThreads: 6
         piper:
