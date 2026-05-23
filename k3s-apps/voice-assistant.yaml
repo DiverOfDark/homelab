@@ -1,0 +1,100 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: voice-assistant
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: voice-assistant
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    # Pipecat voice assistant — Helm chart lives in its own repo.
+    repoURL: https://github.com/DiverOfDark/pipecat-voice-assistant.git
+    targetRevision: HEAD
+    path: chart
+    helm:
+      releaseName: voice-assistant
+      valuesObject:
+        image:
+          repository: ghcr.io/diverofdark/pipecat-voice-assistant
+          tag: latest
+          pullPolicy: Always
+        # Local LLM — Hermes runs on a KubeVirt VM in this cluster.
+        hermes:
+          baseUrl: http://hermes-api.kubevirt-vms.svc.cluster.local:8642/v1
+          model: hermes-agent
+          apiKey:
+            externalSecret:
+              enabled: true
+              store: openbao-store
+              storeKind: ClusterSecretStore
+              refreshInterval: "1h"
+              remoteKey: voice-assistant/hermes
+              property: api_key
+        whisper:
+          model: medium
+          computeType: int8
+          ompThreads: 6
+        piper:
+          voice: ru_RU-irina-medium
+        esp32Compat: false
+        # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
+        # 192.168.179.21 is a free IP in the MetalLB pool.
+        stunner:
+          turnUri: turn:192.168.179.21:3478?transport=udp
+          loadBalancerIP: "192.168.179.21"
+          auth:
+            username: voiceassistant
+            externalSecret:
+              enabled: true
+              store: openbao-store
+              storeKind: ClusterSecretStore
+              refreshInterval: "1h"
+              remoteKey: voice-assistant/turn
+              usernameProperty: username
+              passwordProperty: password
+        persistence:
+          size: 8Gi
+          storageClassName: ceph-block
+        ingress:
+          enabled: true
+          className: traefik
+          host: voice-assistant.kirillorlov.pro
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://voice-assistant.kirillorlov.pro"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: Voice Assistant
+          tls:
+            enabled: true
+        resources:
+          bot:
+            requests:
+              cpu: "3"
+              memory: 4Gi
+            limits:
+              cpu: "6"
+              memory: 8Gi
+          initContainer:
+            requests:
+              cpu: "500m"
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 6Gi
+        # Pin to asgard — has the most CPU/memory headroom; matches the
+        # repo's nodeSelector pattern (k3s-userapps/github-runner/shared-dind.yaml).
+        # asgard is untainted, so no tolerations needed.
+        nodeSelector:
+          kubernetes.io/hostname: asgard
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
