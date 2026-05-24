@@ -81,7 +81,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: apiserver
-          image: dependencytrack/apiserver:4.14.1
+          image: dependencytrack/apiserver:4.14.2
           ports:
             - containerPort: 8080
           env:
