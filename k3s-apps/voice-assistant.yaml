@@ -39,7 +39,7 @@ spec:
           ompThreads: 6
         piper:
           voice: ru_RU-ruslan-medium
-        esp32Compat: false
+        esp32Compat: true
         # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
         # 192.168.179.21 is a free IP in the MetalLB pool.
         stunner:
