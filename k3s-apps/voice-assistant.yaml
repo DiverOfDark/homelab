@@ -76,10 +76,10 @@ spec:
           # noisy-neighbour isolation here). Memory limits stay.
           bot:
             requests:
-              cpu: "2"
+              cpu: "50m"
               memory: 4Gi
             limits:
-              memory: 8Gi
+              memory: 10Gi
           initContainer:
             requests:
               cpu: "500m"

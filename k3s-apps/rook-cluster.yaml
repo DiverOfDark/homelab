@@ -132,8 +132,8 @@ spec:
             enabled: true
             resources:
               requests:
-                cpu: 50m
-                memory: 512Mi
+                cpu: 10m
+                memory: 32Mi
           monitoring:
             enabled: true
             createPrometheusRules: true
@@ -159,7 +159,8 @@ spec:
                   cpu: 50m
               mgr:
                 requests:
-                  cpu: 50m
+                  cpu: 100m
+                  memory: 1Gi
                 limits:
                   memory: 4Gi
               mgr-sidecar:
@@ -168,10 +169,11 @@ spec:
               mon:
                 requests:
                   cpu: 50m
+                  memory: 512Mi
               osd:
                 requests:
-                  cpu: 50m
-                  memory: 512Mi
+                  cpu: 100m
+                  memory: 1500Mi
               crashcollector:
                 requests:
                   cpu: 50m
@@ -248,8 +250,8 @@ spec:
                   activeStandby: true
                   resources:
                     requests:
-                      cpu: "50m"
-                      memory: "512Mi"
+                      cpu: "100m"
+                      memory: "1Gi"
                   priorityClassName: system-cluster-critical
               storageClass:
                 enabled: true

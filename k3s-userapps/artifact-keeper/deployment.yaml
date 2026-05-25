@@ -46,8 +46,8 @@ spec:
               mountPath: /tmp
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 50m
+              memory: 128Mi
             limits:
               memory: 1Gi
       volumes:
@@ -127,8 +127,8 @@ spec:
               mountPath: /tmp
           resources:
             requests:
-              cpu: 500m
-              memory: 4Gi
+              cpu: 200m
+              memory: 1500Mi
             limits:
               memory: 5Gi
           livenessProbe:

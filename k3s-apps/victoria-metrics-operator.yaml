@@ -37,6 +37,12 @@ spec:
                 resources:
                   requests:
                     storage: 50Gi
+              resources:
+                requests:
+                  cpu: 300m
+                  memory: 800Mi
+                limits:
+                  memory: 1500Mi
               extraArgs:
                 dedup.minScrapeInterval: 30s
           - apiVersion: networking.k8s.io/v1
