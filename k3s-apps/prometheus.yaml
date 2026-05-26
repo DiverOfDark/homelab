@@ -45,7 +45,23 @@ spec:
         kubeProxy:
           enabled: false
         kubeEtcd:
-          enabled: false
+          enabled: true
+          # Talos exposes etcd metrics on the host at :2381 (plaintext) via
+          # cluster.etcd.extraArgs.listen-metrics-urls in talconfig.yaml.
+          endpoints:
+            - 192.168.178.11
+            - 192.168.178.12
+            - 192.168.178.13
+          service:
+            enabled: true
+            port: 2381
+            targetPort: 2381
+          serviceMonitor:
+            scheme: http
+            insecureSkipVerify: false
+            caFile: ""
+            certFile: ""
+            keyFile: ""
         alertmanager:
           ingress:
             enabled: true

@@ -227,6 +227,11 @@ controlPlane:
         etcd:
           extraArgs:
             listen-metrics-urls: http://0.0.0.0:2381
+            # Loosened from defaults (heartbeat 100ms / election 1000ms) because
+            # asgard's WAL fsync p99 sits around 120ms, causing leader churn.
+            # election-timeout must be >= 5× heartbeat-interval.
+            heartbeat-interval: "250"
+            election-timeout: "2500"
         controllerManager:
           extraArgs:
             bind-address: 0.0.0.0
