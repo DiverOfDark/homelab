@@ -16,3 +16,7 @@ spec:
       port: 8642
       targetPort: 8642
       protocol: TCP
+    - name: hermes-webui
+      port: 9119
+      targetPort: 9119
+      protocol: TCP
