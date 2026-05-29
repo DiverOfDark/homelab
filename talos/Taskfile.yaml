@@ -47,6 +47,22 @@ tasks:
     cmds:
       - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig kubeconfig
 
+  reboot:
+    desc: Rolling reboot of all nodes (one at a time, waits for Ready)
+    deps: [genconfig]
+    cmds:
+      - |
+        set -euo pipefail
+        TALOSCONFIG="{{ .OUTPUT_DIR }}/talosconfig"
+        for node in $(yq -r '.nodes[].hostname' talconfig.yaml); do
+          ip=$(yq -r ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
+          echo "==> Rebooting $node ($ip)..."
+          talosctl --talosconfig "$TALOSCONFIG" -n "$ip" reboot --wait
+          echo "==> Waiting for $node to be Ready in kubernetes..."
+          kubectl wait --for=condition=Ready node/"$node" --timeout=10m
+        done
+    prompt: "Rolling reboot ALL nodes one at a time?"
+
   dashboard:
     desc: "Open Talos dashboard (usage: task dashboard -- <hostname>)"
     deps: [genconfig]
