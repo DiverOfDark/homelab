@@ -99,6 +99,10 @@ locals {
       originRequest = {
         noTLSVerify = true
       }
+    }, {
+      short = "suwayomi"
+      hostname = "suwayomi.kirillorlov.pro"
+      service  = "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
     }
   ]
 }
