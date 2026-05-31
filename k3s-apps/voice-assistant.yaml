@@ -39,6 +39,27 @@ spec:
           ompThreads: 6
         piper:
           voice: ru_RU-ruslan-medium
+        # STT/TTS provider selection — ElevenLabs cloud (Scribe + custom voice)
+        # behind one API key. Pinned explicitly so a chart default flip can't
+        # silently switch us back to local whisper/piper.
+        stt:
+          provider: elevenlabs
+        tts:
+          provider: elevenlabs
+        elevenlabs:
+          voiceId: "r3k6KwS9XavocPYXN8sT"
+          ttsModel: "eleven_flash_v2_5"
+          sttModel: "scribe_v2"
+          stability: "0.45"
+          similarity: "0.85"
+          apiKey:
+            externalSecret:
+              enabled: true
+              store: openbao-store
+              storeKind: ClusterSecretStore
+              refreshInterval: "1h"
+              remoteKey: voice-assistant/elevenlabs
+              property: api_key
         esp32Compat: true
         # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
         # 192.168.179.21 is a free IP in the MetalLB pool.
