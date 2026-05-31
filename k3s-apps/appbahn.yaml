@@ -11,10 +11,19 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    repoURL: ghcr.io/diverofdark/appbahn/charts
-    targetRevision: 2026.05.02-5
-    chart: appbahn
+    # AppBahn — Helm chart lives in the same repo as the platform/operator code,
+    # mirroring the voice-assistant bleeding-edge pattern: chart tracks git HEAD,
+    # image tags are pinned to the same revision via $ARGOCD_APP_REVISION_SHORT.
+    repoURL: https://github.com/DiverOfDark/appbahn.git
+    targetRevision: HEAD
+    path: helm/appbahn
     helm:
+      releaseName: appbahn
+      parameters:
+        - name: platform.image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+        - name: operator.image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
         platform:
           resources:
