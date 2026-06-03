@@ -29,15 +29,16 @@ spec:
           resources:
             limits:
               memory: 1Gi
-          domain:
-            base: "appbahn.kirillorlov.pro"
+          # Chart at HEAD uses a flat `baseDomain`, not `domain.base` like the
+          # 2026.05.02-5 OCI chart did. The old nested key was silently ignored
+          # and the chart default `appbahn.example.com` leaked through.
+          baseDomain: "appbahn.kirillorlov.pro"
           namespacePrefix: "abp"
           database:
             url: "jdbc:postgresql://appbahn-db-rw.appbahn.svc.cluster.local:5432/appbahn"
             credentialRef: "appbahn-db-app"
           auth:
             issuerUrl: "https://auth.kirillorlov.pro"
-            audience: "appbahn"
             existingSecret: "appbahn-platform-oidc"
           ingress:
             className: "traefik"
@@ -61,9 +62,6 @@ spec:
           clusterName: "homelab"
           ingressClassName: "traefik"
           clusterIssuer: "acme-issuer"
-          auth:
-            existingSecret: "appbahn-operator-oidc"
-            tokenEndpoint: "https://auth.kirillorlov.pro/oauth/v2/token"
         serviceMonitor:
           enabled: true
         additionalObjects:
@@ -89,28 +87,6 @@ spec:
                 - secretKey: client-secret
                   remoteRef:
                     key: zitadel/appbahn_platform-credentials
-                    property: client_secret
-          - apiVersion: external-secrets.io/v1
-            kind: ExternalSecret
-            metadata:
-              name: appbahn-operator-oidc
-            spec:
-              secretStoreRef:
-                name: openbao-store
-                kind: ClusterSecretStore
-              refreshInterval: "1h"
-              target:
-                name: appbahn-operator-oidc
-                creationPolicy: Owner
-                deletionPolicy: Retain
-              data:
-                - secretKey: client-id
-                  remoteRef:
-                    key: zitadel/appbahn_operator-credentials
-                    property: client_id
-                - secretKey: client-secret
-                  remoteRef:
-                    key: zitadel/appbahn_operator-credentials
                     property: client_secret
           # --- CNPG PostgreSQL cluster ---
           - apiVersion: postgresql.cnpg.io/v1
