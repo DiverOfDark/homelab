@@ -26,7 +26,7 @@ terraform {
     }
     bunnynet = {
       source  = "registry.terraform.io/BunnyWay/bunnynet"
-      version = "0.14.1"
+      version = "0.14.2"
     }
   }
 
