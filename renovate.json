@@ -78,7 +78,7 @@
   "prHourlyLimit": 10,
   "prConcurrentLimit": 50,
   "automerge": false,
-  "automergeType": "branch",
+  "automergeType": "pr",
   "labels": [
     "automerge"
   ]
