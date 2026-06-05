@@ -140,6 +140,15 @@ spec:
           cephClusterSpec:
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
+            # All Ceph daemons (mon/mgr/mds/osd/rgw) run on hostNetwork so that
+            # libceph in the kernel reaches mons via stable node IPs
+            # (192.168.178.x) rather than service ClusterIPs. Required because
+            # the in-kernel CephFS/RBD clients depend on Cilium for ClusterIP
+            # routing, and during Talos reboot Cilium is torn down before
+            # kubelet finishes unmounting Ceph volumes — leaving the kernel
+            # stuck on dead ClusterIPs and the node stalled mid-shutdown.
+            network:
+              provider: host
             cephConfig:
               global:
                 osd_memory_target: "2147483648"
