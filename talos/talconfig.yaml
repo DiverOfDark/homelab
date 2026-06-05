@@ -217,10 +217,66 @@ controlPlane:
                   usernames:
                     - system:serviceaccount:velero:velero-server
                 kind: PodSecurityConfiguration
+          # Audit policy is on the etcd-disk write path: every API call lands in
+          # /var/log/audit/kube on the system SATA SSD. The default
+          # "Metadata for everything" generates ~100MB every 20 min — most of
+          # it leader-election lease renewals, kubelet self-status, controller
+          # endpoint-slice churn, and healthz probes. Filter the noise to
+          # leave only meaningful events.
           auditPolicy:
             apiVersion: audit.k8s.io/v1
             kind: Policy
+            omitStages:
+              - RequestReceived
             rules:
+              # Non-resource URLs (healthz/livez/readyz/metrics/openapi) — pure noise.
+              - level: None
+                nonResourceURLs:
+                  - /healthz*
+                  - /livez*
+                  - /readyz*
+                  - /version*
+                  - /metrics*
+                  - /openapi*
+                  - /swagger*
+              # Leader-election leases — kube-controller-manager / kube-scheduler
+              # renew every 2s, every controller does the same. ~1 audit line per
+              # renewal across dozens of controllers.
+              - level: None
+                resources:
+                  - group: coordination.k8s.io
+                    resources: ["leases"]
+                verbs: ["get", "update", "patch"]
+              # Controllers list/watch endpointslices and endpoints constantly.
+              - level: None
+                resources:
+                  - group: discovery.k8s.io
+                    resources: ["endpointslices"]
+                  - group: ""
+                    resources: ["endpoints"]
+                verbs: ["get", "list", "watch"]
+              # Events are high-volume and already captured by the event store.
+              - level: None
+                resources:
+                  - group: ""
+                    resources: ["events"]
+              # Kubelet self-status / node lease — every node every 10s.
+              - level: None
+                userGroups: ["system:nodes"]
+                verbs: ["get", "list", "watch", "patch", "update"]
+                resources:
+                  - group: ""
+                    resources: ["nodes", "nodes/status"]
+              # Core control-plane components doing read traffic — already
+              # implicit in their function, audit trail not useful.
+              - level: None
+                users:
+                  - system:kube-scheduler
+                  - system:kube-controller-manager
+                  - system:apiserver
+                verbs: ["get", "list", "watch"]
+              # Everything else: keep Metadata so the audit trail still exists
+              # for real authn/authz events, writes, and exec/portforward.
               - level: Metadata
         proxy:
           disabled: true
