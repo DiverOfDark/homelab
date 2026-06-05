@@ -228,28 +228,6 @@ resource "zitadel_application_oidc" "appbahn_platform" {
   id_token_userinfo_assertion = true
 }
 
-resource "zitadel_machine_user" "appbahn_operator" {
-  org_id            = var.zitadel_org_id
-  user_name         = "appbahn-operator"
-  name              = "AppBahn Operator"
-  with_secret       = true
-  access_token_type = "ACCESS_TOKEN_TYPE_JWT"
-}
-
-resource "zitadel_project_role" "appbahn_internal" {
-  org_id       = var.zitadel_org_id
-  project_id   = zitadel_project.homelab.id
-  role_key     = "internal"
-  display_name = "AppBahn Internal"
-}
-
-resource "zitadel_user_grant" "appbahn_operator" {
-  org_id     = var.zitadel_org_id
-  project_id = zitadel_project.homelab.id
-  user_id    = zitadel_machine_user.appbahn_operator.id
-  role_keys  = [zitadel_project_role.appbahn_internal.role_key]
-}
-
 resource "zitadel_application_saml" "ceph_dashboard" {
   org_id       = var.zitadel_org_id
   project_id   = zitadel_project.homelab.id
@@ -329,14 +307,3 @@ resource "vault_kv_secret_v2" "zitadel_credentials" {
   })
 }
 
-resource "vault_kv_secret_v2" "appbahn_operator_credentials" {
-  mount = "secret"
-  name  = "zitadel/appbahn_operator-credentials"
-
-  data_json = jsonencode({
-    client_id     = zitadel_machine_user.appbahn_operator.client_id
-    client_secret = zitadel_machine_user.appbahn_operator.client_secret
-    issuer        = "https://auth.kirillorlov.pro"
-    project_id    = zitadel_project.homelab.id
-  })
-}

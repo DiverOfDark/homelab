@@ -62,6 +62,14 @@ spec:
           clusterName: "homelab"
           ingressClassName: "traefik"
           clusterIssuer: "acme-issuer"
+          # Homelab runs off-the-shelf images (nginx, postgres, Bitnami…) that
+          # ship as root. Mirror the upstream `application-dev.yml` posture and
+          # turn runAsNonRoot off so tenant Deployments don't fail with
+          # CreateContainerConfigError. Rest of the security context (drop ALL
+          # caps, no privilege escalation, read-only rootfs=false) stays at the
+          # chart defaults.
+          security:
+            runAsNonRoot: false
         serviceMonitor:
           enabled: true
         additionalObjects:
