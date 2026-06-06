@@ -1,0 +1,57 @@
+name: Renovate
+
+on:
+  schedule:
+    # Every 4 hours. Renovate itself is cheap (hits GitHub + registries only,
+    # not the cluster); the cost driver is how many Renovate PRs each scan
+    # produces, which is throttled by prHourlyLimit in renovate.json.
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        default: "info"
+        type: choice
+        options:
+          - debug
+          - info
+          - warning
+      dryRun:
+        description: "Dry-run (don't create PRs)"
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+# Use GitHub-hosted runners deliberately. Self-hosted in-cluster runners are
+# Talos/kubelet/Cilium round-tripped through etcd; Renovate would compete with
+# the very cluster state it depends on for CI to validate its own PRs. Mend's
+# free cloud tier OOM'd on this repo, so a hosted GitHub runner (7 GB) is the
+# next step up that still costs nothing on the included Actions minutes.
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Self-hosted Renovate
+        uses: renovatebot/github-action@v43.0.10
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+          configurationFile: renovate.json
+        env:
+          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
+          RENOVATE_DRY_RUN: ${{ inputs.dryRun || 'false' }}
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: "required"
