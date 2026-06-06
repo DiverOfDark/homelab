@@ -1,0 +1,20 @@
+# Kyverno aggregation labels grant the listed permissions to Kyverno's
+# admission-controller (policy validation) and background-controller
+# (generate/mutate runtime). Without this, the validation webhook
+# rejects obc-secret-policy.yaml because it can't confirm that the
+# background-controller would be allowed to read the source Secret.
+#
+# Scope is read-only on Secrets cluster-wide. Kyverno already has write
+# permission on Secrets it generates (its own RBAC for generate rules),
+# so this only opens up the input side.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno:secret-reader
+  labels:
+    rbac.kyverno.io/aggregate-to-admission-controller: "true"
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
