@@ -172,6 +172,9 @@ spec:
                 access: "proxy"
                 type: prometheus
                 name: Prometheus
+                # Stable uid so dashboards that hardcode `"uid": "prometheus"`
+                # (e.g. the ociregistry chart dashboards) resolve their panels.
+                uid: prometheus
                 isDefault: true
                 url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
               instanceSelector:
