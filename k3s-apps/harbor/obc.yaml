@@ -17,7 +17,12 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: harbor-registry
+  # OBC name is intentionally different from the bucket name. The OBC's
+  # auto-created Secret + ConfigMap are named after the OBC itself, and
+  # Harbor's chart ALSO creates a Secret named `harbor-registry` (the
+  # release-name + component). Sharing the name caused Helm's
+  # server-side-apply to drift against the OBC controller's reconcile.
+  name: harbor-registry-bucket
   namespace: harbor
 spec:
   bucketName: harbor-registry
