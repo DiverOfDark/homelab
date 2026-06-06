@@ -58,6 +58,13 @@ spec:
                           release: harbor
           jobservice:
             replicas: 2
+            # Drop the "file" logger so jobservice doesn't need a per-pod PVC
+            # mount. With "file" present, the chart mounts a RWO ceph-block
+            # PVC, which blocks scale-up with Multi-Attach errors. Job logs
+            # still go to stdout (captured by kubectl/Loki) and to the DB.
+            jobLoggers:
+              - STD_OUTPUT
+              - DB
             affinity:
               podAntiAffinity:
                 preferredDuringSchedulingIgnoredDuringExecution:
