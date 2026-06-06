@@ -91,9 +91,9 @@ spec:
           # creds at rest — MUST be stable across syncs) come from OpenBao,
           # written by terraform/harbor.tf. Secret keys: HARBOR_ADMIN_PASSWORD
           # and secretKey (see k3s-apps/harbor/externalsecret.yaml).
-          existingSecretAdminPassword: harbor-core
+          existingSecretAdminPassword: harbor-secrets
           existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
-          existingSecretSecretKey: harbor-core
+          existingSecretSecretKey: harbor-secrets
 
           trivy:
             enabled: true
