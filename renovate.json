@@ -38,9 +38,11 @@
     },
     {
       "description": "Auto-merge all appbahn updates without delay",
-      "matchPackagePatterns": ["appbahn"],
       "automerge": true,
-      "minimumReleaseAge": "0 days"
+      "minimumReleaseAge": "0 days",
+      "matchPackageNames": [
+        "/appbahn/"
+      ]
     }
   ],
   "customManagers": [
