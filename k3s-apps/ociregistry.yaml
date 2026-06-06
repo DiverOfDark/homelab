@@ -16,7 +16,10 @@ spec:
     # cluster's registry mirror. Chart is published as an OCI artifact, same
     # pattern as kata-pulse.yaml.
     chart: ociregistry
-    repoURL: oci://quay.io/appzygy/helm-charts
+    # ArgoCD's oci:// handling uses the full repoURL path as the OCI repository
+    # (it does NOT append `chart:`), so the chart name must be in the path —
+    # same as kata-pulse.yaml. Artifact: quay.io/appzygy/helm-charts/ociregistry.
+    repoURL: oci://quay.io/appzygy/helm-charts/ociregistry
     targetRevision: 1.13.0
     helm:
       releaseName: ociregistry
