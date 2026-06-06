@@ -41,6 +41,15 @@ jobs:
           path: /tmp/renovate
           key: renovate-cache
 
+      # The renovate container internally runs as UID 12021. actions/cache
+      # restores the tar as the runner user (UID 1001), so the directory tree
+      # is owned by the wrong user and the container hits EACCES on mkdir.
+      # Recommended fix straight from the renovatebot/github-action README.
+      - name: Fix /tmp/renovate ownership for Renovate's container UID
+        run: |
+          sudo mkdir -p /tmp/renovate
+          sudo chown -R 12021:0 /tmp/renovate
+
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@v43.0.10
         with:
