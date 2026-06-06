@@ -44,6 +44,14 @@ spec:
             enabled: true
           prometheusRule:
             enabled: true
+        # Chart v0.16.0 turned `frrk8s.enabled: true` into the default, which
+        # pulls in the frr-k8s DaemonSet plus a broken subchart values path
+        # (`nil pointer evaluating interface {}.serviceMonitor` at render).
+        # This cluster is L2-only — `kubectl get bgppeers,bgpadvertisements -A`
+        # returns no instances, only an l2advertisement on first-pool — so
+        # frr-k8s is pure overhead. Disable the whole subchart.
+        frrk8s:
+          enabled: false
 
   syncPolicy:
     managedNamespaceMetadata:
