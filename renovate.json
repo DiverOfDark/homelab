@@ -74,9 +74,7 @@
       ]
     }
   ],
-  "minimumReleaseAge": "14 days",
-  "prHourlyLimit": 10,
-  "prConcurrentLimit": 50,
+  "minimumReleaseAge": "7 days",
   "automerge": false,
   "automergeType": "pr",
   "labels": [
