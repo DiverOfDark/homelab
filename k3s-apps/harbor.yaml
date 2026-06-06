@@ -57,25 +57,14 @@ spec:
                           component: core
                           release: harbor
           jobservice:
-            replicas: 2
-            # Drop the "file" logger so jobservice doesn't need a per-pod PVC
-            # mount. With "file" present, the chart mounts a RWO ceph-block
-            # PVC, which blocks scale-up with Multi-Attach errors. Job logs
-            # still go to stdout (captured by kubectl/Loki) and to the DB.
-            jobLoggers:
-              - STD_OUTPUT
-              - DB
-            affinity:
-              podAntiAffinity:
-                preferredDuringSchedulingIgnoredDuringExecution:
-                  - weight: 100
-                    podAffinityTerm:
-                      topologyKey: kubernetes.io/hostname
-                      labelSelector:
-                        matchLabels:
-                          app: harbor
-                          component: jobservice
-                          release: harbor
+            # Kept at 1 replica. Two paths to scale, both have a wall:
+            # (1) the chart's jobLog PVC is RWO ceph-block (Multi-Attach
+            # error on the second pod), and (2) dropping "file" from
+            # jobLoggers makes jobservice panic at startup with "missing
+            # logger config of job". For a homelab the single jobservice
+            # pod is acceptable — registry/core/portal HA still gives a
+            # usable Harbor when this pod is briefly down on reschedule.
+            replicas: 1
           registry:
             replicas: 2
             affinity:

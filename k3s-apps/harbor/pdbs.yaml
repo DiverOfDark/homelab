@@ -34,17 +34,11 @@ spec:
       component: core
       release: harbor
 ---
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: harbor-jobservice
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app: harbor
-      component: jobservice
-      release: harbor
+# No PDB for jobservice: it runs as a single replica. A PDB with
+# minAvailable: 1 would block ALL voluntary evictions, breaking node
+# drains during Talos upgrades. The chart hardcodes a file logger that
+# requires a RWO ceph-block PVC, so scaling to 2 isn't viable without
+# patching the chart.
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
