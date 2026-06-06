@@ -16,10 +16,6 @@ terraform {
       source  = "hashicorp/vault"
       version = "5.9.0"
     }
-    restapi = {
-      source  = "Mastercard/restapi"
-      version = "~> 3.0"
-    }
     aws = {
       source  = "registry.terraform.io/hashicorp/aws"
       version = "~> 6.0"
@@ -27,6 +23,14 @@ terraform {
     bunnynet = {
       source  = "registry.terraform.io/BunnyWay/bunnynet"
       version = "0.14.2"
+    }
+    harbor = {
+      source  = "goharbor/harbor"
+      version = "~> 3.10"
+    }
+    random = {
+      source  = "registry.terraform.io/hashicorp/random"
+      version = "~> 3.6"
     }
   }
 
@@ -58,49 +62,49 @@ variable "zitadel_org_id" {
 locals {
   ingress_rules = [
     {
-      short = "kirillorlov.pro"
+      short    = "kirillorlov.pro"
       hostname = "kirillorlov.pro"
       service  = "http://homepage.nextcloud.svc.cluster.local"
-    }, {
-      short = "www"
+      }, {
+      short    = "www"
       hostname = "www.kirillorlov.pro"
       service  = "http://homepage.nextcloud.svc.cluster.local"
-    }, {
-      short = "cloud"
+      }, {
+      short    = "cloud"
       hostname = "cloud.kirillorlov.pro"
       service  = "http://nextcloud.nextcloud.svc.cluster.local"
-    }, {
-      short = "bonsai"
+      }, {
+      short    = "bonsai"
       hostname = "bonsai.kirillorlov.pro"
       service  = "http://bonsai.bonsai.svc.cluster.local"
-    }, {
-      short = "auth"
+      }, {
+      short    = "auth"
       hostname = "auth.kirillorlov.pro"
       service  = "https://traefik.kube-system.svc.cluster.local:443"
       originRequest = {
-          noTLSVerify = true
+        noTLSVerify = true
       }
-    }, {
-      short = "status"
+      }, {
+      short    = "status"
       hostname = "status.kirillorlov.pro"
       service  = "http://homepage.statuspage.svc.cluster.local:3000"
-    }, {
-      short = "vaultwarden"
+      }, {
+      short    = "vaultwarden"
       hostname = "vaultwarden.kirillorlov.pro"
       service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
-    }, {
-      short = "money"
+      }, {
+      short    = "money"
       hostname = "money.kirillorlov.pro"
       service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
-    }, {
-      short = "appbahn"
+      }, {
+      short    = "appbahn"
       hostname = "appbahn.kirillorlov.pro"
       service  = "https://traefik.kube-system.svc.cluster.local:443"
       originRequest = {
         noTLSVerify = true
       }
-    }, {
-      short = "suwayomi"
+      }, {
+      short    = "suwayomi"
       hostname = "suwayomi.kirillorlov.pro"
       service  = "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
     }
