@@ -145,39 +145,59 @@ resource "harbor_registry" "docker_hub" {
 }
 
 resource "harbor_project" "docker_hub" {
-  name             = "docker-hub"
-  public           = true
-  registry_id      = harbor_registry.docker_hub.registry_id
-  storage_quota    = 50
+  name          = "docker-hub"
+  public        = true
+  registry_id   = harbor_registry.docker_hub.registry_id
+  storage_quota = 50
 }
 
-# GHCR — no auth needed for public packages. If a future workload pulls a
-# private GHCR repo, switch to a GitHub PAT here.
+# GHCR — even public packages need an anonymous bearer token, which Harbor's
+# proxy won't negotiate without creds. Authenticate with a GitHub PAT
+# (read:packages) via the generic docker-registry adapter (basic->token auth).
+# Username is just the GitHub handle; PAT lives in OpenBao secret/github.
+data "vault_kv_secret_v2" "github" {
+  mount = "secret"
+  name  = "github"
+}
+
 resource "harbor_registry" "ghcr" {
   name          = "ghcr-upstream"
-  provider_name = "github-ghcr"
+  provider_name = "docker-registry"
   endpoint_url  = "https://ghcr.io"
+  access_id     = "diverofdark"
+  access_secret = data.vault_kv_secret_v2.github.data["pat"]
 }
 
 resource "harbor_project" "ghcr" {
-  name             = "ghcr"
-  public           = true
-  registry_id      = harbor_registry.ghcr.registry_id
-  storage_quota    = 50
+  name          = "ghcr"
+  public        = true
+  registry_id   = harbor_registry.ghcr.registry_id
+  storage_quota = 50
 }
 
-# Quay (Red Hat / Cilium / etc.)
+# Quay (Red Hat / Cilium / etc.). Harbor's "quay" adapter doesn't support
+# proxy-cache, and quay.io needs an anonymous bearer token. Use the generic
+# docker-registry adapter with a quay.io robot token (read-only). Create a
+# robot under any quay.io account and store it in OpenBao secret/quay with
+# properties: username (e.g. <account>+<robot>) and token.
+data "vault_kv_secret_v2" "quay" {
+  mount = "secret"
+  name  = "quay"
+}
+
 resource "harbor_registry" "quay" {
   name          = "quay-upstream"
-  provider_name = "quay"
+  provider_name = "docker-registry"
   endpoint_url  = "https://quay.io"
+  access_id     = data.vault_kv_secret_v2.quay.data["username"]
+  access_secret = data.vault_kv_secret_v2.quay.data["token"]
 }
 
 resource "harbor_project" "quay" {
-  name             = "quay"
-  public           = true
-  registry_id      = harbor_registry.quay.registry_id
-  storage_quota    = 50
+  name          = "quay"
+  public        = true
+  registry_id   = harbor_registry.quay.registry_id
+  storage_quota = 50
 }
 
 # registry.k8s.io — Kubernetes core images (kube-apiserver, coredns,
@@ -189,10 +209,10 @@ resource "harbor_registry" "registry_k8s" {
 }
 
 resource "harbor_project" "registry_k8s" {
-  name             = "registry-k8s"
-  public           = true
-  registry_id      = harbor_registry.registry_k8s.registry_id
-  storage_quota    = 50
+  name          = "registry-k8s"
+  public        = true
+  registry_id   = harbor_registry.registry_k8s.registry_id
+  storage_quota = 50
 }
 
 # public.ecr.aws — Amazon ECR Public
@@ -203,10 +223,10 @@ resource "harbor_registry" "ecr_public" {
 }
 
 resource "harbor_project" "ecr_public" {
-  name             = "ecr-public"
-  public           = true
-  registry_id      = harbor_registry.ecr_public.registry_id
-  storage_quota    = 20
+  name          = "ecr-public"
+  public        = true
+  registry_id   = harbor_registry.ecr_public.registry_id
+  storage_quota = 20
 }
 
 # reg.kyverno.io — Kyverno's own registry
@@ -217,8 +237,8 @@ resource "harbor_registry" "kyverno" {
 }
 
 resource "harbor_project" "kyverno" {
-  name             = "kyverno"
-  public           = true
-  registry_id      = harbor_registry.kyverno.registry_id
-  storage_quota    = 10
+  name          = "kyverno"
+  public        = true
+  registry_id   = harbor_registry.kyverno.registry_id
+  storage_quota = 10
 }

@@ -172,27 +172,27 @@ patches:
           docker.io:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/docker-hub
-              - https://registry-1.docker.io
+              - https://registry-1.docker.io/v2
             overridePath: true
           ghcr.io:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/ghcr
-              - https://ghcr.io
+              - https://ghcr.io/v2
             overridePath: true
           quay.io:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/quay
-              - https://quay.io
+              - https://quay.io/v2
             overridePath: true
           registry.k8s.io:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/registry-k8s
-              - https://registry.k8s.io
+              - https://registry.k8s.io/v2
             overridePath: true
           public.ecr.aws:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/ecr-public
-              - https://public.ecr.aws
+              - https://public.ecr.aws/v2
             overridePath: true
           # Kyverno ships its admission webhook + background-controller images
           # from its own registry — 5 pods in this cluster currently pull from
@@ -201,7 +201,7 @@ patches:
           reg.kyverno.io:
             endpoints:
               - https://harbor.kirillorlov.pro/v2/kyverno
-              - https://reg.kyverno.io
+              - https://reg.kyverno.io/v2
             overridePath: true
 
 controlPlane:
