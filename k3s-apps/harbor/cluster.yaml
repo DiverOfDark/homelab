@@ -4,7 +4,7 @@ metadata:
   name: harbor-db
   namespace: harbor
 spec:
-  instances: 2
+  instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
     size: 20Gi
