@@ -27,6 +27,14 @@ spec:
            - --delete-evicted-pods-after=60m
            - --delete-orphaned-pods-after=60m
            - --legacy-mode=false
+           # In non-legacy mode the operator only deletes pods when
+           # (live_count > keep-N) AND (age > delete-after). All three
+           # keep-* flags default to -1 ("keep all, never delete"), so
+           # the delete-after thresholds above had no effect on failed,
+           # pending, or evicted pods — they accumulated forever. Set
+           # to 0 so the age-based deletion actually fires.
+           - --keep-failures=0
+           - --keep-pending=0
   syncPolicy:
     automated:
       prune: true
