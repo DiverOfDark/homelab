@@ -1,0 +1,129 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ociregistry
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: ociregistry
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    # Lightweight, pull-only / pull-through caching OCI distribution server
+    # (github.com/aceeric/ociregistry). Replaces artifact-keeper as the
+    # cluster's registry mirror. Chart is published as an OCI artifact, same
+    # pattern as kata-pulse.yaml.
+    chart: ociregistry
+    repoURL: oci://quay.io/appzygy/helm-charts
+    targetRevision: 1.13.0
+    helm:
+      releaseName: ociregistry
+      valuesObject:
+        # Image tag intentionally not pinned — it tracks the chart's appVersion,
+        # so a single chart bump (via renovate on targetRevision) moves both.
+
+        # ClusterIP + ingress: containerd on the Talos nodes reaches the
+        # mirror through Traefik at registry.kirillorlov.pro. ociregistry is
+        # a transparent pull-through cache — it derives the upstream from the
+        # containerd `ns` query parameter, so a single host fronts docker.io,
+        # ghcr.io, quay.io, registry.k8s.io, etc. (no per-registry paths like
+        # artifact-keeper needed). Talos `machine.registries.mirrors` wiring
+        # lives in talos/talconfig.yaml (currently commented out).
+        service:
+          type: ClusterIP
+          port: 8080
+          # Drop the chart's default NodePort (invalid on a ClusterIP service).
+          nodePort: null
+
+        # Persist the image cache so a pod restart doesn't cold-start every
+        # pull. ReadWriteMany on ceph-filesystem so a rolling update's old and
+        # new pod can briefly share the cache volume.
+        persistence:
+          emptyDir:
+            enabled: false
+          persistentVolumeClaim:
+            enabled: true
+            newClaimSpec:
+              accessModes:
+                - ReadWriteMany
+              storageClassName: ceph-filesystem
+              resources:
+                requests:
+                  storage: 50Gi
+
+        # Rolling update — RWM volume lets the new pod start before the old one
+        # terminates (no single-writer contention).
+        deploymentStrategy:
+          type: RollingUpdate
+          rollingUpdate:
+            maxUnavailable: 0
+            maxSurge: 1
+
+        # Readiness/liveness probes on the dedicated health port.
+        health:
+          port: 8081
+
+        # Expose Prometheus metrics and create a ServiceMonitor (the cluster
+        # runs the prometheus-operator CRDs).
+        metrics:
+          port: 2112
+        observability:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+
+        serverConfig:
+          configuration:
+            logLevel: info
+            # No per-registry config needed for anonymous public pulls.
+            # Add entries here (plus `env` for credentials) only for private
+            # upstreams. See the chart README.
+            registries: []
+            # Re-check upstream for moving tags (e.g. :latest) so the cache
+            # doesn't pin a stale digest.
+            alwaysPullLatest: true
+            # Evict images not accessed in 30d, checked daily, to bound the
+            # cache size.
+            pruneConfig:
+              enabled: true
+              type: accessed
+              duration: 30d
+              frequency: 1d
+
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://registry.kirillorlov.pro"
+            gethomepage.dev/group: Infra
+            gethomepage.dev/name: OCIRegistry
+            gethomepage.dev/icon: mdi-package-variant
+            gethomepage.dev/description: "Pull-through container registry cache"
+          hosts:
+            - host: registry.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: ociregistry-tls
+              hosts:
+                - registry.kirillorlov.pro
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 512Mi
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
