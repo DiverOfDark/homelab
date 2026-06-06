@@ -1,0 +1,30 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: harbor-db
+  namespace: harbor
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  storage:
+    size: 20Gi
+    storageClass: ceph-block
+  monitoring:
+    enablePodMonitor: true
+  postgresql:
+    parameters:
+      max_slot_wal_keep_size: "2GB"
+  bootstrap:
+    initdb:
+      database: harbor
+      owner: harbor
+  # WAL archiving target. The cnpg-backup-policy Kyverno policy generates the
+  # yggdrasil/wasabi/bunny ObjectStores, backup-credential ExternalSecrets and
+  # ScheduledBackups in this namespace, but each Cluster must still declare its
+  # own plugin block (see k3s-objects/cnpg-backup-policy.yaml).
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: yggdrasil-store

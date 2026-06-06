@@ -1,0 +1,116 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: harbor
+    server: https://kubernetes.default.svc
+  project: default
+  # Multi-source: the upstream Harbor chart has no `additionalObjects` hook, so
+  # the CNPG Postgres Cluster + the admin/secretKey ExternalSecret live as raw
+  # manifests in k3s-apps/harbor/ (a subdir the meta-app ignores — it syncs
+  # k3s-apps non-recursively). Both sources deploy into the `harbor` namespace.
+  sources:
+    - repoURL: https://helm.goharbor.io
+      chart: harbor
+      targetRevision: 1.18.4
+      helm:
+        releaseName: harbor
+        valuesObject:
+          externalURL: https://harbor.kirillorlov.pro
+
+          expose:
+            type: ingress
+            tls:
+              enabled: true
+              # cert-manager fills harbor-tls from the ingress (cluster-issuer
+              # annotation below); the chart just references the secret name.
+              certSource: secret
+              secret:
+                secretName: harbor-tls
+            ingress:
+              hosts:
+                core: harbor.kirillorlov.pro
+              className: traefik
+              annotations:
+                cert-manager.io/cluster-issuer: acme-issuer
+                gethomepage.dev/enabled: "true"
+                gethomepage.dev/href: "https://harbor.kirillorlov.pro"
+                gethomepage.dev/group: Infra
+                gethomepage.dev/name: Harbor
+                gethomepage.dev/icon: harbor.png
+                gethomepage.dev/description: "Container registry"
+                gethomepage.dev/pod-selector: "app.kubernetes.io/name=harbor,component=core"
+
+          # Image layers on CephFS (RWX) so the registry pod can roll without
+          # single-writer contention; the rest are small RWO volumes.
+          persistence:
+            enabled: true
+            imageChartStorage:
+              type: filesystem
+            persistentVolumeClaim:
+              registry:
+                storageClass: ceph-filesystem
+                accessMode: ReadWriteMany
+                size: 100Gi
+              jobservice:
+                jobLog:
+                  storageClass: ceph-block
+                  accessMode: ReadWriteOnce
+                  size: 5Gi
+              redis:
+                storageClass: ceph-block
+                accessMode: ReadWriteOnce
+                size: 5Gi
+              trivy:
+                storageClass: ceph-block
+                accessMode: ReadWriteOnce
+                size: 5Gi
+
+          # External Postgres via CloudNativePG (k3s-apps/harbor/cluster.yaml).
+          # The chart reads the `password` key from the CNPG-generated secret.
+          database:
+            type: external
+            external:
+              host: harbor-db-rw.harbor.svc.cluster.local
+              port: "5432"
+              username: harbor
+              coreDatabase: harbor
+              existingSecret: harbor-db-app
+              sslmode: disable
+
+          # Redis: chart-internal is fine for a homelab.
+          redis:
+            type: internal
+
+          # Admin password + the 16-char secretKey (used to encrypt registry
+          # creds at rest — MUST be stable across syncs) come from OpenBao,
+          # written by terraform/harbor.tf. Secret keys: HARBOR_ADMIN_PASSWORD
+          # and secretKey (see k3s-apps/harbor/externalsecret.yaml).
+          existingSecretAdminPassword: harbor-core
+          existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+          existingSecretSecretKey: harbor-core
+
+          trivy:
+            enabled: true
+
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+
+    - repoURL: https://github.com/DiverOfDark/homelab.git
+      targetRevision: HEAD
+      path: k3s-apps/harbor
+
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
