@@ -1,0 +1,24 @@
+# Ceph RGW bucket for harbor-registry's image layer storage.
+#
+# Rook's OBC provisioner (storageClassName: ceph-bucket) creates:
+#   - the bucket in Ceph RGW with the explicit bucketName below
+#   - a ConfigMap named "harbor-registry" with bucket/host/port info
+#   - a Secret named "harbor-registry" with AWS_ACCESS_KEY_ID and
+#     AWS_SECRET_ACCESS_KEY (RGW's standard envs)
+#
+# Harbor's registry pod expects those same credentials but under the env
+# names REGISTRY_STORAGE_S3_ACCESSKEY / REGISTRY_STORAGE_S3_SECRETKEY.
+# The Kyverno ClusterPolicy in obc-secret-policy.yaml projects the
+# AWS_*-named keys into a sibling Secret with the registry's expected
+# key names, which harbor.yaml references via existingSecret.
+#
+# bucketName is explicit (not generateBucketName) so harbor.yaml can
+# hardcode the bucket and not depend on a dynamically-rendered value.
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: harbor-registry
+  namespace: harbor
+spec:
+  bucketName: harbor-registry
+  storageClassName: ceph-bucket

@@ -102,17 +102,33 @@ spec:
                 gethomepage.dev/description: "Container registry"
                 gethomepage.dev/pod-selector: "app.kubernetes.io/name=harbor,component=core"
 
-          # Image layers on CephFS (RWX) so the registry pod can roll without
-          # single-writer contention; the rest are small RWO volumes.
+          # Image layers on S3 (Ceph RGW), not CephFS. CephFS-backed image
+          # layers were fragile: when the MDS hiccups (seen multiple times
+          # today across asgard / jotunheimr / niflheimr), inode lookups
+          # hang for 20+ minutes, which made ociregistry's same pattern
+          # unusable. RGW writes go straight to OSDs with no metadata
+          # service in the path. The bucket + credentials come from the
+          # ObjectBucketClaim in k3s-apps/harbor/obc.yaml; Kyverno
+          # (k3s-apps/harbor/obc-secret-policy.yaml) re-projects the OBC's
+          # AWS_*-keyed secret into REGISTRY_STORAGE_S3_*-keyed form which
+          # is what the registry pod's envFrom expects via existingSecret.
+          #
+          # disableredirect: true so the registry proxies the bytes itself
+          # instead of redirecting clients to the in-cluster RGW URL,
+          # which clients outside the cluster can't reach.
           persistence:
             enabled: true
             imageChartStorage:
-              type: filesystem
+              disableredirect: true
+              type: s3
+              s3:
+                existingSecret: harbor-registry-s3
+                region: us-east-1
+                bucket: harbor-registry
+                regionendpoint: http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local:80
+                secure: false
+                v4auth: true
             persistentVolumeClaim:
-              registry:
-                storageClass: ceph-filesystem
-                accessMode: ReadWriteMany
-                size: 100Gi
               jobservice:
                 jobLog:
                   storageClass: ceph-block
