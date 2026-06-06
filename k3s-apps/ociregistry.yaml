@@ -98,13 +98,30 @@ spec:
           serviceMonitor:
             enabled: true
 
+        # Docker Hub password (a PAT) is injected from a Secret via env so it
+        # never lands in the configmap/git. The username isn't a secret, so it
+        # stays in the config below. ghcr.io/quay.io/registry.k8s.io stay
+        # anonymous — only docker.io rate-limits hard enough to need auth.
+        env:
+          - name: DOCKERHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: ociregistry-dockerhub
+                key: token
+
         serverConfig:
           configuration:
             logLevel: info
-            # No per-registry config needed for anonymous public pulls.
-            # Add entries here (plus `env` for credentials) only for private
-            # upstreams. See the chart README.
-            registries: []
+            # Authenticate to Docker Hub to escape the ~10 pulls/hr anonymous
+            # limit (the 429s). `passwordFromEnv` reads the PAT from the env var
+            # wired above. Other upstreams need no entry (anonymous works).
+            registries:
+              - name: docker.io
+                description: Docker Hub (authenticated to lift rate limits)
+                scheme: https
+                auth:
+                  user: diverofdark
+                  passwordFromEnv: DOCKERHUB_TOKEN
             # Re-check upstream for moving tags (e.g. :latest) so the cache
             # doesn't pin a stale digest.
             alwaysPullLatest: true
@@ -143,6 +160,28 @@ spec:
             memory: 64Mi
           limits:
             memory: 512Mi
+
+        # Pull the Docker Hub PAT from OpenBao into the Secret that `env`
+        # references above. Same pattern as trackhound.yaml.
+        extraManifests:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: ociregistry-dockerhub
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: ociregistry-dockerhub
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: token
+                  remoteRef:
+                    key: ociregistry
+                    property: dockerhub_token
 
   syncPolicy:
     automated:
