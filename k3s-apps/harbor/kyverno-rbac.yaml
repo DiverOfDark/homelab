@@ -7,6 +7,8 @@
 # Scope is read-only on Secrets cluster-wide. Kyverno already has write
 # permission on Secrets it generates (its own RBAC for generate rules),
 # so this only opens up the input side.
+# Admission-controller only needs to verify the policy is satisfiable, so
+# read-only.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -18,3 +20,19 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]
+---
+# Background-controller actually executes the generate rule — needs write
+# verbs to materialize the projected secret and keep it in sync as the
+# source changes (synchronize: true on the policy). Without this, the
+# admission webhook still rejects the policy because it pre-checks both
+# controllers' permissions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno:secret-writer
+  labels:
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "update", "patch", "delete"]
