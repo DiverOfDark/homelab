@@ -1,0 +1,71 @@
+# PodDisruptionBudgets — keep at least one replica of each Harbor component up
+# during voluntary disruption (node drains, cordon-for-upgrade, etc.).
+# Pairs with replicas: 2 + soft podAntiAffinity in k3s-apps/harbor.yaml.
+#
+# minAvailable: 1 over a 2-replica deployment means a node drain succeeds only
+# when the other replica is already scheduled and Ready elsewhere — exactly
+# the behavior we want during rolling Talos upgrades.
+#
+# Redis intentionally has no PDB: the chart's internal Redis is a single-pod
+# StatefulSet, so a PDB with minAvailable: 1 would block all evictions and
+# break node drains. Accept ~30s of Harbor degradation on redis reschedule.
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: harbor-portal
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: harbor
+      component: portal
+      release: harbor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: harbor-core
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: harbor
+      component: core
+      release: harbor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: harbor-jobservice
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: harbor
+      component: jobservice
+      release: harbor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: harbor-registry
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: harbor
+      component: registry
+      release: harbor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: harbor-trivy
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: harbor
+      component: trivy
+      release: harbor

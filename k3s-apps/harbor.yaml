@@ -23,6 +23,66 @@ spec:
         valuesObject:
           externalURL: https://harbor.kirillorlov.pro
 
+          # HA: 2 replicas per stateless component with soft anti-affinity so
+          # the pair lands on different nodes when possible. Redis stays as
+          # the chart's internal single-pod StatefulSet — moving multi-DB
+          # Harbor onto a Redis Cluster (or Valkey-operator's cluster mode)
+          # would require collapsing DBs 0/1/2/5 into one keyspace, which
+          # isn't a homelab-scale win. PDBs (k3s-apps/harbor/) gate
+          # voluntary evictions to one replica at a time.
+          portal:
+            replicas: 2
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    podAffinityTerm:
+                      topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          app: harbor
+                          component: portal
+                          release: harbor
+          core:
+            replicas: 2
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    podAffinityTerm:
+                      topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          app: harbor
+                          component: core
+                          release: harbor
+          jobservice:
+            replicas: 2
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    podAffinityTerm:
+                      topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          app: harbor
+                          component: jobservice
+                          release: harbor
+          registry:
+            replicas: 2
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    podAffinityTerm:
+                      topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          app: harbor
+                          component: registry
+                          release: harbor
+
           expose:
             type: ingress
             tls:
@@ -97,6 +157,18 @@ spec:
 
           trivy:
             enabled: true
+            replicas: 2
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    podAffinityTerm:
+                      topologyKey: kubernetes.io/hostname
+                      labelSelector:
+                        matchLabels:
+                          app: harbor
+                          component: trivy
+                          release: harbor
 
           metrics:
             enabled: true

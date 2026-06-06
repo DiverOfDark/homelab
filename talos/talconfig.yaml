@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://budimanjojo.github.io/talhelper/latest/schema.json
 
 # renovate: image=ghcr.io/siderolabs/talosctl
-talosVersion: v1.12.6
+talosVersion: v1.13.3
 # renovate: image=registry.k8s.io/kube-apiserver
-kubernetesVersion: v1.35.3
+kubernetesVersion: v1.36.1
 
 clusterName: homelab
 endpoint: https://192.168.179.2:6443
@@ -159,30 +159,50 @@ patches:
     kind: KmsgLogConfig
     name: remote-log
     url: udp://127.0.0.1:5051/
-#  - |-
-#    machine:
-#      registries:
-#        mirrors:
-#          docker.io:
-#            endpoints:
-#              - https://artifacts.kirillorlov.pro/v2/docker-hub
-#              - https://registry-1.docker.io/v2
-#            overridePath: true
-#          quay.io:
-#            endpoints:
-#              - https://artifacts.kirillorlov.pro/v2/quay
-#              - https://quay.io/v2
-#            overridePath: true
-#          registry.k8s.io:
-#            endpoints:
-#              - https://artifacts.kirillorlov.pro/v2/registry-k8s
-#              - https://registry.k8s.io/v2
-#            overridePath: true
-#          public.ecr.aws:
-#            endpoints:
-#              - https://artifacts.kirillorlov.pro/v2/ecr-public
-#              - https://public.ecr.aws/v2
-#            overridePath: true
+  # Registry pull-through cache via Harbor (k3s-apps/harbor.yaml). One proxy
+  # project per upstream (terraform/harbor.tf: harbor_project.<name>), each
+  # exposed at harbor.kirillorlov.pro/v2/<project>/<image>. `overridePath:
+  # true` is required because Harbor uses path-prefixed proxy projects
+  # rather than the ns-query routing ociregistry uses. The direct upstream
+  # endpoint is kept as fallback so a Harbor outage doesn't brick pulls.
+  - |-
+    machine:
+      registries:
+        mirrors:
+          docker.io:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/docker-hub
+              - https://registry-1.docker.io
+            overridePath: true
+          ghcr.io:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/ghcr
+              - https://ghcr.io
+            overridePath: true
+          quay.io:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/quay
+              - https://quay.io
+            overridePath: true
+          registry.k8s.io:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/registry-k8s
+              - https://registry.k8s.io
+            overridePath: true
+          public.ecr.aws:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/ecr-public
+              - https://public.ecr.aws
+            overridePath: true
+          # Kyverno ships its admission webhook + background-controller images
+          # from its own registry — 5 pods in this cluster currently pull from
+          # reg.kyverno.io (kyverno, background-controller, cleanup-controller,
+          # kyvernopre, reports-controller).
+          reg.kyverno.io:
+            endpoints:
+              - https://harbor.kirillorlov.pro/v2/kyverno
+              - https://reg.kyverno.io
+            overridePath: true
 
 controlPlane:
   patches:
