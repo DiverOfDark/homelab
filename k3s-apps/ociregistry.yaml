@@ -37,6 +37,11 @@ spec:
         service:
           type: ClusterIP
           port: 8080
+          # Suppress the chart's default NodePort (invalid on a ClusterIP
+          # service). Use 0 rather than null: the chart gates the field on
+          # `{{- if .Values.service.nodePort }}` (0 is falsy → omitted), and 0
+          # survives null-stripping linters.
+          nodePort: 0
 
         # Persist the image cache so a pod restart doesn't cold-start every
         # pull. ReadWriteMany on ceph-filesystem so a rolling update's old and
@@ -53,6 +58,24 @@ spec:
               resources:
                 requests:
                   storage: 50Gi
+
+        # The image runs as distroless `nonroot` (uid/gid 65532). The CephFS
+        # PVC mounts root-owned, so without fsGroup the server can't create its
+        # cache dirs ("mkdir /var/lib/ociregistry/lts: permission denied").
+        # CephFS CSIDriver has fsGroupPolicy=File, so fsGroup is honored.
+        podSecurityContext:
+          fsGroup: 65532
+          fsGroupChangePolicy: OnRootMismatch
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
 
         # Rolling update — RWM volume lets the new pod start before the old one
         # terminates (no single-writer contention).
