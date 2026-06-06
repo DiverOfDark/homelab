@@ -37,8 +37,6 @@ spec:
         service:
           type: ClusterIP
           port: 8080
-          # Drop the chart's default NodePort (invalid on a ClusterIP service).
-          nodePort: null
 
         # Persist the image cache so a pod restart doesn't cold-start every
         # pull. ReadWriteMany on ceph-filesystem so a rolling update's old and
