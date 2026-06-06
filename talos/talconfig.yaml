@@ -311,6 +311,15 @@ controlPlane:
         controllerManager:
           extraArgs:
             bind-address: 0.0.0.0
+            # Default is 12500 — way above any realistic count for this
+            # cluster — so terminated ReplicaSet-owned pods (e.g. Ceph
+            # daemons that crash during an MDS hiccup, or any RS pod
+            # left in Failed/Completed state after a rolling update)
+            # never get garbage-collected by Kubernetes' built-in podGC.
+            # kube-cleanup-operator handles Job/CronJob-spawned pods,
+            # not RS-spawned ones, so without lowering this the cluster
+            # accumulates Failed pods indefinitely.
+            terminated-pod-gc-threshold: "200"
         scheduler:
           extraArgs:
             bind-address: 0.0.0.0
