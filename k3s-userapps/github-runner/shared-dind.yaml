@@ -53,14 +53,22 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 256Mi
-            limits:
+              # Reserve the tmpfs footprint at schedule time so asgard is never memory-overcommitted
+              # (no swap on Talos — overcommit would mean a node OOM next to etcd/apiserver).
               memory: 16Gi
+            limits:
+              # MUST exceed the tmpfs sizeLimit (16Gi) + dockerd RSS. The in-RAM image store (shmem) is
+              # charged to this container's memory cgroup; if limit <= tmpfs cap, dind is OOM-killed when full.
+              memory: 20Gi
       volumes:
         - name: data
-          hostPath:
-            path: /var/lib/shared-dind
-            type: DirectoryOrCreate
+          emptyDir:
+            # tmpfs: docker's image/layer store lives in RAM, so build I/O never touches asgard's
+            # etcd disk (sda). k8s sets the tmpfs mount to size=16Gi, so a runaway build gets a clean
+            # ENOSPC instead of eating node memory. NOTE: ephemeral — the image cache is lost on every
+            # dind restart (cold pulls over the network each time); keep the prune CronJob tight (below).
+            medium: Memory
+            sizeLimit: 16Gi
         - name: run
           emptyDir: {}
 ---
@@ -84,7 +92,9 @@ metadata:
   name: shared-dind-prune
   namespace: github-runner
 spec:
-  schedule: "0 4 * * *"
+  # Every 3h: the docker store now lives in a 16Gi tmpfs (in shared-dind), so it must be kept lean
+  # to avoid ENOSPC mid-build. Tune frequency/retention by how fast the tmpfs fills under real CI load.
+  schedule: "0 */3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
@@ -106,9 +116,9 @@ spec:
                 - |
                   set -eu
                   docker container prune -f --filter "until=24h"
-                  docker image prune -af --filter "until=168h"
+                  docker image prune -af --filter "until=12h"
                   docker volume prune -f
-                  docker builder prune -af --filter "until=168h"
+                  docker builder prune -af --filter "until=12h"
               resources:
                 requests:
                   cpu: 50m
