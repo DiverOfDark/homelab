@@ -22,6 +22,15 @@ data:
               value: tcp://shared-dind.github-runner.svc:2375
             - name: TESTCONTAINERS_HOST_OVERRIDE
               value: shared-dind.github-runner.svc
+            # Route testcontainers' Docker Hub pulls (ryuk, rancher/k3s, postgres, mock-oauth2, …)
+            # through Harbor's authenticated docker-hub proxy-cache instead of pulling from Docker Hub
+            # directly — dodges the unauth 429 rate limit and warms a shared cache. Harbor's "docker-hub"
+            # provider adapter handles the implicit library/ for official images, so short names resolve.
+            # Trailing slash is required — the prefix is concatenated onto the image name.
+            # NOTE: dockerd's registry-mirrors can't reach Harbor's /v2/<project>/ proxy layout (no path
+            # rewrite like containerd), so this prefix — not a daemon mirror — is how dind uses Harbor.
+            - name: TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX
+              value: harbor.kirillorlov.pro/docker-hub/
           resources:
             requests:
               cpu: "100m"
