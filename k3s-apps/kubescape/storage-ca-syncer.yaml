@@ -1,0 +1,132 @@
+# Keeps the kubescape storage APIService's caBundle in sync with the
+# storage-tls-ca Secret. The kubescape-operator chart rotates the CA
+# in-place (helm.sh/resource-policy: keep on the Secret) but doesn't
+# always refresh the APIService's caBundle field — when it drifts the
+# aggregated API for spdx.softwarecomposition starts returning x509
+# "signed by unknown authority", node-agent crashloops, kubevuln stalls.
+#
+# Tried first: cert-manager-cainjector via inject-ca-from-secret. Two
+# blockers in cert-manager v1.20.2 — the source Secret needs the
+# cert-manager.io/allow-direct-injection annotation AND the CA bytes
+# under the ca.crt key. This chart-managed Secret writes tls.crt /
+# tls.key only, with no way to control the key name.
+# Tried second: Kyverno mutate-existing on the APIService. Policy applied
+# Ready but no UpdateRequests were generated for this cluster-scoped
+# target — Kyverno 1.18 quirk with match.any + APIService.
+#
+# This CronJob is the resilient fallback: every 5 minutes diff the CA
+# bytes against the live caBundle and patch on mismatch.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: storage-ca-syncer
+  namespace: kubescape
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: storage-ca-syncer
+  namespace: kubescape
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["storage-tls-ca"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: storage-ca-syncer
+  namespace: kubescape
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: storage-ca-syncer
+subjects:
+  - kind: ServiceAccount
+    name: storage-ca-syncer
+    namespace: kubescape
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubescape-storage-ca-syncer
+rules:
+  - apiGroups: ["apiregistration.k8s.io"]
+    resources: ["apiservices"]
+    resourceNames: ["v1beta1.spdx.softwarecomposition.kubescape.io"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubescape-storage-ca-syncer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubescape-storage-ca-syncer
+subjects:
+  - kind: ServiceAccount
+    name: storage-ca-syncer
+    namespace: kubescape
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: storage-ca-syncer
+  namespace: kubescape
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 600
+      template:
+        metadata:
+          labels:
+            app: storage-ca-syncer
+        spec:
+          serviceAccountName: storage-ca-syncer
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sync
+              image: bitnami/kubectl:1.36.1
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "-euo", "pipefail", "-c"]
+              args:
+                - |
+                  CA=$(kubectl -n kubescape get secret storage-tls-ca -o jsonpath='{.data.tls\.crt}')
+                  if [ -z "$CA" ]; then
+                    echo "storage-tls-ca has no tls.crt — nothing to sync"
+                    exit 0
+                  fi
+                  CURRENT=$(kubectl get apiservice v1beta1.spdx.softwarecomposition.kubescape.io -o jsonpath='{.spec.caBundle}')
+                  if [ "$CA" = "$CURRENT" ]; then
+                    echo "caBundle already in sync"
+                    exit 0
+                  fi
+                  echo "caBundle drifted — patching"
+                  kubectl patch apiservice v1beta1.spdx.softwarecomposition.kubescape.io \
+                    --type=merge \
+                    -p "{\"spec\":{\"caBundle\":\"$CA\"}}"
+                  echo "patched"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true

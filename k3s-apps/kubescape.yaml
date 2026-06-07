@@ -7,16 +7,13 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  # Multi-source: the kubescape-operator chart manages the storage
-  # APIService's caBundle once at install time, but rotates the storage CA
-  # on chart upgrades without updating the caBundle field — kube-aggregator
-  # then fails TLS to the storage service and the entire spdx.softwarecomposition
-  # API goes down (node-agent crashloops, kubevuln stalls). The Kyverno
-  # policy in k3s-apps/kubescape/ adds a cert-manager.io/inject-ca-from-secret
-  # annotation to the APIService only (broadcasting via additionalAnnotations
-  # would also touch the validating webhook, which has a different CA).
-  # cert-manager-cainjector then keeps the caBundle in sync with the rotated
-  # storage-tls-ca Secret automatically.
+  # Multi-source: the kubescape-operator chart rotates the storage CA
+  # (storage-tls-ca Secret) on chart upgrades but doesn't always refresh
+  # the APIService's caBundle field — kube-aggregator then fails TLS to
+  # the storage service and the entire spdx.softwarecomposition API goes
+  # down (node-agent crashloops, kubevuln stalls). The CronJob in
+  # k3s-apps/kubescape/storage-ca-syncer.yaml diffs the live caBundle
+  # against the Secret every 5 min and patches on drift.
   sources:
   - repoURL: https://kubescape.github.io/helm-charts
     chart: kubescape-operator
