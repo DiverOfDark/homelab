@@ -48,7 +48,7 @@ tasks:
       - talosctl --talosconfig {{ .OUTPUT_DIR }}/talosconfig kubeconfig
 
   reboot:
-    desc: Rolling reboot of all nodes (one at a time, waits for Ready)
+    desc: Rolling reboot of all nodes (drain → reboot via Talos → uncordon, one at a time)
     deps: [genconfig]
     cmds:
       - |
@@ -56,12 +56,32 @@ tasks:
         TALOSCONFIG="{{ .OUTPUT_DIR }}/talosconfig"
         for node in $(yq -r '.nodes[].hostname' talconfig.yaml); do
           ip=$(yq -r ".nodes[] | select(.hostname == \"$node\") | .ipAddress" talconfig.yaml)
+
+          # Drain first so workloads relocate gracefully instead of being
+          # killed mid-flight by talosctl reboot. PDBs are honored, so
+          # 2-replica deployments stay available throughout. DaemonSets
+          # are ignored (they're recreated automatically post-reboot),
+          # and emptyDir is allowed to be deleted (it's by definition
+          # ephemeral). etcd/kube-apiserver/kubelet are Talos system
+          # services, not k8s-tracked pods — drain doesn't touch them.
+          echo "==> Draining $node..."
+          kubectl drain "$node" \
+            --ignore-daemonsets \
+            --delete-emptydir-data \
+            --timeout=10m
+
           echo "==> Rebooting $node ($ip)..."
           talosctl --talosconfig "$TALOSCONFIG" -n "$ip" reboot --wait
+
           echo "==> Waiting for $node to be Ready in kubernetes..."
           kubectl wait --for=condition=Ready node/"$node" --timeout=10m
+
+          # kubectl drain leaves the node cordoned; uncordon so it can
+          # take pods again now that it's back.
+          echo "==> Uncordoning $node..."
+          kubectl uncordon "$node"
         done
-    prompt: "Rolling reboot ALL nodes one at a time?"
+    prompt: "Rolling reboot ALL nodes one at a time (with drain)?"
 
   dashboard:
     desc: "Open Talos dashboard (usage: task dashboard -- <hostname>)"
