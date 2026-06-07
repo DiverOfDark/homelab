@@ -1,0 +1,50 @@
+# Targeted CAInjector hookup for the kubescape storage APIService.
+#
+# The kubescape-operator chart installs the
+# v1beta1.spdx.softwarecomposition.kubescape.io APIService with a caBundle
+# captured at chart-install time. On subsequent chart upgrades the chart
+# rotates the storage CA (storage-tls-ca Secret) but doesn't refresh the
+# APIService's caBundle field — kube-aggregator then fails the TLS
+# handshake to the storage service with
+#   x509: certificate signed by unknown authority
+# and the entire aggregated API for spdx.softwarecomposition goes down.
+# node-agent crashloops waiting for "applicationprofiles" GETs to come
+# back; kubevuln stalls; the whole vulnerability pipeline halts.
+#
+# The fix is to let cert-manager-cainjector manage the caBundle. The
+# inject-ca-from-secret annotation needs to land ONLY on the APIService
+# — adding it via the chart's additionalAnnotations would also annotate
+# the kubescape ValidatingWebhookConfiguration, which uses a different
+# CA (kubescape-admission-webhook-ca) and would break the webhook.
+#
+# Kyverno's targeted mutate lets us pin the annotation to the one
+# resource that needs it.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: kubescape-apiservice-cainjector
+  annotations:
+    policies.kyverno.io/title: Kubescape storage APIService CAInjector
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/subject: APIService
+    policies.kyverno.io/description: |
+      Annotates the kubescape storage APIService so cert-manager-cainjector
+      keeps its caBundle in sync with the rotated storage-tls-ca Secret.
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: inject-storage-ca
+      match:
+        any:
+          - resources:
+              kinds: ["APIService"]
+              names: ["v1beta1.spdx.softwarecomposition.kubescape.io"]
+      mutate:
+        targets:
+          - apiVersion: apiregistration.k8s.io/v1
+            kind: APIService
+            name: v1beta1.spdx.softwarecomposition.kubescape.io
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              cert-manager.io/inject-ca-from-secret: kubescape/storage-tls-ca
