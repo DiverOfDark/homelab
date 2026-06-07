@@ -55,20 +55,22 @@ spec:
               cpu: 100m
               # Reserve the tmpfs footprint at schedule time so asgard is never memory-overcommitted
               # (no swap on Talos — overcommit would mean a node OOM next to etcd/apiserver).
-              memory: 16Gi
-            limits:
-              # MUST exceed the tmpfs sizeLimit (16Gi) + dockerd RSS. The in-RAM image store (shmem) is
-              # charged to this container's memory cgroup; if limit <= tmpfs cap, dind is OOM-killed when full.
               memory: 20Gi
+            limits:
+              # MUST exceed the tmpfs sizeLimit (20Gi) + dockerd RSS. The in-RAM image store (shmem) is
+              # charged to this container's memory cgroup; if limit <= tmpfs cap, dind is OOM-killed when full.
+              memory: 24Gi
       volumes:
         - name: data
           emptyDir:
             # tmpfs: docker's image/layer store lives in RAM, so build I/O never touches asgard's
-            # etcd disk (sda). k8s sets the tmpfs mount to size=16Gi, so a runaway build gets a clean
+            # etcd disk (sda). k8s sets the tmpfs mount to size=20Gi, so a runaway build gets a clean
             # ENOSPC instead of eating node memory. NOTE: ephemeral — the image cache is lost on every
             # dind restart (cold pulls over the network each time); keep the prune CronJob tight (below).
+            # Sized from a measured run: one e2e (gradle + k3s-in-dind) peaked at ~15Gi of tmpfs, so 16Gi
+            # was at the edge. 20Gi gives headroom; node still had ~22Gi MemAvailable at that peak.
             medium: Memory
-            sizeLimit: 16Gi
+            sizeLimit: 20Gi
         - name: run
           emptyDir: {}
 ---
