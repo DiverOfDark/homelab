@@ -325,11 +325,20 @@ spec:
                 preservePoolsOnDelete: true
                 gateway:
                   port: 80
+                  # RGW was OOMKilled at node level (exit 137) under memory
+                  # pressure with only a 512Mi request and no limit, which lost
+                  # in-flight Harbor blob uploads (manifests landed referencing
+                  # layers whose data never persisted). Reserve real memory so
+                  # the kernel OOM killer doesn't pick RGW, and cap it so a leak
+                  # can't starve the node. Two instances give read redundancy.
                   resources:
                     requests:
-                      cpu: "100m"
-                      memory: "512Mi"
-                  instances: 1
+                      cpu: "250m"
+                      memory: "1Gi"
+                    limits:
+                      cpu: "2"
+                      memory: "2Gi"
+                  instances: 2
                   priorityClassName: system-cluster-critical
               storageClass:
                 enabled: true
