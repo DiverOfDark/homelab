@@ -62,15 +62,7 @@ spec:
               memory: 24Gi
       volumes:
         - name: data
-          emptyDir:
-            # tmpfs: docker's image/layer store lives in RAM, so build I/O never touches asgard's
-            # etcd disk (sda). k8s sets the tmpfs mount to size=20Gi, so a runaway build gets a clean
-            # ENOSPC instead of eating node memory. NOTE: ephemeral — the image cache is lost on every
-            # dind restart (cold pulls over the network each time); keep the prune CronJob tight (below).
-            # Sized from a measured run: one e2e (gradle + k3s-in-dind) peaked at ~15Gi of tmpfs, so 16Gi
-            # was at the edge. 20Gi gives headroom; node still had ~22Gi MemAvailable at that peak.
-            medium: Memory
-            sizeLimit: 20Gi
+          emptyDir: {}
         - name: run
           emptyDir: {}
 ---
