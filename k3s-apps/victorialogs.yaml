@@ -46,8 +46,23 @@ spec:
               containerPort: 5050
               hostPort: 5050
               protocol: UDP
+          # Expose the kernel-log UDP listener (5051) on a stable MetalLB VIP so
+          # Talos ships kmsg to a REMOTE vector. Sending a panic to the node's
+          # own loopback vector loses it on reboot (the pod dies with the node);
+          # a VIP held by a healthy node lets the panic packet egress the dying
+          # node's NIC before it halts, so it survives in VictoriaLogs. Service
+          # logs (5050) stay node-local via hostPort — only kmsg needs this.
           service:
-            enabled: false
+            enabled: true
+            type: LoadBalancer
+            externalTrafficPolicy: Cluster
+            annotations:
+              metallb.universe.tf/loadBalancerIPs: 192.168.179.13
+            ports:
+              - name: kernel-logs
+                port: 5051
+                targetPort: 5051
+                protocol: UDP
           # -- Forces custom configuration creation in a given namespace even if vector.enabled is false
           customConfigNamespace: ""
           customConfig:

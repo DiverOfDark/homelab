@@ -26,7 +26,7 @@ nodes:
   - hostname: asgard
     controlPlane: true
     ipAddress: 192.168.178.11
-    installDisk: /dev/sdb
+    installDisk: /dev/nvme1n1
     nameservers:
       - 192.168.178.2
     networkInterfaces:
@@ -91,7 +91,12 @@ schematic:
   customization:
     extraKernelArgs:
       - talos.platform=metal
-      - talos.logging.kernel=udp://127.0.0.1:5051
+      # Ship kmsg to the REMOTE vector VIP (k3s-apps/victorialogs.yaml,
+      # MetalLB 192.168.179.13:5051), not loopback: a kernel panic packet must
+      # egress this node's NIC to a vector on a *healthy* node, or it dies with
+      # the box on reboot. UDP is fire-and-forget so the panic line gets out
+      # before the CPU halts → retained in VictoriaLogs across the reboot.
+      - talos.logging.kernel=udp://192.168.179.13:5051
       - cpufreq.default_governor=conservative
       # Disable NVMe APST and PCIe ASPM: consumer NVMe controllers can wedge in a
       # deep power state and fail controller reset (-ENODEV), crashing the OSD.
@@ -158,7 +163,10 @@ patches:
     apiVersion: v1alpha1
     kind: KmsgLogConfig
     name: remote-log
-    url: udp://127.0.0.1:5051/
+    # Remote vector VIP, not loopback — see extraKernelArgs talos.logging.kernel
+    # above. Both paths target the same MetalLB-exposed vector so kernel panics
+    # are retained in VictoriaLogs across the reboot.
+    url: udp://192.168.179.13:5051/
   # Registry pull-through cache via Harbor (k3s-apps/harbor.yaml). One proxy
   # project per upstream (terraform/harbor.tf: harbor_project.<name>), each
   # exposed at harbor.kirillorlov.pro/v2/<project>/<image>. `overridePath:
