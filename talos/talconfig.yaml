@@ -26,7 +26,13 @@ nodes:
   - hostname: asgard
     controlPlane: true
     ipAddress: 192.168.178.11
-    installDisk: /dev/nvme1n1
+    # Pin to the system disk by stable wwid, NOT /dev/nvmeXn1 (names swap across
+    # reboots). The old /dev/nvme1n1 actually pointed at the SN770 = Ceph OSD.1
+    # bluestore disk; with install.wipe:true a reinstall there = OSD data loss.
+    # This wwid is the WD_BLACK SN7100 (Talos system); the SN770 Ceph disk is
+    # wwid eui.e8238fa6bf530001001b448b47f65e14.
+    installDiskSelector:
+      wwid: "eui.e8238fa6bf530001001b448b4340ccda"
     nameservers:
       - 192.168.178.2
     networkInterfaces:
@@ -41,7 +47,9 @@ nodes:
   - hostname: jotunheimr
     controlPlane: true
     ipAddress: 192.168.178.13
-    installDisk: /dev/sda
+    # System disk by wwid (WD Blue SA510 SATA); Ceph OSD is the separate NVMe.
+    installDiskSelector:
+      wwid: "naa.5001b448c1c85795"
     nameservers:
       - 192.168.178.2
     networkInterfaces:
@@ -58,7 +66,10 @@ nodes:
   - hostname: niflheimr
     controlPlane: true
     ipAddress: 192.168.178.12
-    installDisk: /dev/sdb
+    # System disk by wwid (WD Blue SA510 SATA). Was /dev/sdb but it boots from
+    # sda; Ceph OSD is the separate NVMe.
+    installDiskSelector:
+      wwid: "naa.5001b448c8cb5347"
     nameservers:
       - 192.168.178.2
     networkInterfaces:
@@ -75,7 +86,9 @@ nodes:
   - hostname: muspelheimr
     controlPlane: false
     ipAddress: 192.168.178.14
-    installDisk: /dev/sda
+    # System disk by wwid (WD Blue SA510 SATA); Ceph OSD is the separate NVMe.
+    installDiskSelector:
+      wwid: "naa.5001b448c8ca8b75"
     nameservers:
       - 192.168.178.2
     networkInterfaces:
