@@ -87,9 +87,19 @@ nodes:
             gateway: 192.168.178.1
             metric: 1024
 
-schematic:
+# Image Factory schematic. NOTE: talhelper (v3.x) only reads `schematic` under a
+# NODE or under the global controlPlane:/worker: templates — a TOP-LEVEL
+# `schematic:` is silently ignored (which is why this block was inert and the
+# nodes ran the empty schematic with none of these extensions/args applied).
+# Defined once as a YAML anchor here and referenced from controlPlane:/worker:.
+schematic: &schematic
   customization:
     extraKernelArgs:
+      # Disable SELinux: Talos ships it permissive-only (enforce=0), so it blocks
+      # nothing but floods the kernel log with avc-denied audit events from pods
+      # writing to unlabeled Ceph volumes. No SecureBoot here, so selinux=0
+      # disables cleanly (the UKI cmdline can only be set via the schematic).
+      - selinux=0
       - talos.platform=metal
       # Ship kmsg to the REMOTE vector VIP (k3s-apps/victorialogs.yaml,
       # MetalLB 192.168.179.13:5051), not loopback: a kernel panic packet must
@@ -103,11 +113,12 @@ schematic:
       - nvme_core.default_ps_max_latency_us=0
       - pcie_aspm=off
     systemExtensions:
+      # Curated for all-Intel hardware (i5-12400 / N100): amd-ucode + amdgpu
+      # dropped as dead weight. kata-containers is intended (kata RuntimeClass +
+      # kata-pulse are deployed) but was non-functional until this is applied.
       officialExtensions:
-        - siderolabs/amd-ucode
         - siderolabs/intel-ucode
         - siderolabs/binfmt-misc
-        - siderolabs/amdgpu
         - siderolabs/i915
         - siderolabs/util-linux-tools
         - siderolabs/ctr
@@ -212,7 +223,13 @@ patches:
               - https://reg.kyverno.io/v2
             overridePath: true
 
+# talhelper reads `schematic` per-node or from these global templates, NOT from
+# the top-level key — so reference the anchor here to apply it to all nodes.
+worker:
+  schematic: *schematic
+
 controlPlane:
+  schematic: *schematic
   patches:
     - |-
       machine:
