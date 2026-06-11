@@ -110,9 +110,12 @@ schematic: &schematic
     extraKernelArgs:
       # Disable SELinux: Talos ships it permissive-only (enforce=0), so it blocks
       # nothing but floods the kernel log with avc-denied audit events from pods
-      # writing to unlabeled Ceph volumes. No SecureBoot here, so selinux=0
-      # disables cleanly (the UKI cmdline can only be set via the schematic).
-      - selinux=0
+      # writing to unlabeled Ceph volumes. NOTE: `selinux=0` does NOT work — Talos
+      # already puts `selinux=1` in the base cmdline, and appending `selinux=0`
+      # leaves both (last-wins doesn't apply, stays permissive). Use the kernel-arg
+      # REMOVAL syntax `-selinux` to strip the default `selinux=1` entirely, which
+      # disables SELinux (verified on the muspelheimr canary). talos#13477.
+      - -selinux
       - talos.platform=metal
       # Ship kmsg to the REMOTE vector VIP (k3s-apps/victorialogs.yaml,
       # MetalLB 192.168.179.13:5051), not loopback: a kernel panic packet must
