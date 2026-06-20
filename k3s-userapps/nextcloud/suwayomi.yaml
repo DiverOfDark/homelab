@@ -84,7 +84,7 @@ spec:
             claimName: nextcloud
       containers:
         - name: suwayomi-server
-          image: ghcr.io/suwayomi/suwayomi-server:stable
+          image: ghcr.io/suwayomi/suwayomi-server:v2.2.2211
           ports:
             - containerPort: 4567
               name: http
