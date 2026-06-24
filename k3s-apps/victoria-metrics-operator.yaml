@@ -36,7 +36,10 @@ spec:
                   - ReadWriteOnce
                 resources:
                   requests:
-                    storage: 50Gi
+                    # 12mo retention needs ~175Gi (50Gi held only ~3.4mo and
+                    # filled to 100%, stalling remote-write). 200Gi gives headroom;
+                    # ceph-block allows online expansion (pool has >500Gi free).
+                    storage: 200Gi
               resources:
                 requests:
                   cpu: 300m
