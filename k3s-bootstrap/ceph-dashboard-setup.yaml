@@ -9,7 +9,7 @@ spec:
       serviceAccountName: rook-ceph-default
       containers:
       - name: setup
-        image: quay.io/ceph/ceph:v20.2.0
+        image: quay.io/ceph/ceph:v20.2.1
         env:
         - name: ROOK_CEPH_USERNAME
           valueFrom:
