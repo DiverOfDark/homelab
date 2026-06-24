@@ -10,7 +10,7 @@ terraform {
     }
     zitadel = {
       source  = "zitadel/zitadel"
-      version = "2.12.7"
+      version = "2.12.8"
     }
     vault = {
       source  = "hashicorp/vault"
