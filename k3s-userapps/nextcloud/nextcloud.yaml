@@ -5,6 +5,13 @@ metadata:
   namespace: nextcloud
 spec:
   progressDeadlineSeconds: 600
+  # Recreate (not the default RollingUpdate): Nextcloud keeps code + data on one
+  # RWX volume and does not support two versions running against it at once. On
+  # an image bump RollingUpdate would start the new pod while the old still runs,
+  # so the migration never runs cleanly. Recreate terminates the old pod first,
+  # letting the new image's entrypoint run `occ upgrade` cleanly on every bump.
+  strategy:
+    type: Recreate
   replicas: 1
   revisionHistoryLimit: 1
   selector:
@@ -60,6 +67,17 @@ spec:
                   - "sh"
                   - "-c"
                   - "apt-get update && apt-get install -y openrc ffmpeg && start-stop-daemon --start --background --pidfile /cron.pid --exec /cron.sh"
+          # startupProbe gates liveness/readiness until startup (incl. upgrade)
+          # finishes. The entrypoint runs `occ upgrade` BEFORE Apache binds :80,
+          # so without this the livenessProbe would kill the pod mid-migration
+          # and crashloop forever. 60 * 10s = up to 10 min for the migration.
+          startupProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               path: /status.php
