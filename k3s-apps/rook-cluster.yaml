@@ -119,7 +119,7 @@ spec:
   sources:
     - chart: rook-ceph-cluster
       repoURL: https://charts.rook.io/release
-      targetRevision: v1.19.5
+      targetRevision: v1.19.6
       helm:
         valuesObject:
           cephImage:
