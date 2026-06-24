@@ -23,6 +23,16 @@ spec:
         valuesObject:
           externalURL: https://harbor.kirillorlov.pro
 
+          # Recreate (not RollingUpdate): jobservice has an RWO ceph-block jobLog
+          # PVC, so on a rollout the default RollingUpdate starts the new pod
+          # before the old releases the volume -> Multi-Attach error, stuck
+          # ContainerCreating forever. The goharbor chart only exposes a global
+          # updateStrategy, so this also makes core/registry/portal restart fully
+          # (brief downtime) instead of rolling on chart bumps -- acceptable for a
+          # homelab; steady-state HA (anti-affinity + PDBs) is unaffected.
+          updateStrategy:
+            type: Recreate
+
           # HA: 2 replicas per stateless component with soft anti-affinity so
           # the pair lands on different nodes when possible. Redis stays as
           # the chart's internal single-pod StatefulSet — moving multi-DB
