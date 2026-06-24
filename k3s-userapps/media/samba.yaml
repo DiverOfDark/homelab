@@ -98,6 +98,9 @@ spec:
               name: video
             - mountPath: /storage/seedbox
               name: seedbox
+              # See sonarr.yaml: csi-rclone's FUSE mount can appear after the
+              # container bind mount; HostToContainer lets it propagate in.
+              mountPropagation: HostToContainer
             - mountPath: /etc/samba/smb.conf
               name: config
               subPath: smb.conf

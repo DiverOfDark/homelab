@@ -49,6 +49,12 @@ spec:
               name: sonarr
             - mountPath: /downloads
               name: downloads
+              # csi-rclone mounts with --daemon-wait=0, so the rclone FUSE mount
+              # can become ready AFTER the container's bind mount is created. With
+              # default (None) propagation the container is stuck on the empty
+              # pre-mount dir (empty /downloads after a nodeplugin roll).
+              # HostToContainer lets the mount propagate into the container.
+              mountPropagation: HostToContainer
             - mountPath: /media
               name: media
           livenessProbe:
