@@ -47,7 +47,8 @@ spec:
                 limits:
                   memory: 1500Mi
               extraArgs:
-                dedup.minScrapeInterval: 30s
+                # Matches Prometheus scrapeInterval (now 60s). Keep these in sync.
+                dedup.minScrapeInterval: 60s
           - apiVersion: networking.k8s.io/v1
             kind: Ingress
             metadata:
