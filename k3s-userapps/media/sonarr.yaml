@@ -28,7 +28,7 @@ spec:
           persistentVolumeClaim:
             claimName: rclone-seedbox
       containers:
-        - image: 'ghcr.io/linuxserver/sonarr:4.0.18'
+        - image: 'ghcr.io/linuxserver/sonarr:4.0.19'
           imagePullPolicy: IfNotPresent
           name: sonarr
           env:
