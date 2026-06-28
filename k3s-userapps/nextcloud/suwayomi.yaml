@@ -90,7 +90,7 @@ spec:
           # 2026-06-20. The mutable :stable tag currently resolves to the OLDER
           # v2.2.2100 (H2 1.4.200), which cannot open the format-3 database and
           # crashes on startup. Must stay >= v2.2.2211 to read the existing DB.
-          image: ghcr.io/suwayomi/suwayomi-server:v2.2.2216
+          image: ghcr.io/suwayomi/suwayomi-server:v2.2.2219
           ports:
             - containerPort: 4567
               name: http
