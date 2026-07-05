@@ -4,6 +4,15 @@ includes:
   talos:
     taskfile: ./talos/Taskfile.yaml
     dir: ./talos
+  ansible:
+    taskfile: ./ansible/Taskfile.yaml
+    dir: ./ansible
+  packer:
+    taskfile: ./packer/Taskfile.yaml
+    dir: ./packer
+  tofu:
+    taskfile: ./terraform/Taskfile.yaml
+    dir: ./terraform
 
 tasks:
   kubescape:

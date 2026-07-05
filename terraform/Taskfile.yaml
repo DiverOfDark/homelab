@@ -1,0 +1,32 @@
+version: "3"
+
+# TF_VAR_* secrets and the backend config (TF_CLI_ARGS_init when local) are
+# exported by the nix dev shell (flake.nix shellHook) — re-enter the shell
+# after flake changes so new TF_VARs are present.
+
+tasks:
+  init:
+    desc: tofu init (backend config injected by the dev shell)
+    cmds:
+      - tofu init
+    preconditions:
+      - sh: command -v tofu
+        msg: "tofu not found - enter the nix dev shell first"
+
+  plan:
+    desc: tofu plan
+    cmds:
+      - tofu plan
+    preconditions: &tf-preconditions
+      - sh: command -v tofu
+        msg: "tofu not found - enter the nix dev shell first"
+      - sh: test -n "$TF_VAR_openbao_token"
+        msg: "TF_VAR_openbao_token is empty - enter the nix dev shell / check bao login"
+      - sh: test -n "$TF_VAR_admin_ssh_public_key"
+        msg: "TF_VAR_admin_ssh_public_key is empty - stale shell? re-enter the dev shell (flake exports it from OpenBao secret/hcloud)"
+
+  apply:
+    desc: tofu apply (interactive approval)
+    cmds:
+      - tofu apply
+    preconditions: *tf-preconditions
