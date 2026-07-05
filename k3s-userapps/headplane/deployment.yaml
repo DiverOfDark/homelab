@@ -21,25 +21,10 @@ spec:
           ports:
             - containerPort: 3000
               name: http
-          env:
-            - name: HEADPLANE_LOAD_ENV_OVERRIDES
-              value: "true"
-            - name: HEADPLANE_OIDC__CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: headplane-secrets
-                  key: oidc_client_id
-            - name: HEADPLANE_OIDC__CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: headplane-secrets
-                  key: oidc_client_secret
           volumeMounts:
+            # Full config (incl. secrets) rendered by the ExternalSecret
             - name: config
               mountPath: /etc/headplane
-              readOnly: true
-            - name: secrets
-              mountPath: /var/run/secrets/headplane
               readOnly: true
             - name: data
               mountPath: /data
@@ -56,11 +41,11 @@ spec:
             initialDelaySeconds: 5
       volumes:
         - name: config
-          configMap:
-            name: headplane-config
-        - name: secrets
           secret:
             secretName: headplane-secrets
+            items:
+              - key: config.yaml
+                path: config.yaml
         # UI cache only — nothing worth persisting (per repo policy: no new PVCs)
         - name: data
           emptyDir: {}
