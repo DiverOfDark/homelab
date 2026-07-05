@@ -43,6 +43,34 @@ nodes:
           - network: 0.0.0.0/0
             gateway: 192.168.178.1
             metric: 1024
+    patches:
+      # Tailnet membership — all four home nodes advertise the same route set
+      # (consistency by choice):
+      #  * their OWN LAN IP as /32: midgard (edge) reaches each home node's
+      #    kubelet/vxlan address directly through that node's own tailscaled —
+      #    no intermediate hop, no SNAT (traffic terminates on the advertising
+      #    node). The /32s are more specific than the /23, so node-to-node
+      #    traffic never detours through another node's subnet route. Home
+      #    node IPs stay on LAN, so intra-home cluster traffic
+      #    (Ceph/etcd/pods) never rides WG.
+      #  * LAN /23 + MetalLB /24 for device access (phones/laptops reach
+      #    pihole, internal Traefik LB, etc.) — replaces the Cloudflare WARP
+      #    192.168.0.0/16 route. Tailscale HA subnet routing is active/passive:
+      #    one router active at a time, failover on node loss.
+      # TAILSCALE_AUTHKEY comes from talenv.sops.yaml (same reusable key as
+      # OpenBao secret/headscale). TS_AUTH_ONCE keeps later boots from
+      # re-authing with a possibly-expired key. Approve routes in headscale:
+      # `headscale nodes approve-routes` (or headplane).
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+          - TS_AUTH_ONCE=true
+          - TS_ACCEPT_DNS=false
+          - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
+          - TS_ROUTES=192.168.178.11/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/16,10.96.0.0/12
 
   - hostname: jotunheimr
     controlPlane: true
@@ -62,6 +90,18 @@ nodes:
           - network: 0.0.0.0/0
             gateway: 192.168.178.1
             metric: 1024
+    patches:
+      # Same route set as all home nodes — see asgard for the full rationale.
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+          - TS_AUTH_ONCE=true
+          - TS_ACCEPT_DNS=false
+          - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
+          - TS_ROUTES=192.168.178.13/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/16,10.96.0.0/12
 
   - hostname: niflheimr
     controlPlane: true
@@ -82,6 +122,18 @@ nodes:
           - network: 0.0.0.0/0
             gateway: 192.168.178.1
             metric: 1024
+    patches:
+      # Same route set as all home nodes — see asgard for the full rationale.
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+          - TS_AUTH_ONCE=true
+          - TS_ACCEPT_DNS=false
+          - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
+          - TS_ROUTES=192.168.178.12/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/16,10.96.0.0/12
 
   - hostname: muspelheimr
     controlPlane: false
@@ -99,6 +151,90 @@ nodes:
           - network: 0.0.0.0/0
             gateway: 192.168.178.1
             metric: 1024
+    patches:
+      # Same route set as all home nodes — see asgard for the full rationale.
+      # Canary node for the tailscale extension rollout — upgrade this one
+      # first, verify registration + direct LAN peering, then proceed to the
+      # control-plane nodes.
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+          - TS_AUTH_ONCE=true
+          - TS_ACCEPT_DNS=false
+          - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
+          - TS_ROUTES=192.168.178.14/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/16,10.96.0.0/12
+
+  # Hetzner edge worker (terraform/hetzner.tf, image from
+  # packer/talos-hcloud.pkr.hcl). Runs traefik-external only — the
+  # edge=NoSchedule taint keeps everything else (rook/ceph CSI, csi-rclone,
+  # metallb, PVC-backed workloads) at home.
+  - hostname: midgard
+    controlPlane: false
+    # Tailnet MagicDNS name — resolves on any tailnet member (workstation) and
+    # in-cluster via the CoreDNS forward zone. ONE-TIME BOOTSTRAP uses the
+    # public IP instead (tailscale isn't up on the node yet; --insecure skips
+    # cert verification):
+    #   talosctl apply-config --insecure -n $(tofu output -raw midgard_ipv4) \
+    #     --file clusterconfig/homelab-midgard.yaml
+    # Fallback if the tailnet is down: the pinned public IP (tcp/50000 open),
+    # `tofu output midgard_ipv4`.
+    ipAddress: midgard.ts.kirillorlov.pro
+    # apid certs only carry node IPs + hostname by default — the MagicDNS FQDN
+    # must be a SAN or talosctl's TLS verification fails when dialing by name.
+    certSANs:
+      - midgard.ts.kirillorlov.pro
+    installDisk: /dev/sda
+    nodeLabels:
+      kirillorlov.pro/edge: "true"
+    nodeTaints:
+      edge: "true:NoSchedule"
+    # Per-node schematic OVERRIDES the worker template anchor (talhelper reads
+    # per-node first): cloud VM needs none of the home hardware extensions and
+    # must NOT get talos.platform=metal or the kmsg VIP logging args (MetalLB
+    # VIPs are L2-only, unreachable from the edge). Keep in sync with
+    # packer/talos-hcloud.pkr.hcl schematic_id.
+    schematic:
+      customization:
+        extraKernelArgs:
+          - -selinux
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/tailscale
+    # No networkInterfaces/nameservers: the hcloud platform configures
+    # networking from Hetzner metadata.
+    patches:
+      # Tailnet membership; --accept-routes so the home nodes' /32 routes
+      # (and the /23+/24 device ranges) are installed here.
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+          - TS_AUTH_ONCE=true
+          - TS_ACCEPT_DNS=false
+          - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro --accept-routes
+      # Only midgard is mesh-addressed: kubelet/vxlan use the tailnet IP.
+      # Home nodes keep LAN node IPs (their data path never rides WG).
+      - |-
+        machine:
+          kubelet:
+            nodeIP:
+              validSubnets:
+                - 100.64.0.0/10
+      # The cluster endpoint 192.168.179.2 is an L2 VIP — never routable from
+      # the edge. Pin the bootstrap/trustd seed to jotunheimr's LAN IP (via
+      # its /32 tailnet route; already in the apiserver cert SANs). Steady
+      # state is HA via KubePrism (localhost:7445) across all discovered CP
+      # IPs. Known limitation: midgard reboot while jotunheimr is down → cert
+      # bootstrap waits until it returns.
+      - |-
+        cluster:
+          controlPlane:
+            endpoint: https://192.168.178.13:6443
 
 # Image Factory schematic. NOTE: talhelper (v3.x) only reads `schematic` under a
 # NODE or under the global controlPlane:/worker: templates — a TOP-LEVEL
@@ -143,6 +279,12 @@ schematic: &schematic
         - siderolabs/stargz-snapshotter
         - siderolabs/nvme-cli
         - siderolabs/thunderbolt
+        # Tailnet membership (headscale on bifrost). Cluster data path between
+        # home nodes stays on plain LAN — tailscale only carries midgard(edge)
+        # traffic + device access. Per-node ExtensionServiceConfig below sets
+        # authkey/routes. NOTE: adding an extension changes the schematic ID —
+        # rollout requires `talosctl upgrade` per node, not just apply.
+        - siderolabs/tailscale
 
 # Patches applied to all nodes
 patches:
@@ -151,6 +293,15 @@ patches:
       kubelet:
         defaultRuntimeSeccompProfileEnabled: true
         disableManifestsDirectory: true
+        # Pin node IPs to the LAN: once tailscale0 exists, kubelet would
+        # otherwise re-elect the tailnet 100.64.x address as InternalIP
+        # (muspelheimr did exactly that on the canary upgrade — vxlan to it
+        # blackholed from the not-yet-upgraded nodes and broke the LB path).
+        # Home data path must stay on LAN; midgard overrides this per-node
+        # with 100.64.0.0/10 (it has no LAN presence).
+        nodeIP:
+          validSubnets:
+            - 192.168.178.0/23
         extraArgs:
           rotate-server-certificates: true
           max-pods: 200

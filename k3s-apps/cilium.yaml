@@ -46,6 +46,13 @@ spec:
         # blackhole on the edge path while small requests work. Costs ~1.5%
         # efficiency on pure-LAN traffic.
         MTU: 1230
+        bpf:
+          # Allow ClusterIP (10.96.0.0/12) access from OUTSIDE the cluster —
+          # tailnet devices reach services via the subnet routes the home
+          # nodes advertise (TS_ROUTES in talos/talconfig.yaml). Without this,
+          # externally-originated traffic to ClusterIPs is dropped by design;
+          # pod IPs (10.244.0.0/16) work either way.
+          lbExternalClusterIP: true
         clustermesh:
           apiserver:
             metrics:

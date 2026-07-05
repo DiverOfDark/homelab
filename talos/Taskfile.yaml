@@ -3,6 +3,8 @@ version: "3"
 vars:
   SECRET_FILE: ./talsecret.sops.yaml
   DECRYPTED_SECRET_FILE: ./talsecret.yaml
+  ENV_FILE: ./talenv.sops.yaml
+  DECRYPTED_ENV_FILE: ./talenv.yaml
   OUTPUT_DIR: ./clusterconfig
 
 tasks:
@@ -10,13 +12,18 @@ tasks:
     desc: Generate Talos machine configs (decrypts secrets with SOPS)
     cmds:
       - sops -d {{ .SECRET_FILE }} > {{ .DECRYPTED_SECRET_FILE }}
-      - talhelper genconfig --secret-file {{ .DECRYPTED_SECRET_FILE }} --out-dir {{ .OUTPUT_DIR }}
-      - defer: rm -f {{ .DECRYPTED_SECRET_FILE }}
+      # talenv holds ${VAR} substitutions for talconfig.yaml (e.g.
+      # TAILSCALE_AUTHKEY). Create with: sops talenv.sops.yaml
+      - sops -d {{ .ENV_FILE }} > {{ .DECRYPTED_ENV_FILE }}
+      - talhelper genconfig --secret-file {{ .DECRYPTED_SECRET_FILE }} --env-file {{ .DECRYPTED_ENV_FILE }} --out-dir {{ .OUTPUT_DIR }}
+      - defer: rm -f {{ .DECRYPTED_SECRET_FILE }} {{ .DECRYPTED_ENV_FILE }}
     preconditions:
       - sh: command -v sops
         msg: "sops not found - enter the nix dev shell first"
       - sh: command -v talhelper
         msg: "talhelper not found - enter the nix dev shell first"
+      - sh: test -f {{ .ENV_FILE }}
+        msg: "talenv.sops.yaml missing — create it with `sops talenv.sops.yaml` containing TAILSCALE_AUTHKEY: <value of `bao kv get -field=authkey secret/headscale`>"
 
   validate:
     desc: Validate generated Talos machine configs
@@ -40,6 +47,35 @@ tasks:
           talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "$node" --extra-flags "-m staged" | bash
         done
     prompt: "Apply Talos configs to ALL nodes (rolling)?"
+
+  apply-node:
+    desc: "Apply config to ONE node, staged (usage: task talos:apply-node -- <hostname>)"
+    deps: [genconfig]
+    vars:
+      NODE_IP:
+        sh: yq -r '.nodes[] | select(.hostname == "{{ .CLI_ARGS }}") | .ipAddress' talconfig.yaml
+    cmds:
+      - talhelper gencommand apply --out-dir {{ .OUTPUT_DIR }} --node "{{ .NODE_IP }}" --extra-flags "-m staged" | bash
+    requires:
+      vars: [CLI_ARGS]
+    preconditions:
+      - sh: test -n "{{ .NODE_IP }}"
+        msg: "unknown hostname '{{ .CLI_ARGS }}' — must match a .nodes[].hostname in talconfig.yaml"
+
+  upgrade-node:
+    desc: "Upgrade ONE node to the current Talos/schematic image (usage: task talos:upgrade-node -- <hostname>). Reboots the node — kubectl drain it first!"
+    deps: [genconfig]
+    vars:
+      NODE_IP:
+        sh: yq -r '.nodes[] | select(.hostname == "{{ .CLI_ARGS }}") | .ipAddress' talconfig.yaml
+    cmds:
+      - talhelper gencommand upgrade --out-dir {{ .OUTPUT_DIR }} --node "{{ .NODE_IP }}" | bash
+    requires:
+      vars: [CLI_ARGS]
+    preconditions:
+      - sh: test -n "{{ .NODE_IP }}"
+        msg: "unknown hostname '{{ .CLI_ARGS }}' — must match a .nodes[].hostname in talconfig.yaml"
+    prompt: "Upgrade {{ .CLI_ARGS }} ({{ .NODE_IP }})? The node reboots into the new image — drain it first."
 
   kubeconfig:
     desc: Generate kubeconfig from Talos

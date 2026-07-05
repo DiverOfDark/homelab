@@ -41,11 +41,13 @@ spec:
           ports:
             web:
               hostPort: 80
-              redirections:
-                entryPoint:
-                  to: websecure
-                  scheme: https
-                  permanent: true
+              # chart 40.x nests redirections under `http.`
+              http:
+                redirections:
+                  entryPoint:
+                    to: websecure
+                    scheme: https
+                    permanent: true
             websecure:
               hostPort: 443
               http3:
