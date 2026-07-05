@@ -79,6 +79,9 @@
             # Cloud providers
             pkgs.hcloud
 
+            # Config management (bifrost/yggdrasil VMs)
+            pkgs.ansible
+
             # Container tooling
             peelboxPkg
 
@@ -100,6 +103,10 @@
             # OpenTofu / Kubernetes — override in_cluster_config for local use
             export BAO_ADDR=https://openbao.kirillorlov.pro
             export TF_VAR_openbao_token=`bao kv get -field=token secret/openbao/terraform`
+
+            # Hetzner Cloud — hcloud CLI + packer work out of the box
+            # (empty until secret/hcloud is seeded; silenced so shell entry stays clean)
+            export HCLOUD_TOKEN=`bao kv get -field=token secret/hcloud 2>/dev/null || true`
 
             if [ -z "''${KUBERNETES_SERVICE_HOST:-}" ]; then
               # Local dev — use kubeconfig and override tofu backend
@@ -139,7 +146,7 @@
             echo "  Network:    cilium, hubble, cloudflared"
             echo "  Secrets:    sops, age, bao, cmctl"
             echo "  Backup:     velero"
-            echo "  Cloud:      hcloud"
+            echo "  Cloud:      hcloud, ansible"
             echo "  Container:  peelbox"
             echo "  Platform:   appbahn"
             echo "  Task:       go-task"
