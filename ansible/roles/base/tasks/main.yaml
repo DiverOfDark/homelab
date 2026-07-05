@@ -19,13 +19,24 @@
     name: prometheus-node-exporter
     enabled: true
     state: started
+  # In --check the package above was never installed on a fresh host, so the
+  # unit doesn't exist yet — don't fail the plan over it.
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Harden sshd
   ansible.builtin.template:
     src: sshd-hardening.conf.j2
     dest: /etc/ssh/sshd_config.d/10-port.conf # same path cloud-init wrote — ansible owns it from now on
     mode: "0644"
+    # Lockout guard: refuse to install a snippet sshd can't parse
+    validate: /usr/sbin/sshd -t -f %s
   notify: Restart sshd
+
+- name: Ensure sshd is enabled and running
+  ansible.builtin.service:
+    name: ssh
+    enabled: true
+    state: started
 
 - name: Configure nftables (default-deny inbound, mirrors the hcloud firewall)
   ansible.builtin.template:
@@ -39,6 +50,7 @@
     name: nftables
     enabled: true
     state: started
+  ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
 
 - name: Configure fail2ban sshd jail
   ansible.builtin.template:
@@ -52,6 +64,7 @@
     name: fail2ban
     enabled: true
     state: started
+  ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
 
 - name: Enable unattended security upgrades
   ansible.builtin.copy:

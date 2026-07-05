@@ -4,3 +4,5 @@
     name: headscale
     state: restarted
     daemon_reload: true
+  # fresh host in --check: unit not installed yet
+  ignore_errors: "{{ ansible_check_mode }}"

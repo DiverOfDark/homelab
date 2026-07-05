@@ -72,6 +72,14 @@ oidc:
   scope: ["openid", "profile", "email"]
   expiry: 4320h # 180d between forced human re-logins (re-auth needs Zitadel up)
 
+{% if headscale_ssh_src_users | length > 0 %}
+# Authorizes tailscale SSH (and re-states the allow-all ACL) — only installed
+# once a human user exists to reference; see group_vars.
+policy:
+  mode: file
+  path: /etc/headscale/policy.json
+{% endif %}
+
 logtail:
   enabled: false
 

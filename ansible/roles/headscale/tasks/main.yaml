@@ -35,6 +35,16 @@
     - (hs_nodes_for_dns.stdout | from_json
        | selectattr('given_name', 'equalto', headscale_dns_node) | list) | length > 0
 
+- name: Write tailscale-SSH policy
+  ansible.builtin.template:
+    src: policy.json.j2
+    dest: /etc/headscale/policy.json
+    owner: headscale
+    group: headscale
+    mode: "0644"
+  notify: Restart headscale
+  when: headscale_ssh_src_users | length > 0
+
 - name: Write headscale config
   ansible.builtin.template:
     src: config.yaml.j2
@@ -68,6 +78,7 @@
     enabled: true
     state: started
     daemon_reload: true
+  ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
 
 # Owns all infrastructure nodes (Talos, yggdrasil, bifrost itself); humans
 # come in via OIDC instead.

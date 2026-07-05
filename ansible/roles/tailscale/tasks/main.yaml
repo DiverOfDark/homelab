@@ -34,6 +34,7 @@
     name: tailscaled
     enabled: true
     state: started
+  ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
 
 - name: Check tailscale registration state
   ansible.builtin.command: tailscale status --json
@@ -52,3 +53,24 @@
     - (tailscale_status.stdout | from_json).BackendState | default('') != 'Running'
     - tailscale_authkey | length > 0
   no_log: true
+
+# Enforce on EVERY run, not just at join: hosts registered manually (runbook)
+# predate these flags.
+# - accept-dns=false: headscale pushes pihole-over-tailnet as global DNS with
+#   override — a server that accepts it deadlocks the moment the tailnet path
+#   wobbles (it needs DNS to resolve the DERP/control hostname to restore the
+#   tailnet; yggdrasil hit exactly this). Servers must never take their OS
+#   resolver from the tailnet.
+# - ssh: tailscale SSH as a second login path, independent of sshd
+#   config/keys (authorized via the headscale ssh policy).
+# --accept-risk=lose-ssh: required because ansible itself connects over the
+# tailnet. Safe: tailscale SSH only intercepts connections matching an ssh
+# policy rule — non-matching ones (ansible from quasar, an infra-owned node)
+# fall through to regular sshd, and the play's post_tasks verify
+# reconnectability anyway.
+- name: Enforce tailscale server settings (no tailnet DNS, tailscale SSH)
+  ansible.builtin.command: >-
+    tailscale set --accept-dns=false
+    --ssh={{ 'true' if tailscale_enable_ssh else 'false' }}
+    --accept-risk=lose-ssh
+  changed_when: false

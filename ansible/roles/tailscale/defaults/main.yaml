@@ -8,3 +8,8 @@ tailscale_authkey: "{{ lookup('env', 'TAILSCALE_AUTHKEY') }}"
 # tailnet split-DNS (pihole over subnet routes) — a tailnet outage would take
 # their DNS down with it (bifrost especially: headscale ACME renewals).
 tailscale_extra_args: "--accept-dns=false"
+
+# Tailscale SSH: a second, sshd-independent login path over the tailnet.
+# Only honored once headscale has an ssh policy authorizing it — see
+# headscale_ssh_src_users in inventory/group_vars/headscale.yaml.
+tailscale_enable_ssh: true

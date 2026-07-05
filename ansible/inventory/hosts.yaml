@@ -9,10 +9,27 @@ all:
           # Must match local.bifrost_ssh_port in terraform/hetzner.tf
           ansible_port: 22320
           ansible_user: root
+    # Full management: base hardening + tailscale
     tailnet_members:
+      vars:
+        # Not publicly exposed (behind NAT, reached over the tailnet) — sshd
+        # stays on 22. The non-default port is only for bifrost's public IP.
+        ssh_port: 22
       hosts:
-        # yggdrasil joins the tailnet manually first (see docs/runbooks/yggdrasil-tailnet.md),
-        # then becomes ansible-managed over its tailnet IP:
-        # yggdrasil:
-        #   ansible_host: 100.64.0.x
-        #   ansible_user: root
+        yggdrasil:
+          # MagicDNS — reachable because the ansible workstation is a tailnet member
+          ansible_host: yggdrasil.ts.kirillorlov.pro
+          ansible_user: root
+        alfheimr:
+          # pihole box. Root SSH is disabled — requires passwordless sudo for
+          # the user (one-time): echo 'diverofdark ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/diverofdark
+          ansible_host: alfheimr.ts.kirillorlov.pro
+          ansible_user: diverofdark
+          ansible_become: true
+          # LAN-side openings (tailnet is covered by the tailscale0 rule).
+          # Verified against the live listener inventory (2026-07-05):
+          # 53 DNS for the whole LAN, 80/443 pihole web UI, 9100 node_exporter
+          # (cluster scrapes 192.168.178.2:9100 over LAN), 123 NTP, 5353 mDNS.
+          # Pihole does NOT serve DHCP (confirmed) — no 67/udp.
+          nftables_open_tcp_ports: [53, 80, 443, 9100]
+          nftables_open_udp_ports: [53, 123, 5353]

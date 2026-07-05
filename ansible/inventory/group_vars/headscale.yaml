@@ -35,3 +35,17 @@ nftables_open_udp_ports: [3478]
 # Infrastructure nodes register under this headscale user (created by the
 # headscale role); humans log in via Zitadel OIDC.
 headscale_infra_user: infra
+
+# Tailscale SSH authorization. NOTE: once a node runs `tailscale set --ssh`,
+# headscale INTERCEPTS tailnet SSH to it and denies anything not matching an
+# ssh policy rule (no fall-through to sshd, learned the hard way) — so the
+# policy must exist and authorize ansible's source. quasar & servers are
+# owned by the infra user, hence infra@ in src from day one. After your first
+# OIDC login exists, append its EXACT Username from `headscale users list`
+# ('@' suffix if it has no domain part), e.g. "kirill@". Only registered
+# users may be referenced — unknown users prevent headscale from starting.
+headscale_ssh_src_users: ["infra@"]
+# Devices tailscale SSH may target (user@ = all nodes owned by that user)
+# and the unix logins allowed.
+headscale_ssh_dst_users: ["infra@"]
+headscale_ssh_logins: ["root", "diverofdark"]

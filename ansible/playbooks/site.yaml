@@ -27,13 +27,22 @@
     - headscale
     # bifrost is also a tailnet member of its own headscale — node_exporter
     # (:9100) and headscale metrics (:9090) are scraped over the tailnet,
-    # never the public IP. Runs after the headscale role: the first join
-    # self-mints a one-time preauth key via tailscale_authkey_cmd
-    # (group_vars/headscale.yaml) — no manual key handling.
+    # never the public IP.
     - tailscale
+  post_tasks: &ssh_lockout_guard
+    # Lockout guard: apply sshd/nftables changes NOW (not at play end),
+    # drop the cached SSH connection, and prove a fresh login still works.
+    - name: Apply pending handlers
+      ansible.builtin.meta: flush_handlers
+    - name: Reset SSH connections
+      ansible.builtin.meta: reset_connection
+    - name: Verify SSH is still reachable after hardening
+      ansible.builtin.wait_for_connection:
+        timeout: 60
 
-- name: Tailnet members (yggdrasil, ...)
+- name: Tailnet members (yggdrasil, alfheimr, ...)
   hosts: tailnet_members
   roles:
     - base
     - tailscale
+  post_tasks: *ssh_lockout_guard

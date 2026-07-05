@@ -1,0 +1,17 @@
+// Managed by ansible (roles/headscale). Headscale policy v2 (huJSON).
+// IMPORTANT: installing ANY policy replaces headscale's implicit allow-all —
+// the acls section below re-states it so mesh connectivity is unchanged;
+// this file exists solely to authorize tailscale SSH.
+{
+  "acls": [
+    { "action": "accept", "src": ["*"], "dst": ["*:*"] }
+  ],
+  "ssh": [
+    {
+      "action": "accept",
+      "src": {{ headscale_ssh_src_users | to_json }},
+      "dst": {{ headscale_ssh_dst_users | to_json }},
+      "users": {{ headscale_ssh_logins | to_json }}
+    }
+  ]
+}
