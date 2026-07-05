@@ -1,0 +1,37 @@
+# Run from the ansible/ directory, inside the nix dev shell (bao is needed for
+# the OIDC secret fetch):
+#
+#   cd ansible
+#   export HEADSCALE_OIDC_CLIENT_ID=$(bao kv get -field=client_id secret/zitadel/headscale-credentials)
+#   export HEADSCALE_OIDC_CLIENT_SECRET=$(bao kv get -field=client_secret secret/zitadel/headscale-credentials)
+#   ansible-playbook playbooks/site.yaml
+---
+- name: Bifrost — headscale coordination server
+  hosts: headscale
+  pre_tasks:
+    - name: Read headscale OIDC credentials from environment
+      ansible.builtin.set_fact:
+        headscale_oidc_client_id: "{{ lookup('env', 'HEADSCALE_OIDC_CLIENT_ID') }}"
+        headscale_oidc_client_secret: "{{ lookup('env', 'HEADSCALE_OIDC_CLIENT_SECRET') }}"
+      no_log: true
+    - name: Fail if OIDC credentials are missing
+      ansible.builtin.assert:
+        that:
+          - headscale_oidc_client_id | length > 0
+          - headscale_oidc_client_secret | length > 0
+        fail_msg: >-
+          Export HEADSCALE_OIDC_CLIENT_ID / HEADSCALE_OIDC_CLIENT_SECRET from
+          OpenBao first (see header of this playbook).
+  roles:
+    - base
+    # bifrost is also a tailnet member of its own headscale — node_exporter
+    # (:9100) is scraped over the tailnet, never the public IP. First join
+    # needs a key: ansible-playbook playbooks/site.yaml -e tailscale_authkey=...
+    - tailscale
+    - headscale
+
+- name: Tailnet members (yggdrasil, ...)
+  hosts: tailnet_members
+  roles:
+    - base
+    - tailscale

@@ -1,0 +1,3 @@
+# Must match local.bifrost_ssh_port in terraform/hetzner.tf (cloud-init moves
+# sshd off 22 on first boot; ansible only manages the full hardened config).
+ssh_port: 22320

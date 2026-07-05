@@ -1,0 +1,36 @@
+#!/usr/sbin/nft -f
+# Managed by ansible (roles/base). Defense-in-depth behind the hcloud firewall.
+flush ruleset
+
+table inet filter {
+  chain input {
+    type filter hook input priority filter; policy drop;
+
+    iif "lo" accept
+    ct state established,related accept
+    ct state invalid drop
+
+    ip protocol icmp accept
+    meta l4proto ipv6-icmp accept
+
+    tcp dport {{ ssh_port }} accept
+{% for port in nftables_open_tcp_ports %}
+    tcp dport {{ port }} accept
+{% endfor %}
+{% for port in nftables_open_udp_ports %}
+    udp dport {{ port }} accept
+{% endfor %}
+
+    # tailscale (when this host is a tailnet member)
+    udp dport 41641 accept
+    iifname "tailscale0" accept
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+  }
+
+  chain output {
+    type filter hook output priority filter; policy accept;
+  }
+}

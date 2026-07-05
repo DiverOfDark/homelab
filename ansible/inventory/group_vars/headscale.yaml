@@ -1,0 +1,21 @@
+# renovate: datasource=github-releases depName=juanfont/headscale
+headscale_version: "0.26.1"
+
+headscale_server_url: https://headscale.kirillorlov.pro
+headscale_base_domain: ts.kirillorlov.pro
+
+# Split DNS: keep internal names resolving via pihole (over the subnet routes
+# advertised by the home Talos nodes) — replaces the WARP gateway DNS behavior.
+headscale_split_dns:
+  kirillorlov.pro:
+    - 192.168.178.2
+
+# OIDC (Zitadel). Client id/secret are NOT stored in git — they are read from
+# OpenBao at playbook run time (see playbooks/site.yaml pre_tasks). Zitadel app
+# is managed by terraform/zitadel.tf, credentials live at
+# secret/zitadel/headscale-credentials.
+headscale_oidc_issuer: https://auth.kirillorlov.pro
+
+# nftables (roles/base) openings for headscale: ACME + TLS/DERP, STUN
+nftables_open_tcp_ports: [80, 443]
+nftables_open_udp_ports: [3478]

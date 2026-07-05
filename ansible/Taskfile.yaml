@@ -1,0 +1,58 @@
+version: "3"
+
+vars:
+  BIFROST_IP:
+    sh: yq -r '.all.children.headscale.hosts.bifrost.ansible_host' inventory/hosts.yaml
+  BIFROST_PORT:
+    sh: yq -r '.all.children.headscale.hosts.bifrost.ansible_port' inventory/hosts.yaml
+
+tasks:
+  deploy:
+    desc: Run the full ansible playbook (bifrost hardening + headscale, tailnet members)
+    cmds:
+      - |
+        export HEADSCALE_OIDC_CLIENT_ID=$(bao kv get -field=client_id secret/zitadel/headscale-credentials)
+        export HEADSCALE_OIDC_CLIENT_SECRET=$(bao kv get -field=client_secret secret/zitadel/headscale-credentials)
+        ansible-playbook playbooks/site.yaml
+    preconditions:
+      - sh: command -v ansible-playbook
+        msg: "ansible not found - enter the nix dev shell first"
+      - sh: command -v bao
+        msg: "bao not found - enter the nix dev shell first"
+      - sh: bao token lookup >/dev/null 2>&1
+        msg: "not logged in to OpenBao (bao login / BAO_ADDR)"
+      - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
+        msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"
+
+  plan:
+    desc: Dry-run the playbook (--check --diff) — ansible's equivalent of tofu plan
+    cmds:
+      - |
+        export HEADSCALE_OIDC_CLIENT_ID=$(bao kv get -field=client_id secret/zitadel/headscale-credentials)
+        export HEADSCALE_OIDC_CLIENT_SECRET=$(bao kv get -field=client_secret secret/zitadel/headscale-credentials)
+        ansible-playbook playbooks/site.yaml --check --diff
+    preconditions:
+      - sh: command -v ansible-playbook
+        msg: "ansible not found - enter the nix dev shell first"
+      - sh: command -v bao
+        msg: "bao not found - enter the nix dev shell first"
+      - sh: bao token lookup >/dev/null 2>&1
+        msg: "not logged in to OpenBao (bao login / BAO_ADDR)"
+      - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
+        msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"
+
+  ping:
+    desc: Ansible connectivity check against all hosts
+    cmds:
+      - ansible all -m ping
+    preconditions:
+      - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
+        msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"
+
+  preauth-key:
+    desc: "Generate a headscale preauth key on bifrost (usage: task ansible:preauth-key -- --reusable --expiration 24h)"
+    cmds:
+      - ssh -p {{ .BIFROST_PORT }} root@{{ .BIFROST_IP }} headscale preauthkeys create --user infra {{ .CLI_ARGS | default "--expiration 1h" }}
+    preconditions:
+      - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
+        msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"

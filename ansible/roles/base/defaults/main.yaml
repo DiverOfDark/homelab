@@ -1,0 +1,4 @@
+# Extra inbound TCP/UDP ports opened in nftables besides SSH. Overridden
+# per-group/host (bifrost opens headscale ports via group role vars).
+nftables_open_tcp_ports: []
+nftables_open_udp_ports: []

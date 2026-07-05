@@ -1,0 +1,82 @@
+---
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - nftables
+      - fail2ban
+      - unattended-upgrades
+      - apt-listchanges
+      # :9100 — NOT opened in nftables/hcloud firewall; reachable only over
+      # the tailnet (nftables accepts iifname tailscale0). Scraped by the
+      # in-cluster prometheus via a static ScrapeConfig on the tailnet IP.
+      - prometheus-node-exporter
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Enable node exporter
+  ansible.builtin.service:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+
+- name: Harden sshd
+  ansible.builtin.template:
+    src: sshd-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-port.conf # same path cloud-init wrote — ansible owns it from now on
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Configure nftables (default-deny inbound, mirrors the hcloud firewall)
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    mode: "0644"
+  notify: Reload nftables
+
+- name: Enable nftables
+  ansible.builtin.service:
+    name: nftables
+    enabled: true
+    state: started
+
+- name: Configure fail2ban sshd jail
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    mode: "0644"
+  notify: Restart fail2ban
+
+- name: Enable fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    enabled: true
+    state: started
+
+- name: Enable unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+
+- name: Basic kernel hardening sysctls
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/90-hardening.conf
+    content: |
+      net.ipv4.conf.all.rp_filter = 1
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv6.conf.all.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.conf.all.accept_source_route = 0
+      net.ipv6.conf.all.accept_source_route = 0
+      kernel.kptr_restrict = 2
+      kernel.dmesg_restrict = 1
+    mode: "0644"
+  register: sysctl_conf
+
+- name: Apply sysctls
+  ansible.builtin.command: sysctl --system
+  when: sysctl_conf.changed
+  changed_when: true

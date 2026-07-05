@@ -1,0 +1,41 @@
+---
+- name: Add tailscale apt signing key
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/debian/{{ ansible_distribution_release }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
+
+- name: Add tailscale apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian {{ ansible_distribution_release }} main"
+    filename: tailscale
+    state: present
+
+- name: Install tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+    update_cache: true
+
+- name: Enable tailscaled
+  ansible.builtin.service:
+    name: tailscaled
+    enabled: true
+    state: started
+
+- name: Check tailscale registration state
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+
+- name: Join tailnet (first registration only)
+  ansible.builtin.command: >-
+    tailscale up
+    --login-server={{ tailscale_login_server }}
+    --authkey={{ tailscale_authkey }}
+    {{ tailscale_extra_args }}
+  when:
+    - (tailscale_status.stdout | from_json).BackendState | default('') != 'Running'
+    - tailscale_authkey | length > 0
+  no_log: true

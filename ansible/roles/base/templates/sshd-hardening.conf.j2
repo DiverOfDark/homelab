@@ -1,0 +1,12 @@
+# Managed by ansible (roles/base). Port must match terraform/hetzner.tf
+# local.bifrost_ssh_port and inventory ansible_port.
+Port {{ ssh_port }}
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+X11Forwarding no
+AllowTcpForwarding yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+MaxAuthTries 3
+LoginGraceTime 30

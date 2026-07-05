@@ -1,0 +1,9 @@
+tailscale_login_server: https://headscale.kirillorlov.pro
+# Preauth key — pass at run time, e.g.:
+#   ansible-playbook playbooks/site.yaml -e tailscale_authkey=$(ssh bifrost headscale preauthkeys create --user infra --reusable --expiration 24h)
+# Only used if the host is not already registered.
+tailscale_authkey: ""
+# accept-dns=false: servers must not have their resolv.conf rewritten to the
+# tailnet split-DNS (pihole over subnet routes) — a tailnet outage would take
+# their DNS down with it (bifrost especially: headscale ACME renewals).
+tailscale_extra_args: "--accept-dns=false"

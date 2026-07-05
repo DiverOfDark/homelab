@@ -1,0 +1,18 @@
+all:
+  children:
+    headscale:
+      hosts:
+        bifrost:
+          # Resolves to the pinned hcloud primary IP (terraform/dns.tf). If DNS
+          # is ever broken, fall back to `tofu output bifrost_ipv4`.
+          ansible_host: headscale.kirillorlov.pro
+          # Must match local.bifrost_ssh_port in terraform/hetzner.tf
+          ansible_port: 22320
+          ansible_user: root
+    tailnet_members:
+      hosts:
+        # yggdrasil joins the tailnet manually first (see docs/runbooks/yggdrasil-tailnet.md),
+        # then becomes ansible-managed over its tailnet IP:
+        # yggdrasil:
+        #   ansible_host: 100.64.0.x
+        #   ansible_user: root

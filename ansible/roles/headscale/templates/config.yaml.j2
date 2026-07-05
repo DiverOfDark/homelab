@@ -1,0 +1,87 @@
+# Managed by ansible (roles/headscale). headscale {{ headscale_version }}.
+server_url: {{ headscale_server_url }}
+listen_addr: 0.0.0.0:443
+# Prometheus metrics — scraped over the tailnet only (not in the hcloud
+# firewall; nftables accepts it solely via tailscale0), see the headscale
+# ScrapeConfig in k3s-userapps/headplane/monitoring.yaml.
+metrics_listen_addr: 0.0.0.0:9090
+grpc_listen_addr: 127.0.0.1:50443
+grpc_allow_insecure: false
+
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  allocation: sequential
+
+database:
+  type: sqlite
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+    write_ahead_log: true
+
+# Native ACME — no reverse proxy in front, fewest moving parts.
+tls_letsencrypt_hostname: {{ headscale_server_url | regex_replace('^https://', '') }}
+tls_letsencrypt_cache_dir: /var/lib/headscale/cache
+tls_letsencrypt_challenge_type: HTTP-01
+tls_letsencrypt_listen: ":http"
+
+derp:
+  server:
+    # Embedded DERP is REQUIRED: home is DS-Lite/CGNAT and phones sit on
+    # CGNAT'd mobile networks — relaying is the common case, not the fallback.
+    enabled: true
+    region_id: 999
+    region_code: bifrost
+    region_name: Bifrost DERP
+    stun_listen_addr: 0.0.0.0:3478
+    private_key_path: /var/lib/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+  # Embedded region only — do not pull Tailscale's public DERP map.
+  urls: []
+  paths: []
+  auto_update_enabled: false
+
+disable_check_updates: true
+ephemeral_node_inactivity_timeout: 30m
+
+dns:
+  magic_dns: true
+  base_domain: {{ headscale_base_domain }}
+  override_local_dns: false
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 9.9.9.9
+    split:
+{% for domain, servers in headscale_split_dns.items() %}
+      {{ domain }}:
+{% for server in servers %}
+        - {{ server }}
+{% endfor %}
+{% endfor %}
+  search_domains: []
+
+# Human logins go through Zitadel. Infrastructure (Talos nodes, yggdrasil)
+# registers with preauth keys and never touches OIDC.
+oidc:
+  # Bifrost is the break-glass path: it must start even when the homelab
+  # (and therefore Zitadel) is down.
+  only_start_if_oidc_is_available: false
+  issuer: {{ headscale_oidc_issuer }}
+  client_id: {{ headscale_oidc_client_id }}
+  client_secret: {{ headscale_oidc_client_secret }}
+  scope: ["openid", "profile", "email"]
+  expiry: 4320h # 180d between forced human re-logins (re-auth needs Zitadel up)
+
+logtail:
+  enabled: false
+
+unix_socket: /var/run/headscale/headscale.sock
+unix_socket_permission: "0770"
+
+log:
+  level: info
+  format: text

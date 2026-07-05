@@ -1,0 +1,43 @@
+---
+- name: Map architecture to deb arch
+  ansible.builtin.set_fact:
+    headscale_deb_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+- name: Install headscale .deb (pinned version)
+  ansible.builtin.apt:
+    deb: "https://github.com/juanfont/headscale/releases/download/v{{ headscale_version }}/headscale_{{ headscale_version }}_linux_{{ headscale_deb_arch }}.deb"
+  notify: Restart headscale
+
+- name: Write headscale config
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/headscale/config.yaml
+    owner: headscale
+    group: headscale
+    mode: "0600"
+  notify: Restart headscale
+
+- name: Ensure systemd override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/headscale.service.d
+    state: directory
+    mode: "0755"
+
+# The .deb unit runs headscale as its own user; binding :443 (TLS) and :80
+# (ACME HTTP-01) needs the capability.
+- name: Allow headscale to bind privileged ports
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/headscale.service.d/override.conf
+    content: |
+      [Service]
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+      CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+    mode: "0644"
+  notify: Restart headscale
+
+- name: Enable and start headscale
+  ansible.builtin.systemd:
+    name: headscale
+    enabled: true
+    state: started
+    daemon_reload: true
