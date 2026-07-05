@@ -1,0 +1,34 @@
+# Scrapes node_exporter + headscale metrics on bifrost over the tailnet (same
+# static-target pattern as the pihole ScrapeConfig in k3s-userapps/externaldns/).
+# Neither port is exposed on bifrost's public IP — nftables only accepts them
+# via tailscale0 — so these targets only work once the home Talos nodes are on
+# the tailnet (Phase 3), since prometheus pods egress via the node's tailscaled.
+# bifrost.ts.kirillorlov.pro resolves in-cluster via the MagicDNS forward zone
+# in k3s-apps/coredns.yaml (CoreDNS → node tailscaled) — no IPs to maintain.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: bifrost-nodeexporter
+  namespace: headplane
+spec:
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: bifrost
+      targets:
+        - bifrost.ts.kirillorlov.pro:9100
+---
+# headscale's own metrics (metrics_listen_addr 0.0.0.0:9090 in the ansible
+# config template) — same tailnet-only exposure as node_exporter above.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: headscale
+  namespace: headplane
+spec:
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: headscale
+      targets:
+        - bifrost.ts.kirillorlov.pro:9090
