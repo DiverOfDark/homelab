@@ -24,11 +24,13 @@
           OpenBao first (see header of this playbook).
   roles:
     - base
-    # bifrost is also a tailnet member of its own headscale — node_exporter
-    # (:9100) is scraped over the tailnet, never the public IP. First join
-    # needs a key: ansible-playbook playbooks/site.yaml -e tailscale_authkey=...
-    - tailscale
     - headscale
+    # bifrost is also a tailnet member of its own headscale — node_exporter
+    # (:9100) and headscale metrics (:9090) are scraped over the tailnet,
+    # never the public IP. Runs after the headscale role: the first join
+    # self-mints a one-time preauth key via tailscale_authkey_cmd
+    # (group_vars/headscale.yaml) — no manual key handling.
+    - tailscale
 
 - name: Tailnet members (yggdrasil, ...)
   hosts: tailnet_members

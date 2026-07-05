@@ -41,3 +41,18 @@
     enabled: true
     state: started
     daemon_reload: true
+
+# Owns all infrastructure nodes (Talos, yggdrasil, bifrost itself); humans
+# come in via OIDC instead.
+- name: List headscale users
+  ansible.builtin.command: headscale users list --output json
+  register: headscale_users
+  changed_when: false
+  retries: 3
+  delay: 2
+  until: headscale_users.rc == 0
+
+- name: Ensure infra headscale user exists
+  ansible.builtin.command: headscale users create {{ headscale_infra_user }}
+  when: headscale_infra_user not in (headscale_users.stdout | from_json | map(attribute='name') | list)
+  changed_when: true

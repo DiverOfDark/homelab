@@ -13,6 +13,9 @@ tasks:
       - |
         export HEADSCALE_OIDC_CLIENT_ID=$(bao kv get -field=client_id secret/zitadel/headscale-credentials)
         export HEADSCALE_OIDC_CLIENT_SECRET=$(bao kv get -field=client_secret secret/zitadel/headscale-credentials)
+        # reusable preauth key for first-time tailnet joins (empty = joins skipped);
+        # created once, see README "Tailnet preauth key"
+        export TAILSCALE_AUTHKEY=$(bao kv get -field=authkey secret/headscale 2>/dev/null || true)
         ansible-playbook playbooks/site.yaml
     preconditions:
       - sh: command -v ansible-playbook
@@ -30,6 +33,7 @@ tasks:
       - |
         export HEADSCALE_OIDC_CLIENT_ID=$(bao kv get -field=client_id secret/zitadel/headscale-credentials)
         export HEADSCALE_OIDC_CLIENT_SECRET=$(bao kv get -field=client_secret secret/zitadel/headscale-credentials)
+        export TAILSCALE_AUTHKEY=$(bao kv get -field=authkey secret/headscale 2>/dev/null || true)
         ansible-playbook playbooks/site.yaml --check --diff
     preconditions:
       - sh: command -v ansible-playbook

@@ -19,3 +19,7 @@ headscale_oidc_issuer: https://auth.kirillorlov.pro
 # nftables (roles/base) openings for headscale: ACME + TLS/DERP, STUN
 nftables_open_tcp_ports: [80, 443]
 nftables_open_udp_ports: [3478]
+
+# Infrastructure nodes register under this headscale user (created by the
+# headscale role); humans log in via Zitadel OIDC.
+headscale_infra_user: infra
