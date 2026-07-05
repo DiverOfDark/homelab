@@ -1,0 +1,160 @@
+# Disk (NVMe SMART) and Ceph storage alerting rules.
+#
+# Added after the 2026-06-27 Zitadel outage, which was caused by Ceph osd.0
+# (a Kingston SNV3S NVMe on muspelheimr) thermal-throttling at its 80 C critical
+# threshold -> 8-14s BlueStore commit stalls -> the CNPG Postgres on ceph-block
+# (size=2) could not commit login events within Zitadel's deadline. No alert
+# existed, so the outage was silent. These rules close that gap.
+#
+# Metrics come from the prometheus-smartctl-exporter DaemonSet (smartctl_device_*)
+# and the rook-ceph exporter (ceph_health_detail{name=...}, ceph_osd_commit_latency_ms).
+# Picked up automatically by the kube-prometheus-stack Prometheus (ruleSelector: {})
+# and routed to Telegram via Alertmanager.
+#
+# smartctl instance -> node mapping:
+#   192.168.178.11 = asgard       192.168.178.12 = niflheimr
+#   192.168.178.13 = jotunheimr   192.168.178.14 = muspelheimr
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: disk-ceph-health-rules
+  namespace: prometheus
+  labels:
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    release: prometheus
+spec:
+  groups:
+    # --------------------------------------------------------------------- #
+    # NVMe / SSD SMART health                                                #
+    # --------------------------------------------------------------------- #
+    - name: disk-smart.rules
+      interval: 1m
+      rules:
+        - alert: SmartHealthFailed
+          expr: smartctl_device_smart_status == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "SMART overall health FAILED on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "smartctl reports overall-health SELF-ASSESSMENT FAILED. Replace the drive."
+
+        - alert: SmartMediaErrors
+          expr: smartctl_device_media_errors > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $value }} media/data-integrity errors on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "NVMe media and data integrity error count is non-zero — uncorrectable errors detected. Investigate/replace."
+
+        - alert: SmartCriticalWarning
+          expr: smartctl_device_critical_warning > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "NVMe critical-warning bitfield set ({{ $value }}) on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "NVMe critical_warning is non-zero (bit0=spare low, bit1=temp, bit2=reliability degraded, bit3=read-only, bit4=volatile-mem-backup failed)."
+
+        # The genuine wear-out signal: reserve NAND blocks approaching the vendor threshold.
+        - alert: SmartSpareCritical
+          expr: smartctl_device_available_spare <= (smartctl_device_available_spare_threshold + 5)
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Available spare {{ $value }}% near threshold on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "Reserve blocks nearly exhausted; the drive may soon go read-only. Replace proactively."
+
+        - alert: SmartSpareLow
+          expr: smartctl_device_available_spare < 20
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Available spare {{ $value }}% on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "Available spare dropping — begin planning replacement."
+
+        # NOTE: fires immediately and persistently for osd.2 (jotunheimr, ~166%) and
+        # osd.3 (niflheimr, ~160%), which are past rated endurance by design — this is
+        # the standing "plan replacement" reminder. Raise to >= 200 if you want it quieter.
+        - alert: NvmePastEndurance
+          expr: smartctl_device_percentage_used >= 120
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Drive at {{ $value }}% of rated endurance on {{ $labels.device }} ({{ $labels.instance }})"
+            description: "percentage_used past 100% of the manufacturer's rated TBW. Not a failure by itself, but plan replacement; watch SmartSpareLow/SmartMediaErrors."
+
+        # Early-warning for thermal throttling (the Zitadel-outage trigger on osd.0).
+        # Kingston SNV3S throttles at 80 C, Crucial P3P at 83/85 C; 72 C is a safe lead.
+        - alert: NvmeOverheating
+          expr: smartctl_device_temperature{temperature_type="current"} >= 72
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} at {{ $value }}C ({{ $labels.instance }}) — thermal-throttling risk"
+            description: "NVMe running hot; sustained operation near the critical composite temp causes throttling and multi-second IO stalls. Improve cooling."
+
+    # --------------------------------------------------------------------- #
+    # Ceph storage — directly catches a repeat of the incident               #
+    # --------------------------------------------------------------------- #
+    - name: ceph-storage.rules
+      interval: 1m
+      rules:
+        - alert: CephBluestoreSlowOps
+          expr: ceph_health_detail{name="BLUESTORE_SLOW_OP_ALERT"} > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Ceph OSD slow BlueStore operations (the Zitadel-outage signature)"
+            description: "An OSD is reporting slow BlueStore ops — usually a throttling/failing disk. ceph-block is size=2, so this stalls writes for any PG with a copy on that OSD."
+
+        - alert: CephSlowOps
+          expr: ceph_health_detail{name="SLOW_OPS"} > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Ceph reporting blocked/slow ops"
+            description: "Requests blocked beyond the slow-op threshold. Check `ceph health detail` and per-OSD latency."
+
+        - alert: CephMdsSlowMetadataIO
+          expr: ceph_health_detail{name="MDS_SLOW_METADATA_IO"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CephFS MDS slow metadata IO"
+            description: "MDS metadata IO is slow — typically downstream of a slow OSD/disk."
+
+        - alert: CephOsdHighCommitLatency
+          expr: ceph_osd_commit_latency_ms > 1000
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "OSD {{ $labels.ceph_daemon }} commit latency {{ $value }}ms"
+            description: "Healthy is single-digit ms. Sustained high commit latency indicates a throttling or failing OSD disk. Lower the 1000ms threshold for earlier warning."
+
+        - alert: CephOsdDown
+          expr: ceph_health_detail{name="OSD_DOWN"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "One or more Ceph OSDs down"
+            description: "An OSD is down. With size=2 pools this means affected PGs are running on a single copy (no redundancy)."
+
+        - alert: CephPoolNoRedundancy
+          expr: ceph_health_detail{name="POOL_NO_REDUNDANCY"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "A Ceph pool has no redundancy"
+            description: "A pool is down to a single copy (size-1 effective). Any further disk loss risks data loss — restore redundancy urgently."
