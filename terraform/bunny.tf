@@ -1,5 +1,5 @@
 provider "bunnynet" {
-  api_key = data.vault_kv_secret_v2.bunny.data["api_key"]
+  api_key = ephemeral.vault_kv_secret_v2.bunny.data["api_key"]
 }
 
 resource "bunnynet_storage_zone" "homelab" {

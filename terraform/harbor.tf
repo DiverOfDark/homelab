@@ -65,7 +65,10 @@ resource "harbor_config_auth" "oidc" {
   oidc_name          = "Zitadel"
   oidc_endpoint      = "https://auth.kirillorlov.pro"
   oidc_client_id     = zitadel_application_oidc.harbor.client_id
-  oidc_client_secret = zitadel_application_oidc.harbor.client_secret
+  # Write-only: never persisted to state. Bump the version to push a rotated
+  # secret (e.g. after recreating the Zitadel app).
+  oidc_client_secret_wo         = zitadel_application_oidc.harbor.client_secret
+  oidc_client_secret_wo_version = 1
   oidc_scope         = "openid,profile,email,offline_access"
   oidc_user_claim    = "preferred_username"
   oidc_auto_onboard  = true
@@ -128,20 +131,46 @@ resource "vault_kv_secret_v2" "harbor_robot_library" {
 # Bearer requests, so containerd's two-scope auth flow that broke against
 # artifact-keeper works here.
 
-# Docker Hub — wired with a PAT so we don't blow through the 100/6h
-# unauthenticated rate limit. PAT lives in OpenBao at secret/dockerhub
-# (see variable.openbao_token bootstrapping).
-data "vault_kv_secret_v2" "dockerhub" {
-  mount = "secret"
-  name  = "dockerhub"
+# Upstream registry credentials. harbor_registry.access_secret is a regular
+# state-persisted attribute (no _wo alternative in the harbor provider), so
+# these come in as TF_VARs from OpenBao (exported by flake.nix) rather than
+# deprecated vault data sources.
+variable "dockerhub_username" {
+  description = "Docker Hub username (OpenBao secret/dockerhub; exported by flake.nix)"
+  type        = string
 }
 
+variable "dockerhub_pat" {
+  description = "Docker Hub PAT (OpenBao secret/dockerhub; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_pat" {
+  description = "GitHub PAT with read:packages for GHCR (OpenBao secret/github; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "quay_username" {
+  description = "quay.io robot username (OpenBao secret/quay; exported by flake.nix)"
+  type        = string
+}
+
+variable "quay_token" {
+  description = "quay.io robot token (OpenBao secret/quay; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+# Docker Hub — wired with a PAT so we don't blow through the 100/6h
+# unauthenticated rate limit.
 resource "harbor_registry" "docker_hub" {
   name          = "docker-hub-upstream"
   provider_name = "docker-hub"
   endpoint_url  = "https://hub.docker.com"
-  access_id     = data.vault_kv_secret_v2.dockerhub.data["username"]
-  access_secret = data.vault_kv_secret_v2.dockerhub.data["pat"]
+  access_id     = var.dockerhub_username
+  access_secret = var.dockerhub_pat
 }
 
 resource "harbor_project" "docker_hub" {
@@ -154,18 +183,13 @@ resource "harbor_project" "docker_hub" {
 # GHCR — even public packages need an anonymous bearer token, which Harbor's
 # proxy won't negotiate without creds. Authenticate with a GitHub PAT
 # (read:packages) via the generic docker-registry adapter (basic->token auth).
-# Username is just the GitHub handle; PAT lives in OpenBao secret/github.
-data "vault_kv_secret_v2" "github" {
-  mount = "secret"
-  name  = "github"
-}
-
+# Username is just the GitHub handle.
 resource "harbor_registry" "ghcr" {
   name          = "ghcr-upstream"
   provider_name = "docker-registry"
   endpoint_url  = "https://ghcr.io"
   access_id     = "diverofdark"
-  access_secret = data.vault_kv_secret_v2.github.data["pat"]
+  access_secret = var.github_pat
 }
 
 resource "harbor_project" "ghcr" {
@@ -180,17 +204,12 @@ resource "harbor_project" "ghcr" {
 # docker-registry adapter with a quay.io robot token (read-only). Create a
 # robot under any quay.io account and store it in OpenBao secret/quay with
 # properties: username (e.g. <account>+<robot>) and token.
-data "vault_kv_secret_v2" "quay" {
-  mount = "secret"
-  name  = "quay"
-}
-
 resource "harbor_registry" "quay" {
   name          = "quay-upstream"
   provider_name = "docker-registry"
   endpoint_url  = "https://quay.io"
-  access_id     = data.vault_kv_secret_v2.quay.data["username"]
-  access_secret = data.vault_kv_secret_v2.quay.data["token"]
+  access_id     = var.quay_username
+  access_secret = var.quay_token
 }
 
 resource "harbor_project" "quay" {

@@ -17,6 +17,48 @@ provider "zitadel" {
   jwt_profile_json = ephemeral.vault_kv_secret_v2.zitadel_key.data["sa_jwt_key"]
 }
 
+# The zitadel provider has no write-only attributes, so these secrets sit in
+# regular state-persisted arguments — they come in as TF_VARs from OpenBao
+# (exported by flake.nix) instead of deprecated vault data sources.
+variable "google_oauth_client_id" {
+  description = "Google OAuth client id (OpenBao secret/google/oauth; exported by flake.nix)"
+  type        = string
+}
+
+variable "google_oauth_client_secret" {
+  description = "Google OAuth client secret (OpenBao secret/google/oauth; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "mailgun_user" {
+  description = "Mailgun SMTP user (OpenBao secret/mailgun; exported by flake.nix)"
+  type        = string
+}
+
+variable "mailgun_password" {
+  description = "Mailgun SMTP password (OpenBao secret/mailgun; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "twilio_sid" {
+  description = "Twilio SID (OpenBao secret/twilio; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "twilio_token" {
+  description = "Twilio token (OpenBao secret/twilio; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "twilio_sender_number" {
+  description = "Twilio sender number (OpenBao secret/twilio; exported by flake.nix)"
+  type        = string
+}
+
 resource "zitadel_project" "homelab" {
   name   = "Homelab"
   org_id = var.zitadel_org_id
@@ -29,8 +71,8 @@ resource "zitadel_project" "homelab" {
 resource "zitadel_org_idp_google" "google" {
   org_id              = var.zitadel_org_id
   name                = "Google"
-  client_id           = data.vault_kv_secret_v2.google_oauth.data["client_id"]
-  client_secret       = data.vault_kv_secret_v2.google_oauth.data["client_secret"]
+  client_id           = var.google_oauth_client_id
+  client_secret       = var.google_oauth_client_secret
   scopes              = ["openid", "profile", "email"]
   is_linking_allowed  = true
   is_creation_allowed = false
@@ -194,6 +236,23 @@ resource "zitadel_application_oidc" "appbahn_platform" {
   id_token_userinfo_assertion = true
 }
 
+resource "zitadel_application_oidc" "headscale" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Headscale"
+  redirect_uris               = ["https://headscale.kirillorlov.pro/oidc/callback"]
+  post_logout_redirect_uris   = ["https://headscale.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
 resource "zitadel_application_saml" "ceph_dashboard" {
   org_id       = var.zitadel_org_id
   project_id   = zitadel_project.homelab.id
@@ -223,8 +282,8 @@ resource "zitadel_email_provider_smtp" "mailgun" {
   sender_name      = "Homelab Auth"
   tls              = true
   host             = "smtp.eu.mailgun.org:587"
-  user             = data.vault_kv_secret_v2.mailgun.data["user"]
-  password         = data.vault_kv_secret_v2.mailgun.data["password"]
+  user             = var.mailgun_user
+  password         = var.mailgun_password
   reply_to_address = "auth@kirillorlov.pro"
   description      = "Mailgun SMTP"
   set_active       = true
@@ -234,9 +293,9 @@ resource "zitadel_email_provider_smtp" "mailgun" {
 
 resource "zitadel_sms_provider_twilio" "twilio" {
 
-  sid           = data.vault_kv_secret_v2.twilio.data["sid"]
-  sender_number = data.vault_kv_secret_v2.twilio.data["sender_number"]
-  token         = data.vault_kv_secret_v2.twilio.data["token"]
+  sid           = var.twilio_sid
+  sender_number = var.twilio_sender_number
+  token         = var.twilio_token
   set_active    = true
 }
 
@@ -254,6 +313,8 @@ locals {
     phos_android     = zitadel_application_oidc.phos_android
     appbahn_platform = zitadel_application_oidc.appbahn_platform
     harbor           = zitadel_application_oidc.harbor
+    # Consumed by ansible (roles/headscale) via `bao kv get secret/zitadel/headscale-credentials`
+    headscale        = zitadel_application_oidc.headscale
   }
 }
 

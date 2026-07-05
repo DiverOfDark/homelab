@@ -5,8 +5,8 @@
 provider "aws" {
   alias      = "wasabi"
   region     = "eu-central-2"
-  access_key = data.vault_kv_secret_v2.wasabi.data["access_key"]
-  secret_key = data.vault_kv_secret_v2.wasabi.data["secret_key"]
+  access_key = ephemeral.vault_kv_secret_v2.wasabi.data["access_key"]
+  secret_key = ephemeral.vault_kv_secret_v2.wasabi.data["secret_key"]
 
   s3_use_path_style           = true
   skip_credentials_validation = true

@@ -16,44 +16,27 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
   token_policies                   = [vault_policy.eso.name]
 }
 
-# Cloudflare credentials from OpenBao
+# Cloudflare provider credentials from OpenBao (ephemeral — feeds only the
+# provider config). Keys that land in state-persisted resource attributes
+# (api_token, tunnel_secret) come in as TF_VARs instead — see flake.nix — since
+# ephemeral values are rejected there.
 # Expected keys: email, api_key, api_token, tunnel_secret
-data "vault_kv_secret_v2" "cloudflare" {
+ephemeral "vault_kv_secret_v2" "cloudflare" {
   mount = "secret"
   name  = "cloudflare"
 }
 
-# Google OAuth credentials from OpenBao
-# Expected keys: client_id, client_secret
-data "vault_kv_secret_v2" "google_oauth" {
-  mount = "secret"
-  name  = "google/oauth"
-}
-
-# Mailgun SMTP credentials from OpenBao
-# Expected keys: user, password
-data "vault_kv_secret_v2" "mailgun" {
-  mount = "secret"
-  name  = "mailgun"
-}
-
-# Twilio credentials from OpenBao
-# Expected keys: sid, token, sender_number
-data "vault_kv_secret_v2" "twilio" {
-  mount = "secret"
-  name  = "twilio"
-}
-
-# Wasabi credentials from OpenBao
+# Wasabi credentials from OpenBao (ephemeral — only feeds the aws provider
+# config, never persisted to state/plan)
 # Expected keys: access_key, secret_key
-data "vault_kv_secret_v2" "wasabi" {
+ephemeral "vault_kv_secret_v2" "wasabi" {
   mount = "secret"
   name  = "wasabi"
 }
 
-# Bunny.net API key from OpenBao
+# Bunny.net API key from OpenBao (ephemeral — only feeds the provider config)
 # Expected keys: api_key
-data "vault_kv_secret_v2" "bunny" {
+ephemeral "vault_kv_secret_v2" "bunny" {
   mount = "secret"
   name  = "bunny"
 }

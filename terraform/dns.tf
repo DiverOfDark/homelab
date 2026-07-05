@@ -1,5 +1,8 @@
+# Legacy path: proxied CNAME -> cloudflared tunnel. Hostnames listed in
+# local.migrated_hostnames are excluded — they get DNS-only A records to the
+# Hetzner edge below.
 resource "cloudflare_dns_record" "records" {
-  for_each = { for rules in local.ingress_rules: rules.short => rules }
+  for_each = { for rules in local.ingress_rules : rules.short => rules if !contains(local.migrated_hostnames, rules.short) }
   name    = each.value.short
 
   zone_id = cloudflare_zone.zone.id
@@ -7,6 +10,19 @@ resource "cloudflare_dns_record" "records" {
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
+}
+
+# New path: DNS-only A record -> midgard (traefik-external). ttl 300 keeps
+# per-hostname rollback fast.
+resource "cloudflare_dns_record" "public_a" {
+  for_each = toset(local.migrated_hostnames)
+  name     = each.value
+
+  zone_id = cloudflare_zone.zone.id
+  type    = "A"
+  content = hcloud_primary_ip.midgard_v4.ip_address
+  ttl     = 300
+  proxied = false
 }
 
 resource "cloudflare_dns_record" "backup" {
@@ -27,6 +43,17 @@ resource "cloudflare_dns_record" "backup-s" {
   content = "${cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
+}
+
+# headscale on bifrost — MUST be DNS-only (tailscale control + DERP cannot sit
+# behind the Cloudflare proxy).
+resource "cloudflare_dns_record" "headscale" {
+  name    = "headscale"
+  zone_id = cloudflare_zone.zone.id
+  type    = "A"
+  content = hcloud_primary_ip.bifrost_v4.ip_address
+  ttl     = 300
+  proxied = false
 }
 
 resource "cloudflare_dns_record" "uptime1" {

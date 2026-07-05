@@ -28,6 +28,10 @@ terraform {
       source  = "goharbor/harbor"
       version = "~> 3.10"
     }
+    hcloud = {
+      source  = "registry.terraform.io/hetznercloud/hcloud"
+      version = "~> 1.52"
+    }
     random = {
       source  = "registry.terraform.io/hashicorp/random"
       version = "~> 3.6"
@@ -59,7 +63,31 @@ variable "zitadel_org_id" {
   default     = "363252298534683134"
 }
 
+# Secrets that land in regular (state-persisted) resource attributes can't use
+# ephemeral vault reads — flake.nix exports them as TF_VARs from OpenBao
+# (secret/cloudflare) instead, which retires the deprecated
+# data.vault_kv_secret_v2 sources.
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token (OpenBao secret/cloudflare key api_token; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_tunnel_secret" {
+  description = "Shared secret for the cloudflared tunnels (OpenBao secret/cloudflare key tunnel_secret; exported by flake.nix)"
+  type        = string
+  sensitive   = true
+}
+
 locals {
+  # Hostnames migrated off the cloudflared tunnel onto the Hetzner edge
+  # (midgard, traefik-external): each entry here becomes a DNS-only A record
+  # to midgard's pinned IP instead of the proxied tunnel CNAME. Migrate in
+  # small batches (canary: "status"); rollback = remove from the list and
+  # apply. The app's Ingress must carry the kirillorlov.pro/expose=external
+  # label BEFORE its hostname is added here. auth/appbahn go LAST.
+  migrated_hostnames = []
+
   ingress_rules = [
     {
       short    = "kirillorlov.pro"
@@ -112,8 +140,8 @@ locals {
 }
 
 provider "cloudflare" {
-  email   = data.vault_kv_secret_v2.cloudflare.data["email"]
-  api_key = data.vault_kv_secret_v2.cloudflare.data["api_key"]
+  email   = ephemeral.vault_kv_secret_v2.cloudflare.data["email"]
+  api_key = ephemeral.vault_kv_secret_v2.cloudflare.data["api_key"]
 }
 
 provider "kubernetes" {
