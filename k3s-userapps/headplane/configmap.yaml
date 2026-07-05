@@ -20,3 +20,9 @@ data:
       url: https://headscale.kirillorlov.pro
       api_key_path: /var/run/secrets/headplane/api_key
       config_strict: false
+    # Zitadel SSO (same IdP as headscale itself). client_id/client_secret come
+    # via HEADPLANE_OIDC__* env overrides from the ESO secret — see
+    # deployment.yaml. API-key login stays enabled as fallback.
+    oidc:
+      issuer: https://auth.kirillorlov.pro
+      redirect_uri: https://headplane.kirillorlov.pro/admin/oidc/callback
