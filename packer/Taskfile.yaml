@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  build:
+    desc: Build the Talos hcloud snapshot for midgard (rescue-mode dd of the Image Factory image)
+    cmds:
+      - packer init .
+      - packer build . # HCLOUD_TOKEN exported by the dev shell (flake.nix)
+    preconditions:
+      - sh: command -v packer
+        msg: "packer not found - enter the nix dev shell first"
+      - sh: test -n "$HCLOUD_TOKEN"
+        msg: "HCLOUD_TOKEN is empty - seed secret/hcloud in OpenBao and re-enter the dev shell"
