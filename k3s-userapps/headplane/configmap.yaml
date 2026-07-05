@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: headplane-config
+  namespace: headplane
+data:
+  # https://github.com/tale/headplane/blob/main/docs/install/index.md
+  # API-only mode: manages nodes/users/routes/preauth keys via the headscale
+  # API on bifrost. No config-file/docker integration (headscale lives outside
+  # the cluster), so DNS/ACL file editing stays CLI-on-bifrost.
+  config.yaml: |
+    server:
+      host: 0.0.0.0
+      port: 3000
+      base_url: https://headplane.kirillorlov.pro
+      cookie_secure: true
+      cookie_secret_path: /var/run/secrets/headplane/cookie_secret
+      data_path: /data
+    headscale:
+      url: https://headscale.kirillorlov.pro
+      api_key_path: /var/run/secrets/headplane/api_key
+      config_strict: false

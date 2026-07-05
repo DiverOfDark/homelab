@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: headplane
+  namespace: headplane
+  labels:
+    app: headplane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: headplane
+  template:
+    metadata:
+      labels:
+        app: headplane
+    spec:
+      containers:
+        - name: headplane
+          image: ghcr.io/tale/headplane:0.6.0
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/headplane
+              readOnly: true
+            - name: secrets
+              mountPath: /var/run/secrets/headplane
+              readOnly: true
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /admin
+              port: http
+            initialDelaySeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: headplane-config
+        - name: secrets
+          secret:
+            secretName: headplane-secrets
+        # UI cache only — nothing worth persisting (per repo policy: no new PVCs)
+        - name: data
+          emptyDir: {}
