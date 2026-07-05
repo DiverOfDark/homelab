@@ -107,6 +107,31 @@
             # Hetzner Cloud — hcloud CLI + packer work out of the box
             # (empty until secret/hcloud is seeded; silenced so shell entry stays clean)
             export HCLOUD_TOKEN=`bao kv get -field=token secret/hcloud 2>/dev/null || true`
+            # SSH pubkey for hcloud_ssh_key.admin — a tofu variable rather than a
+            # vault data source so the deprecated data.vault_kv_secret_v2 isn't
+            # needed (the value is public anyway; only the token stays ephemeral)
+            export TF_VAR_admin_ssh_public_key=`bao kv get -field=ssh_public_key secret/hcloud 2>/dev/null || true`
+
+            # Secrets consumed by regular (state-persisted) tofu resource
+            # attributes can't use ephemeral vault reads — export them as
+            # TF_VARs instead, retiring the deprecated data.vault_kv_secret_v2
+            # sources. Missing secrets resolve to empty (plan/apply will then
+            # prompt or fail loudly on the specific variable).
+            tfvar() { bao kv get -field="$2" "secret/$1" 2>/dev/null || true; }
+            export TF_VAR_cloudflare_api_token=$(tfvar cloudflare api_token)
+            export TF_VAR_cloudflare_tunnel_secret=$(tfvar cloudflare tunnel_secret)
+            export TF_VAR_google_oauth_client_id=$(tfvar google/oauth client_id)
+            export TF_VAR_google_oauth_client_secret=$(tfvar google/oauth client_secret)
+            export TF_VAR_mailgun_user=$(tfvar mailgun user)
+            export TF_VAR_mailgun_password=$(tfvar mailgun password)
+            export TF_VAR_twilio_sid=$(tfvar twilio sid)
+            export TF_VAR_twilio_token=$(tfvar twilio token)
+            export TF_VAR_twilio_sender_number=$(tfvar twilio sender_number)
+            export TF_VAR_dockerhub_username=$(tfvar dockerhub username)
+            export TF_VAR_dockerhub_pat=$(tfvar dockerhub pat)
+            export TF_VAR_github_pat=$(tfvar github pat)
+            export TF_VAR_quay_username=$(tfvar quay username)
+            export TF_VAR_quay_token=$(tfvar quay token)
 
             if [ -z "''${KUBERNETES_SERVICE_HOST:-}" ]; then
               # Local dev — use kubeconfig and override tofu backend
