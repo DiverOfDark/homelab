@@ -50,18 +50,14 @@ ephemeral_node_inactivity_timeout: 30m
 dns:
   magic_dns: true
   base_domain: {{ headscale_base_domain }}
-  override_local_dns: false
+  # true: devices use the tailnet nameservers (pihole) for ALL queries
+  override_local_dns: {{ headscale_override_local_dns | lower }}
   nameservers:
     global:
-      - 1.1.1.1
-      - 9.9.9.9
-    split:
-{% for domain, servers in headscale_split_dns.items() %}
-      {{ domain }}:
-{% for server in servers %}
-        - {{ server }}
+{% for server in headscale_global_dns %}
+      - {{ server }}
 {% endfor %}
-{% endfor %}
+    split: {}
   search_domains: []
 
 # Human logins go through Zitadel. Infrastructure (Talos nodes, yggdrasil)

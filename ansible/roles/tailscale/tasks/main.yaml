@@ -1,15 +1,27 @@
 ---
-- name: Add tailscale apt signing key
-  ansible.builtin.get_url:
-    url: "https://pkgs.tailscale.com/stable/debian/{{ ansible_distribution_release }}.noarmor.gpg"
-    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
-    mode: "0644"
-
+# deb822 replaces the deprecated apt_repository AND the separate keyring
+# download — signed_by fetches the (armored) key and inlines it.
 - name: Add tailscale apt repository
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian {{ ansible_distribution_release }} main"
-    filename: tailscale
+  ansible.builtin.deb822_repository:
+    name: tailscale
+    types: deb
+    uris: https://pkgs.tailscale.com/stable/debian
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: main
+    signed_by: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts['distribution_release'] }}.asc"
     state: present
+
+# Hosts set up before the deb822 switch (or via tailscale's install.sh, like
+# yggdrasil) have a one-line .list + keyring — remove them or apt complains
+# about the repo being configured twice.
+- name: Remove legacy tailscale repo definitions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/tailscale.list
+    - /etc/apt/sources.list.d/tailscale.tailscale.list
+    - /usr/share/keyrings/tailscale-archive-keyring.gpg
 
 - name: Install tailscale
   ansible.builtin.apt:
@@ -28,6 +40,7 @@
   register: tailscale_status
   changed_when: false
   failed_when: false
+  check_mode: false # read-only; without this a --check run can't evaluate the join condition
 
 - name: Join tailnet (first registration only)
   ansible.builtin.command: >-

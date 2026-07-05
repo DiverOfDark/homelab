@@ -4,11 +4,23 @@ headscale_version: "0.26.1"
 headscale_server_url: https://headscale.kirillorlov.pro
 headscale_base_domain: ts.kirillorlov.pro
 
-# Split DNS: keep internal names resolving via pihole (over the subnet routes
-# advertised by the home Talos nodes) — replaces the WARP gateway DNS behavior.
-headscale_split_dns:
-  kirillorlov.pro:
-    - 192.168.178.2
+# Tailnet-wide DNS: pihole (on the tailnet node named below) serves ALL
+# queries for every tailnet device — ad-blocking everywhere + internal
+# kirillorlov.pro names, replacing the WARP gateway DNS behavior. No hardcoded
+# IP: the headscale role resolves the node's tailnet IP at deploy time from
+# `headscale nodes list`, so a re-registration self-heals on the next deploy.
+# Until the node has joined (or if the lookup fails), the fallback resolvers
+# below are used. Trade-off: a remote device loses DNS if home/pihole is
+# unreachable — escape hatch is toggling "Use Tailscale DNS" off on the
+# device. Servers are unaffected (ansible tailscale role and the Talos
+# extension run with accept-dns off).
+headscale_dns_node: alfheimr
+headscale_override_local_dns: true
+# Fallback when headscale_dns_node isn't registered (yet); replaced by the
+# deploy-time lookup once it is.
+headscale_global_dns:
+  - 1.1.1.1
+  - 9.9.9.9
 
 # OIDC (Zitadel). Client id/secret are NOT stored in git — they are read from
 # OpenBao at playbook run time (see playbooks/site.yaml pre_tasks). Zitadel app
