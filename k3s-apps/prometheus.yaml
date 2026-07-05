@@ -28,7 +28,7 @@ spec:
           enabled: false
 
         prometheus-node-exporter:
-          tolerations: 
+          tolerations:
             - key: "weakling"
               operator: "Equal"
               value: "true"
@@ -37,6 +37,11 @@ spec:
               operator: "Equal"
               value: "true"
               effect: "NoExecute"
+            # midgard (Hetzner edge worker) — metrics wanted there too
+            - key: "edge"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
         defaultRules:
           rules:
             kubeProxy: false

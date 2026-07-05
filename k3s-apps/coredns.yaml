@@ -69,6 +69,29 @@ spec:
                 topologyKey: kubernetes.io/hostname
 
         servers:
+        # headscale MagicDNS zone for IN-CLUSTER clients. Pods never use the
+        # node's resolver (and Talos hostDNS is off), so the tailscale
+        # extension alone doesn't make tailnet names resolvable in pods.
+        # Instead, forward the zone to tailscaled's built-in resolver
+        # (100.100.100.100): the query leaves the CoreDNS pod, Cilium
+        # masquerades it to the node, and the node's own tailscaled answers
+        # with live MagicDNS data — no static IPs to maintain. Requires every
+        # node to run the tailscale extension (Phase 3); until then this zone
+        # simply fails to resolve. The hosts block stays as an override hook
+        # for pinning a name if ever needed.
+        - zones:
+          - zone: ts.kirillorlov.pro
+          port: 53
+          plugins:
+          - name: errors
+          - name: hosts
+            configBlock: |-
+              ttl 30
+              fallthrough
+          - name: forward
+            parameters: . 100.100.100.100
+          - name: cache
+            parameters: 30
         - zones:
           - zone: .
           port: 53

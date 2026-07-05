@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik-external
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: traefik
+      repoURL: https://traefik.github.io/charts
+      targetRevision: 40.2.0
+      helm:
+        valuesObject:
+          deployment:
+            kind: Deployment
+            replicas: 1
+          # Runs exclusively on the Hetzner edge worker; hostPort is the
+          # public front door (no MetalLB there). With a single node +
+          # hostPort, a surge pod could never bind — roll by replacement.
+          nodeSelector:
+            kirillorlov.pro/edge: "true"
+          tolerations:
+            - key: "edge"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+          updateStrategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
+              maxSurge: 0
+
+          logs:
+            access:
+              enabled: true
+            general:
+              level: INFO
+
+          ports:
+            web:
+              hostPort: 80
+              redirections:
+                entryPoint:
+                  to: websecure
+                  scheme: https
+                  permanent: true
+            websecure:
+              hostPort: 443
+              http3:
+                enabled: true
+
+          # hostPort is the entry path (Cilium's kubeProxyReplacement hostPort
+          # preserves real client source IPs — no ProxyProtocol needed); the
+          # Service is only for in-cluster reachability of the dashboard/metrics.
+          service:
+            type: ClusterIP
+
+          # CRITICAL scoping: the internal Ingresses are class-less (served by
+          # the default `traefik` class). Without pinning the providers to the
+          # traefik-external class, this instance would serve — and publicly
+          # expose — every internal Ingress in the cluster. Apps opt in via the
+          # Kyverno-generated `<name>-external` Ingress
+          # (k3s-objects/external-ingress-policy.yaml).
+          ingressClass:
+            enabled: true
+            isDefaultClass: false
+          providers:
+            kubernetesCRD:
+              ingressClass: traefik-external
+              allowExternalNameServices: true
+              allowCrossNamespace: true
+            kubernetesIngress:
+              ingressClass: traefik-external
+              allowExternalNameServices: true
+
+          metrics:
+            prometheus:
+              serviceMonitor:
+                enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik-external
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        # hostPorts are rejected by the cluster-wide PSA baseline enforce
+        # (same pattern as cilium / victorialogs namespaces)
+        pod-security.kubernetes.io/enforce: privileged
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

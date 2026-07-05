@@ -21,6 +21,14 @@ spec:
           # -- Enable deployment of vector
           enabled: true
           role: Agent
+          # midgard (Hetzner edge worker) — collect its service logs too; its
+          # Talos machine.logging targets node-local hostPort 5050, which works
+          # anywhere. (kmsg → MetalLB VIP silently drops from the edge; accepted.)
+          tolerations:
+            - key: "edge"
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
           dataDir: /vector-data-dir
           resources:
             requests:

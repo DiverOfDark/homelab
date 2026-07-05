@@ -5,6 +5,11 @@ metadata:
   namespace: statuspage
   labels:
     app.kubernetes.io/name: homepage
+    # Canary for the Hetzner edge migration: Kyverno generates a
+    # homepage-external twin on the traefik-external class (see
+    # k3s-objects/external-ingress-policy.yaml). DNS flips separately via
+    # terraform local.migrated_hostnames.
+    kirillorlov.pro/expose: external
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
     traefik.ingress.kubernetes.io/service.sticky.cookie: "true"

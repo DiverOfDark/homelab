@@ -39,6 +39,13 @@ spec:
           hostNamespaceOnly: true
         #routingMode: native
         kubeProxyReplacement: true
+        # Pod MTU sized for the tailscale path to the midgard edge node:
+        # tailscale MTU 1280 − vxlan overhead 50 = 1230. Cilium's MTU is
+        # global (auto-detect would pick 1450 from the LAN NIC), and vxlan
+        # to midgard rides tailscaled — without this, large responses
+        # blackhole on the edge path while small requests work. Costs ~1.5%
+        # efficiency on pure-LAN traffic.
+        MTU: 1230
         clustermesh:
           apiserver:
             metrics:

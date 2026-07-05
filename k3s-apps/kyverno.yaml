@@ -38,6 +38,11 @@ spec:
                 - apiGroups: ["external-secrets.io"]
                   resources: ["externalsecrets"]
                   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+                # generate-external-ingress policy (k3s-objects/) clones
+                # labeled Ingresses onto the traefik-external class.
+                - apiGroups: ["networking.k8s.io"]
+                  resources: ["ingresses"]
+                  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
         backgroundController:
           replicas: 2
           rbac:

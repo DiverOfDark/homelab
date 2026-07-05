@@ -1,0 +1,51 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-external-ingress
+  annotations:
+    policies.kyverno.io/title: Generate External Ingress
+    policies.kyverno.io/category: Ingress
+    policies.kyverno.io/description: >-
+      Public exposure via the Hetzner edge (traefik-external on midgard) is
+      opt-in: label an Ingress with kirillorlov.pro/expose=external and this
+      policy generates a "<name>-external" twin bound to the traefik-external
+      ingressClass — no hand-maintained duplicates. The copy gets fresh
+      metadata, so cert-manager annotations do NOT propagate: both Ingresses
+      reference the SAME TLS secret while only the internal one requests the
+      certificate (no duplicate Certificate fights, no extra LE issuance).
+      Source updates propagate (synchronize); removing the label deletes the
+      twin. ArgoCD ignores the generated object (no tracking label), so it is
+      never pruned by the owning app.
+spec:
+  generateExisting: true
+  rules:
+    - name: external-ingress-copy
+      match:
+        any:
+          - resources:
+              kinds:
+                - networking.k8s.io/v1/Ingress
+              selector:
+                matchLabels:
+                  kirillorlov.pro/expose: external
+      # Never mirror the mirror: skip already-generated objects.
+      exclude:
+        any:
+          - resources:
+              selector:
+                matchLabels:
+                  kirillorlov.pro/generated-by: external-ingress-policy
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        name: "{{ request.object.metadata.name }}-external"
+        namespace: "{{ request.object.metadata.namespace }}"
+        synchronize: true
+        data:
+          metadata:
+            labels:
+              kirillorlov.pro/generated-by: external-ingress-policy
+          spec:
+            ingressClassName: traefik-external
+            rules: "{{ request.object.spec.rules }}"
+            tls: "{{ request.object.spec.tls }}"
