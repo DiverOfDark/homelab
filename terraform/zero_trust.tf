@@ -119,9 +119,13 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "kubernetes_account_c
 
   config = {
     ingress = concat(
+      # originRequest (e.g. noTLSVerify for the https->traefik origins) was
+      # silently dropped here before — only hostname/service were mapped, so
+      # cloudflared rejected traefik's self-signed default cert.
       [for rule in local.ingress_rules : {
-        hostname = rule.hostname
-        service  = rule.service
+        hostname       = rule.hostname
+        service        = rule.service
+        origin_request = try({ no_tls_verify = rule.originRequest.noTLSVerify }, null)
       }],
       [{
         # Respond with a `404` status code when the request does not match any of the previous hostnames.

@@ -108,7 +108,11 @@ locals {
       }, {
       short    = "auth"
       hostname = "auth.kirillorlov.pro"
-      service  = "https://traefik.kube-system.svc.cluster.local:443"
+      # Traefik lives in the `traefik` namespace (NOT kube-system) — the old
+      # kube-system URL made cloudflared 502 on the public path for years,
+      # unnoticed because LAN/WARP clients resolve via pihole -> internal
+      # traefik and never hit the tunnel.
+      service  = "https://traefik.traefik.svc.cluster.local:443"
       originRequest = {
         noTLSVerify = true
       }
@@ -127,7 +131,8 @@ locals {
       }, {
       short    = "appbahn"
       hostname = "appbahn.kirillorlov.pro"
-      service  = "https://traefik.kube-system.svc.cluster.local:443"
+      # Same namespace fix as `auth` above.
+      service  = "https://traefik.traefik.svc.cluster.local:443"
       originRequest = {
         noTLSVerify = true
       }
