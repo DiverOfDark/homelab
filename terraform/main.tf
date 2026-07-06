@@ -95,8 +95,6 @@ locals {
     "cloud",
     "bonsai",
     "vaultwarden",
-    "money",
-    "suwayomi",
   ]
 
   ingress_rules = [
@@ -136,10 +134,6 @@ locals {
       hostname = "vaultwarden.kirillorlov.pro"
       service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
       }, {
-      short    = "money"
-      hostname = "money.kirillorlov.pro"
-      service  = "http://actualbudget.actualbudget.svc.cluster.local:80"
-      }, {
       short    = "appbahn"
       hostname = "appbahn.kirillorlov.pro"
       # Same namespace fix as `auth` above.
@@ -147,10 +141,6 @@ locals {
       originRequest = {
         noTLSVerify = true
       }
-      }, {
-      short    = "suwayomi"
-      hostname = "suwayomi.kirillorlov.pro"
-      service  = "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
     }
   ]
 }

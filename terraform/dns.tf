@@ -12,17 +12,37 @@ resource "cloudflare_dns_record" "records" {
   proxied = true
 }
 
-# New path: DNS-only A record -> midgard (traefik-external). ttl 300 keeps
-# per-hostname rollback fast.
-resource "cloudflare_dns_record" "public_a" {
-  for_each = toset(local.migrated_hostnames)
-  name     = each.value
-
+# New path: DNS-only WILDCARD A -> midgard (traefik-external). Covers every
+# subdomain without a more-specific record (headscale, the remaining tunnel
+# CNAMEs for auth/appbahn, and mail records all win over the wildcard).
+# Actual exposure is controlled by the kirillorlov.pro/expose=external
+# ingress label (Kyverno generates the traefik-external ingress); names
+# without one just get traefik-external's default-cert 404.
+resource "cloudflare_dns_record" "public_wildcard" {
+  name    = "*"
   zone_id = cloudflare_zone.zone.id
   type    = "A"
   content = hcloud_primary_ip.midgard_v4.ip_address
   ttl     = 300
   proxied = false
+}
+
+# Wildcards don't cover the zone apex.
+resource "cloudflare_dns_record" "public_apex" {
+  name    = "kirillorlov.pro"
+  zone_id = cloudflare_zone.zone.id
+  type    = "A"
+  content = hcloud_primary_ip.midgard_v4.ip_address
+  ttl     = 300
+  proxied = false
+}
+
+# The apex A record already exists in state under the old per-hostname
+# resource — rename instead of destroy+create (avoids the 81054 create/delete
+# race we hit during the first flip).
+moved {
+  from = cloudflare_dns_record.public_a["kirillorlov.pro"]
+  to   = cloudflare_dns_record.public_apex
 }
 
 resource "cloudflare_dns_record" "backup" {

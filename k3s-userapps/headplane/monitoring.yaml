@@ -18,6 +18,22 @@ spec:
       targets:
         - bifrost.ts.kirillorlov.pro:9100
 ---
+# yggdrasil (offsite backup mini-PC) node_exporter — installed by the ansible
+# base role, reachable tailnet-only (nftables), scraped over the tailnet like
+# bifrost above.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: yggdrasil-nodeexporter
+  namespace: headplane
+spec:
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: yggdrasil
+      targets:
+        - yggdrasil.ts.kirillorlov.pro:9100
+---
 # headscale's own metrics (metrics_listen_addr 0.0.0.0:9090 in the ansible
 # config template) — same tailnet-only exposure as node_exporter above.
 apiVersion: monitoring.coreos.com/v1alpha1
