@@ -101,7 +101,7 @@ spec:
           spec:
             configuration:
               destinationPath: "s3://cnpg-backups/{{request.object.metadata.namespace}}/{{request.object.metadata.name}}/"
-              endpointURL: https://yggdrasil.kirillorlov.pro
+              endpointURL: http://yggdrasil.ts.kirillorlov.pro:3900
               s3Credentials:
                 accessKeyId:
                   name: cnpg-backup-yggdrasil-creds

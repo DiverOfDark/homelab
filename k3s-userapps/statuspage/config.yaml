@@ -46,7 +46,7 @@ data:
               url: http://192.168.178.2
               version: "6"
         - Garage:
-            href: https://yggdrasil.kirillorlov.pro/
+            href: http://yggdrasil.ts.kirillorlov.pro:3902/
             icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/garage.svg
             description: Backup storage
 

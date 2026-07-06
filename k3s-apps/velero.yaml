@@ -250,7 +250,7 @@ spec:
             config:
               region: us-east-1
               s3ForcePathStyle: true
-              s3Url: https://yggdrasil.kirillorlov.pro/
+              s3Url: http://yggdrasil.ts.kirillorlov.pro:3900/
           - name: wasabi
             provider: aws
             bucket: diverofdark-homelab-backup
@@ -281,7 +281,7 @@ spec:
             config:
               region: us-east-1
               s3ForcePathStyle: true
-              s3Url: https://yggdrasil.kirillorlov.pro/
+              s3Url: http://yggdrasil.ts.kirillorlov.pro:3900/
           - name: wasabi
             provider: aws
             bucket: diverofdark-homelab-backup
