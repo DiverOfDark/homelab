@@ -110,7 +110,7 @@ tasks:
           talosctl --talosconfig "$TALOSCONFIG" -n "$ip" reboot --wait
 
           echo "==> Waiting for $node to be Ready in kubernetes..."
-          kubectl wait --for=condition=Ready node/"$node" --timeout=10m
+          kubectl wait --for=condition=Ready node/"$node" --timeout=30m
 
           # kubectl drain leaves the node cordoned; uncordon so it can
           # take pods again now that it's back.
