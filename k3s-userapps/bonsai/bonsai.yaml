@@ -86,6 +86,8 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=bonsai"
   name: bonsai
   namespace: bonsai
+  labels:
+    kirillorlov.pro/expose: external
 spec:
   rules:
   - host: bonsai.kirillorlov.pro

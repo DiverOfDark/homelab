@@ -14,6 +14,15 @@ spec:
       labels:
         app.kubernetes.io/pod: homepage
     spec:
+      # Public website — runs on the Hetzner edge (midgard), not the homelab:
+      # keeps kirillorlov.pro serving even when home is down/rebooting.
+      nodeSelector:
+        kirillorlov.pro/edge: "true"
+      tolerations:
+        - key: "edge"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - image: 'ghcr.io/diverofdark/about/website:latest'
           imagePullPolicy: Always

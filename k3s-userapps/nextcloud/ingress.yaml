@@ -15,6 +15,8 @@ metadata:
     kirillorlov.pro/annotationsFromSecretName: nextcloud-secret
   name: nextcloud
   namespace: nextcloud
+  labels:
+    kirillorlov.pro/expose: external
 spec:
   rules:
   - host: cloud.kirillorlov.pro

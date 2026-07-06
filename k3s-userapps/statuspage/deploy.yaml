@@ -25,6 +25,15 @@ spec:
       automountServiceAccountToken: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
+      # Status page belongs on the edge — it must stay up (and reachable at
+      # status.kirillorlov.pro) precisely when the homelab is broken.
+      nodeSelector:
+        kirillorlov.pro/edge: "true"
+      tolerations:
+        - key: "edge"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - name: homepage
           image: "ghcr.io/gethomepage/homepage:v1.13.2"

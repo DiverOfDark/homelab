@@ -11,6 +11,8 @@ metadata:
     gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/vaultwarden.svg"
   name: vaultwarden
   namespace: vaultwarden
+  labels:
+    kirillorlov.pro/expose: external
 spec:
   rules:
   - host: vaultwarden.kirillorlov.pro
