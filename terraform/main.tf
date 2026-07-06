@@ -85,8 +85,19 @@ locals {
   # to midgard's pinned IP instead of the proxied tunnel CNAME. Migrate in
   # small batches (canary: "status"); rollback = remove from the list and
   # apply. The app's Ingress must carry the kirillorlov.pro/expose=external
-  # label BEFORE its hostname is added here. auth/appbahn go LAST.
-  migrated_hostnames = []
+  # label BEFORE its hostname is added here. auth/appbahn go LAST (an auth
+  # outage breaks every OIDC login incl. headscale/headplane, and both need
+  # chart-level ingress labels rather than a hand-rolled ingress.yaml).
+  migrated_hostnames = [
+    "status",
+    "kirillorlov.pro",
+    "www",
+    "cloud",
+    "bonsai",
+    "vaultwarden",
+    "money",
+    "suwayomi",
+  ]
 
   ingress_rules = [
     {
