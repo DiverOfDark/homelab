@@ -22,6 +22,10 @@ spec:
         config:
           cpuJiffyConversionFactor: 100000
         tolerations:
+          - key: edge
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
           - key: node.kubernetes.io/unschedulable
             operator: Exists
             effect: NoSchedule

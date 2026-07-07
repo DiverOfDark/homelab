@@ -500,6 +500,12 @@ controlPlane:
         proxy:
           disabled: true
         etcd:
+          # Pin etcd peer advertisement to the LAN. Same failure mode as the
+          # kubelet nodeIP pin above: once tailscale0 exists, etcd re-elects
+          # the tailnet 100.64.x address as its peer URL and consensus rides
+          # WG (observed 2026-07: RTT 3.6ms -> 127ms avg, leader flapping).
+          advertisedSubnets:
+            - 192.168.178.0/24
           extraArgs:
             listen-metrics-urls: http://0.0.0.0:2381
             # Loosened from defaults (heartbeat 100ms / election 1000ms) because
