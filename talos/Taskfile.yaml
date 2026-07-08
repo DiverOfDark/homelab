@@ -104,7 +104,7 @@ tasks:
           kubectl drain "$node" \
             --ignore-daemonsets \
             --delete-emptydir-data \
-            --timeout=10m
+            --timeout=30m --force
 
           echo "==> Rebooting $node ($ip)..."
           talosctl --talosconfig "$TALOSCONFIG" -n "$ip" reboot --wait
