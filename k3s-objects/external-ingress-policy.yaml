@@ -7,9 +7,12 @@ metadata:
     policies.kyverno.io/category: Ingress
     policies.kyverno.io/description: >-
       Public exposure via the Hetzner edge (traefik-external on midgard) is
-      opt-in: label an Ingress with kirillorlov.pro/expose=external and this
-      policy generates a "<name>-external" twin bound to the traefik-external
-      ingressClass — no hand-maintained duplicates. The copy gets fresh
+      opt-in: mark an Ingress with kirillorlov.pro/expose=external — as a
+      LABEL (hand-rolled ingress.yaml files) or as an ANNOTATION (chart-managed
+      ingresses like zitadel, whose charts expose ingress.annotations but not
+      labels) — and this policy generates a "<name>-external" twin bound to
+      the traefik-external ingressClass — no hand-maintained duplicates. The
+      copy gets fresh
       metadata, so cert-manager annotations do NOT propagate: both Ingresses
       reference the SAME TLS secret while only the internal one requests the
       certificate (no duplicate Certificate fights, no extra LE issuance).
@@ -28,6 +31,11 @@ spec:
               selector:
                 matchLabels:
                   kirillorlov.pro/expose: external
+          - resources:
+              kinds:
+                - networking.k8s.io/v1/Ingress
+              annotations:
+                kirillorlov.pro/expose: external
       # Never mirror the mirror: skip already-generated objects.
       exclude:
         any:

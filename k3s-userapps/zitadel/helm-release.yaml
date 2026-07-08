@@ -67,6 +67,9 @@ spec:
             className: traefik
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
+              # Kyverno generates the traefik-external twin (annotation form —
+              # the chart has no ingress.labels passthrough)
+              kirillorlov.pro/expose: external
             hosts:
               - host: auth.kirillorlov.pro
                 paths:
@@ -84,6 +87,8 @@ spec:
           className: traefik
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
+            # Kyverno generates the traefik-external twin (see login ingress)
+            kirillorlov.pro/expose: external
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Zitadel"
             gethomepage.dev/description: "Identity Provider"

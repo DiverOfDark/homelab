@@ -64,7 +64,6 @@
             # Networking & service mesh
             pkgs.cilium-cli
             pkgs.hubble
-            pkgs.cloudflared
 
             # Secrets & certs
             pkgs.sops
@@ -119,7 +118,6 @@
             # prompt or fail loudly on the specific variable).
             tfvar() { bao kv get -field="$2" "secret/$1" 2>/dev/null || true; }
             export TF_VAR_cloudflare_api_token=$(tfvar cloudflare api_token)
-            export TF_VAR_cloudflare_tunnel_secret=$(tfvar cloudflare tunnel_secret)
             export TF_VAR_google_oauth_client_id=$(tfvar google/oauth client_id)
             export TF_VAR_google_oauth_client_secret=$(tfvar google/oauth client_secret)
             export TF_VAR_mailgun_user=$(tfvar mailgun user)
@@ -168,7 +166,7 @@
             echo "Homelab dev shell ready."
             echo "  IaC:        tofu, packer, talhelper"
             echo "  Kubernetes: kubectl, kubectx, helm, talosctl, argocd, k9s, kubescape"
-            echo "  Network:    cilium, hubble, cloudflared"
+            echo "  Network:    cilium, hubble"
             echo "  Secrets:    sops, age, bao, cmctl"
             echo "  Backup:     velero"
             echo "  Cloud:      hcloud, ansible"
