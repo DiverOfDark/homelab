@@ -2,3 +2,15 @@
 # per-group/host (bifrost opens headscale ports via group role vars).
 nftables_open_tcp_ports: []
 nftables_open_udp_ports: []
+
+# Hosts whose RAM is below swapfile_mem_threshold_mb get a swapfile at
+# /swapfile (see tasks/swap.yaml). 8192 catches nominal-8GB hosts too, since
+# the kernel reports slightly less than the provisioned size.
+swapfile_mem_threshold_mb: 8192
+swapfile_size_mb: 8192
+
+# Hosts whose disks are remote/slow (e.g. VM root on Ceph RBD) additionally
+# get zram as the primary swap (priority 100); the swapfile then only acts as
+# a last-resort overflow at default priority (-2).
+swap_use_zram: false
+swap_zram_size_mb: 4096

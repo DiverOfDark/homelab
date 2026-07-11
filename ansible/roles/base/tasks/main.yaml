@@ -1,4 +1,10 @@
 ---
+- name: Configure apt sources (Debian testing)
+  ansible.builtin.import_tasks: apt_sources.yaml
+
+- name: Swapfile for low-memory hosts
+  ansible.builtin.import_tasks: swap.yaml
+
 - name: Install base packages
   ansible.builtin.apt:
     name:

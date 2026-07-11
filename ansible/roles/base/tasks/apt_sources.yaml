@@ -1,0 +1,37 @@
+---
+# Canonical Debian package sources — every host tracks the rolling "testing"
+# suite, deb822 format. Overwrites whatever the image/installer shipped so
+# all hosts converge on the same layout.
+- name: Pin Debian suites to testing (deb822 sources)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/debian.sources
+    content: |
+      Types: deb
+      URIs: http://deb.debian.org/debian/
+      Suites: testing testing-updates testing-backports
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+      Types: deb
+      URIs: http://security.debian.org/debian-security/
+      Suites: testing-security
+      Components: main contrib non-free non-free-firmware
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+    mode: "0644"
+  register: debian_sources
+
+- name: Remove apt sources superseded by debian.sources
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list # classic one-liner format (Hetzner bookworm image)
+    - /etc/apt/sources.list.d/hetzner-mirror.list
+    - /etc/apt/sources.list.d/hetzner-security-updates.list
+    - /etc/apt/sources.list.d/debian-backports.sources # folded into debian.sources
+  register: removed_sources
+
+- name: Refresh apt cache after sources change
+  ansible.builtin.apt:
+    update_cache: true
+  when: debian_sources is changed or removed_sources is changed

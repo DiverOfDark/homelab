@@ -1,4 +1,11 @@
 all:
+  vars:
+    # All hosts are Debian — pin the interpreter so mitogen never runs
+    # discovery. Discovery spawns multiple SSH contexts per host (python3.14
+    # probe → python3.13 → /usr/bin/python3.13) and races its own refcounting,
+    # which intermittently killed connections mid-task (worst on hermes, whose
+    # tailscale path is slowest).
+    ansible_python_interpreter: /usr/bin/python3
   children:
     headscale:
       hosts:
@@ -35,8 +42,9 @@ all:
           nftables_open_udp_ports: [53, 123, 5353]
         hermes:
           # KubeVirt VM (in kubevirt-vms ns, name=claw) running the hermes voice-assistant agent.
-          # Tailscale hostname is "claw" (from VM name), so we use claw.ts.kirillorlov.pro for Ansible.
-          ansible_host: claw.ts.kirillorlov.pro
+          # Tailscale node name follows the guest hostname "hermes" (it was
+          # "claw" until a reboot on 2026-07-11 propagated the OS hostname).
+          ansible_host: hermes.ts.kirillorlov.pro
           ansible_user: diverofdark
           ansible_become: true
           # Ports that must be open on the VM's main interface (nftables):
@@ -45,3 +53,7 @@ all:
           # - 9100: node-exporter (scraped over Tailscale via ScrapeConfig)
           # Note: traffic over tailscale0 is allowed by default in the base role.
           nftables_open_tcp_ports: [8642, 9119, 9100]
+          # Root disk is Ceph RBD — swapping to it would turn memory pressure
+          # into cluster I/O. zram is the primary swap; /swapfile is only an
+          # emergency overflow (see roles/base/tasks/swap.yaml).
+          swap_use_zram: true

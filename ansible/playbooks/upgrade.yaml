@@ -5,6 +5,13 @@
   hosts: all
   become: true
   tasks:
+    # Keep every host on the rolling "testing" suite before upgrading —
+    # shared with the base role (roles/base/tasks/apt_sources.yaml).
+    - name: Ensure apt sources track testing
+      ansible.builtin.import_role:
+        name: base
+        tasks_from: apt_sources
+
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true

@@ -1,0 +1,105 @@
+---
+# Low-memory hosts get an 8 GiB swapfile on / so memory spikes (apt upgrades,
+# agent workloads) don't OOM. Hosts at/above the threshold are left alone.
+- name: Swapfile for low-memory hosts
+  when: ansible_memtotal_mb < swapfile_mem_threshold_mb
+  block:
+    - name: Check for existing swapfile
+      ansible.builtin.stat:
+        path: /swapfile
+      register: base_swapfile
+
+    - name: Verify / has room for the swapfile (+5 GiB headroom)
+      ansible.builtin.assert:
+        that:
+          - >-
+            (ansible_mounts | selectattr('mount', 'equalto', '/')
+             | map(attribute='size_available') | first)
+            > (swapfile_size_mb * 1048576 + 5 * 1073741824)
+        fail_msg: "Not enough free space on / for a {{ swapfile_size_mb }} MiB swapfile"
+      when: not base_swapfile.stat.exists
+
+    - name: Create swapfile
+      when: not base_swapfile.stat.exists
+      block:
+        - name: Create empty root-only file
+          ansible.builtin.command: install -m 600 /dev/null /swapfile
+          changed_when: true
+
+        - name: Disable copy-on-write (btrfs; no-op elsewhere)
+          ansible.builtin.command: chattr +C /swapfile
+          failed_when: false
+          changed_when: false
+
+        # dd, not fallocate — swapon rejects files with holes on some
+        # filesystems, and preallocated extents break swap on btrfs.
+        - name: Allocate {{ swapfile_size_mb }} MiB
+          ansible.builtin.command: >-
+            dd if=/dev/zero of=/swapfile bs=1M count={{ swapfile_size_mb }}
+            conv=fsync status=none
+          changed_when: true
+
+        - name: Format swap
+          ansible.builtin.command: mkswap /swapfile
+          changed_when: true
+
+    - name: Ensure swapfile is in fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^/swapfile\s'
+        line: "/swapfile none swap sw 0 0"
+
+    - name: Check active swap devices
+      ansible.builtin.command: swapon --show=NAME --noheadings
+      register: base_active_swap
+      changed_when: false
+      check_mode: false
+
+    - name: Activate swapfile
+      ansible.builtin.command: swapon /swapfile
+      when: "'/swapfile' not in base_active_swap.stdout_lines"
+      changed_when: true
+
+# On hosts whose disk swap would be remote/slow (VM root on Ceph RBD), zram
+# takes priority 100 so real swapping happens in compressed RAM; the swapfile
+# (priority -2) is only an emergency overflow once zram is full.
+- name: Zram swap for hosts with slow disk swap
+  when:
+    - ansible_memtotal_mb < swapfile_mem_threshold_mb
+    - swap_use_zram
+  block:
+    - name: Install systemd-zram-generator
+      ansible.builtin.apt:
+        name: systemd-zram-generator
+        state: present
+
+    - name: Configure zram device
+      ansible.builtin.copy:
+        dest: /etc/systemd/zram-generator.conf
+        content: |
+          [zram0]
+          zram-size = min(ram / 2, {{ swap_zram_size_mb }})
+          compression-algorithm = zstd
+          swap-priority = 100
+        mode: "0644"
+      register: base_zram_conf
+
+    - name: Activate zram
+      ansible.builtin.systemd:
+        name: systemd-zram-setup@zram0.service
+        state: "{{ 'restarted' if base_zram_conf is changed else 'started' }}"
+        daemon_reload: "{{ base_zram_conf is changed }}"
+      ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
+
+    - name: Skip swap readahead (pointless for zram)
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/91-zram.conf
+        content: |
+          vm.page-cluster = 0
+        mode: "0644"
+      register: base_zram_sysctl
+
+    - name: Apply zram sysctl
+      ansible.builtin.command: sysctl --system
+      when: base_zram_sysctl is changed
+      changed_when: true
