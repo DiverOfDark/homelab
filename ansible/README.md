@@ -11,6 +11,7 @@ From the nix dev shell (needs `bao` for the OIDC secret fetch):
 ```sh
 task ansible:plan          # dry run (--check --diff), like tofu plan
 task ansible:deploy        # full playbook (fetches OIDC creds from OpenBao itself)
+task ansible:upgrade       # full apt upgrade + autoremove (manual reboot may be needed)
 task ansible:ping          # connectivity check
 task ansible:preauth-key   # mint a headscale preauth key on bifrost
 ```
@@ -79,3 +80,41 @@ WARP / cloudflared SSH. Bootstrap it by hand:
 4. In-cluster backup consumers (velero, CNPG, harbor) get repointed to
    `yggdrasil.ts.kirillorlov.pro` in Phase 3 — cloudflared on yggdrasil stays
    up until Phase 7.
+
+## Hermes (KubeVirt VM)
+
+The "claw" KubeVirt VM (exposed as hermes) runs the hermes voice-assistant agent.
+It is a Debian VM inside the cluster. The Tailscale hostname follows the VM name ("claw").
+
+Bootstrap tailscale (one-time):
+
+1. Get preauth key: `bao kv get -field=authkey secret/headscale`
+
+2. Reach the VM for initial bootstrap (if tailscale isn't installed yet):
+   - `virtctl console claw -n kubevirt-vms`, or
+   - `ssh diverofdark@192.168.179.20` (if your workstation is on the LAN and can reach the MetalLB IP).
+
+3. Inside the VM:
+   ```sh
+   curl -fsSL https://tailscale.com/install.sh | sh
+   tailscale up --login-server=https://headscale.kirillorlov.pro --authkey=<key>
+   tailscale status
+   ```
+
+4. Add to `inventory/hosts.yaml` under `tailnet_members`:
+   ```yaml
+   hermes:
+     ansible_host: claw.ts.kirillorlov.pro
+     ansible_user: diverofdark
+     ansible_become: true
+     nftables_open_tcp_ports: [8642, 9119, 9100]
+   ```
+
+   Ports:
+   - 8642: Hermes API
+   - 9119: Hermes WebUI
+   - 9100: node-exporter (for monitoring)
+
+   (Tailscale is used for Ansible reachability now that the VM has joined the tailnet.)
+
+5. Run the playbook. From now on Ansible manages it over the tailnet (base + tailscale).

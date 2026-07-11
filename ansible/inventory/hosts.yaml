@@ -33,3 +33,15 @@ all:
           # Pihole does NOT serve DHCP (confirmed) — no 67/udp.
           nftables_open_tcp_ports: [53, 80, 443, 9100]
           nftables_open_udp_ports: [53, 123, 5353]
+        hermes:
+          # KubeVirt VM (in kubevirt-vms ns, name=claw) running the hermes voice-assistant agent.
+          # Tailscale hostname is "claw" (from VM name), so we use claw.ts.kirillorlov.pro for Ansible.
+          ansible_host: claw.ts.kirillorlov.pro
+          ansible_user: diverofdark
+          ansible_become: true
+          # Ports that must be open on the VM's main interface (nftables):
+          # - 8642: hermes API (used by voice-assistant bot via K8s Service)
+          # - 9119: hermes WebUI (exposed via Ingress)
+          # - 9100: node-exporter (scraped over Tailscale via ScrapeConfig)
+          # Note: traffic over tailscale0 is allowed by default in the base role.
+          nftables_open_tcp_ports: [8642, 9119, 9100]

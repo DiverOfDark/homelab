@@ -82,6 +82,7 @@ spec:
                 - prometheus-node-exporter
                 - btop
                 - fastfetch
+                - tailscale
               write_files:
                 - path: /etc/update-motd.d/01-fastfetch
                   permissions: '0755'
@@ -93,3 +94,7 @@ spec:
               runcmd:
                 - systemctl enable --now qemu-guest-agent
                 - systemctl enable --now prometheus-node-exporter
+                - systemctl enable --now tailscaled
+                # Note: actual tailnet join (with authkey from headscale) is done via Ansible
+                # after adding the host to inventory/hosts.yaml under tailnet_members.
+                # See ansible/README.md for bootstrap steps.

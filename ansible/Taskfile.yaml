@@ -45,6 +45,18 @@ tasks:
       - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
         msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"
 
+  upgrade:
+    desc: Full system upgrade (apt full-upgrade + autoremove) on all managed hosts.
+    cmds:
+      - |
+        ansible-playbook playbooks/upgrade.yaml
+    preconditions:
+      - sh: command -v ansible-playbook
+        msg: "ansible not found - enter the nix dev shell first"
+      - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
+        msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"
+    prompt: "Run full system upgrade on all hosts? (This can take a while. A manual reboot may be required afterward for kernel updates.)"
+
   ping:
     desc: Ansible connectivity check against all hosts
     cmds:

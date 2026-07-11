@@ -40,7 +40,7 @@
       ansible.builtin.wait_for_connection:
         timeout: 60
 
-- name: Tailnet members (yggdrasil, alfheimr, ...)
+- name: Tailnet members (yggdrasil, alfheimr, hermes, ...)
   hosts: tailnet_members
   roles:
     - base

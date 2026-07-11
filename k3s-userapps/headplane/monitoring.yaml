@@ -34,6 +34,22 @@ spec:
       targets:
         - yggdrasil.ts.kirillorlov.pro:9100
 ---
+# claw/hermes KubeVirt VM node_exporter. Scrape the guest over its tailnet
+# address, just like the other external hosts. A PodMonitor cannot reliably
+# reach a guest service through the virt-launcher pod's masquerade network.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: hermes-nodeexporter
+  namespace: headplane
+spec:
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: hermes
+      targets:
+        - claw.ts.kirillorlov.pro:9100
+---
 # headscale's own metrics (metrics_listen_addr 0.0.0.0:9090 in the ansible
 # config template) — same tailnet-only exposure as node_exporter above.
 apiVersion: monitoring.coreos.com/v1alpha1
