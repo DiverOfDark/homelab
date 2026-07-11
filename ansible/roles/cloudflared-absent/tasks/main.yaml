@@ -1,0 +1,26 @@
+---
+# Phase 7 decommission: cloudflared is fully replaced by the tailnet
+# (management SSH) and the Hetzner edge (public ingress). Idempotent and a
+# no-op on hosts that never had it (alfheimr).
+- name: Stop and disable cloudflared
+  ansible.builtin.systemd:
+    name: cloudflared
+    state: stopped
+    enabled: false
+  failed_when: false # unit absent on most hosts
+
+- name: Remove cloudflared package
+  ansible.builtin.apt:
+    name: cloudflared
+    state: absent
+    purge: true
+
+- name: Remove cloudflared apt repo and config leftovers
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/cloudflared.list
+    - /usr/share/keyrings/cloudflare-main.gpg
+    - /etc/cloudflared
+    - /root/.cloudflared

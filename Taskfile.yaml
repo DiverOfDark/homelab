@@ -13,6 +13,8 @@ includes:
   tofu:
     taskfile: ./terraform/Taskfile.yaml
     dir: ./terraform
+    # Note: tofu now uses a local SOPS-encrypted tfstate.sops committed in the repo.
+    # See terraform/Taskfile.yaml for the decrypt/encrypt wrappers.
 
 tasks:
   kubescape:

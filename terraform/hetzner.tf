@@ -136,13 +136,9 @@ resource "hcloud_firewall" "midgard" {
     port        = "41641"
     source_ips  = ["0.0.0.0/0", "::/0"]
   }
-  rule {
-    description = "Talos apid (mTLS; needed for initial apply-config before tailscale is up — tighten to tailnet after Phase 7)"
-    direction   = "in"
-    protocol    = "tcp"
-    port        = "50000"
-    source_ips  = ["0.0.0.0/0", "::/0"]
-  }
+  # Talos apid (tcp/50000) is deliberately NOT exposed anymore: talosctl runs
+  # over the tailnet (midgard.ts.kirillorlov.pro). Break-glass if the tailnet
+  # is dead: Hetzner web console, or temporarily re-add the rule.
 }
 
 resource "hcloud_server" "bifrost" {

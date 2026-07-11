@@ -1,32 +1,86 @@
 version: "3"
 
-# TF_VAR_* secrets and the backend config (TF_CLI_ARGS_init when local) are
-# exported by the nix dev shell (flake.nix shellHook) — re-enter the shell
-# after flake changes so new TF_VARs are present.
+# State is stored as terraform/tfstate.sops (SOPS encrypted with the normal
+# homelab age key). Plaintext "tfstate" is gitignored.
+#
+# Reuses the existing age key (same one as Talos + backups).
+# .sops.yaml at repo root provides the creation rules.
+#
+# The nix dev shell tries to export SOPS_AGE_KEY (works in CI and locally if bao is logged in).
+#
+# Prefer `task tofu:plan` / `task tofu:apply` — they handle decrypt + re-encrypt.
 
 tasks:
   init:
-    desc: tofu init (backend config injected by the dev shell)
+    desc: tofu init (local backend writing to tfstate)
     cmds:
       - tofu init
     preconditions:
       - sh: command -v tofu
         msg: "tofu not found - enter the nix dev shell first"
 
-  plan:
-    desc: tofu plan
+  _decrypt-state:
+    internal: true
     cmds:
-      - tofu plan
+      - |
+        if [ -f tfstate.sops ]; then
+          echo "Decrypting tfstate.sops → tfstate"
+          sops --config ../.sops.yaml -d tfstate.sops > tfstate
+        else
+          echo "No tfstate.sops yet (will start with empty state)"
+        fi
+    preconditions:
+      - sh: command -v sops
+        msg: "sops not found - enter the nix dev shell first"
+
+  _encrypt-state:
+    internal: true
+    cmds:
+      - |
+        echo "Writing fresh encrypted state to tfstate.sops"
+        # tofu state pull can fail on a brand new backend — fall back gracefully
+        if tofu state pull 2>/dev/null | sops --config ../.sops.yaml -e /dev/stdin > tfstate.sops; then
+          echo "State encrypted successfully"
+        else
+          echo "No state to pull yet (new workspace) — creating empty tfstate.sops"
+          echo '{}' | sops --config ../.sops.yaml -e /dev/stdin > tfstate.sops
+        fi
+        rm -f tfstate 2>/dev/null || true
+    preconditions:
+      - sh: command -v sops
+        msg: "sops not found - enter the nix dev shell first"
+
+  plan:
+    desc: tofu plan (automatically handles tfstate.sops). Kubernetes resources were moved out so this no longer needs cluster access.
+    cmds:
+      - task: _decrypt-state
+      - tofu plan {{.CLI_ARGS | default ""}}
+      - task: _encrypt-state
     preconditions: &tf-preconditions
       - sh: command -v tofu
         msg: "tofu not found - enter the nix dev shell first"
+      - sh: command -v sops
+        msg: "sops not found - enter the nix dev shell first"
       - sh: test -n "$TF_VAR_openbao_token"
         msg: "TF_VAR_openbao_token is empty - enter the nix dev shell / check bao login"
       - sh: test -n "$TF_VAR_admin_ssh_public_key"
         msg: "TF_VAR_admin_ssh_public_key is empty - stale shell? re-enter the dev shell (flake exports it from OpenBao secret/hcloud)"
 
   apply:
-    desc: tofu apply (interactive approval)
+    desc: tofu apply with interactive approval (handles encrypted state)
     cmds:
-      - tofu apply
+      - task: _decrypt-state
+      - tofu apply {{.CLI_ARGS | default ""}}
+      - task: _encrypt-state
     preconditions: *tf-preconditions
+    prompt: "Run tofu apply? (tfstate.sops will be updated on success)"
+
+  state-pull:
+    desc: Force-refresh tfstate.sops from current tofu state (safe anytime)
+    cmds:
+      - task: _encrypt-state
+    preconditions:
+      - sh: command -v tofu
+        msg: "tofu not found - enter the nix dev shell first"
+      - sh: command -v sops
+        msg: "sops not found - enter the nix dev shell first"

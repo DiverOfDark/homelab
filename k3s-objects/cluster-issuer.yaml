@@ -28,3 +28,26 @@ metadata:
   name: selfsigned-issuer
 spec:
   selfSigned: {}
+
+---
+# cloudflare-api-token-secret is populated from OpenBao by ESO.
+# This replaces the previous management via Terraform (which required k8s API access for every plan).
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-api-token-secret
+  namespace: cert-manager
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: cloudflare-api-token-secret
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: api-token
+      remoteRef:
+        key: cloudflare
+        property: api_token

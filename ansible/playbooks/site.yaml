@@ -45,4 +45,6 @@
   roles:
     - base
     - tailscale
+    # Phase 7: cloudflared replaced by tailnet + Hetzner edge
+    - cloudflared-absent
   post_tasks: *ssh_lockout_guard

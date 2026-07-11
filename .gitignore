@@ -1,2 +1,10 @@
 .idea
 .venv
+
+# Terraform (we commit an encrypted tfstate.sops; plaintext must never be committed)
+terraform/tfstate
+terraform/.terraform/
+.terraform/
+terraform/*.tfstate
+terraform/credentials*.tfvars
+terraform/config.kubernetes.tfbackend

@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "appbahn": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775691969,
-        "narHash": "sha256-bgqkMCE/iTRf3apL8fb5rGY4bSkL9tO5o6WGpbWs0KE=",
-        "owner": "diverofdark",
-        "repo": "appbahn",
-        "rev": "06409618497bbb8f040ab1933a2d4e24add79692",
-        "type": "github"
-      },
-      "original": {
-        "owner": "diverofdark",
-        "repo": "appbahn",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -36,11 +20,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1780365719,
-        "narHash": "sha256-QfWfccTN+70ZQ4m2qlU9PiKfz2Yppq94058iJyARNwc=",
+        "lastModified": 1783604885,
+        "narHash": "sha256-tzMgSkV7kljEkqIjlgV6F+n+xD+/a35Db8bs7a4BFAo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ffa10e26ae11d676b2db836259889f1f571cb14f",
+        "rev": "767b0d3ec98a143ad9ed7dfc0d5553510ac27133",
         "type": "github"
       },
       "original": {
@@ -53,11 +37,11 @@
     "peelbox": {
       "flake": false,
       "locked": {
-        "lastModified": 1775474934,
-        "narHash": "sha256-2BQyXat+1cfP/5H7Q2XjkRIWLRXk4kwYZYuZmR1Ynjg=",
+        "lastModified": 1781481755,
+        "narHash": "sha256-wJAimbichwkXIj66GKFSMKm5HNccanSgE+NX60qnncM=",
         "owner": "DiverOfDark",
         "repo": "peelbox",
-        "rev": "105dab6fcea66cea46280cd76ad6a88866dc799e",
+        "rev": "5beadeff9de2c492aa8445dc827c5eef0ccd1a7d",
         "type": "github"
       },
       "original": {
@@ -68,7 +52,6 @@
     },
     "root": {
       "inputs": {
-        "appbahn": "appbahn",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "peelbox": "peelbox"

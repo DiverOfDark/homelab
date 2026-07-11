@@ -18,9 +18,9 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
 
 # Cloudflare provider credentials from OpenBao (ephemeral — feeds only the
 # provider config). Keys that land in state-persisted resource attributes
-# (api_token, tunnel_secret) come in as TF_VARs instead — see flake.nix — since
-# ephemeral values are rejected there.
-# Expected keys: email, api_key, api_token, tunnel_secret
+# (api_token) come in as TF_VARs instead — see flake.nix — since ephemeral
+# values are rejected there.
+# Expected keys: email, api_key, api_token
 ephemeral "vault_kv_secret_v2" "cloudflare" {
   mount = "secret"
   name  = "cloudflare"

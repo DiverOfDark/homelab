@@ -64,8 +64,11 @@ jobs:
             popd
 
             pushd terraform
-            tofu init
-            tofu plan -lock=false
+            task tofu:init
+            task tofu:plan -- -lock=false
+            # Restore tfstate.sops (plan re-encrypts with a new nonce)
+            git checkout -- tfstate.sops 2>/dev/null || true
+            popd
           '
 
   apply:
@@ -122,7 +125,7 @@ jobs:
             popd
 
             pushd terraform
-            tofu init
-            tofu apply -auto-approve
+            task tofu:init
+            task tofu:apply -- --auto-approve
             popd
           '

@@ -4,10 +4,7 @@ terraform {
       source  = "registry.terraform.io/cloudflare/cloudflare"
       version = "5.19.1"
     }
-    kubernetes = {
-      source  = "registry.opentofu.org/hashicorp/kubernetes"
-      version = "3.2.1"
-    }
+  
     zitadel = {
       source  = "zitadel/zitadel"
       version = "2.12.8"
@@ -38,17 +35,9 @@ terraform {
     }
   }
 
-  backend "kubernetes" {
-    namespace         = "github-runner"
-    secret_suffix     = "state"
-    config_path       = "~/.kube/config"
-    in_cluster_config = true
+  backend "local" {
+    path = "tfstate"
   }
-}
-
-variable "kube_config" {
-  default     = null
-  description = "Path to kubeconfig file"
 }
 
 variable "openbao_token" {
@@ -65,93 +54,16 @@ variable "zitadel_org_id" {
 
 # Secrets that land in regular (state-persisted) resource attributes can't use
 # ephemeral vault reads — flake.nix exports them as TF_VARs from OpenBao
-# (secret/cloudflare) instead, which retires the deprecated
-# data.vault_kv_secret_v2 sources.
+# (secret/cloudflare) instead.
 variable "cloudflare_api_token" {
   description = "Cloudflare API token (OpenBao secret/cloudflare key api_token; exported by flake.nix)"
   type        = string
   sensitive   = true
 }
 
-variable "cloudflare_tunnel_secret" {
-  description = "Shared secret for the cloudflared tunnels (OpenBao secret/cloudflare key tunnel_secret; exported by flake.nix)"
-  type        = string
-  sensitive   = true
-}
-
-locals {
-  # Hostnames migrated off the cloudflared tunnel onto the Hetzner edge
-  # (midgard, traefik-external): each entry here becomes a DNS-only A record
-  # to midgard's pinned IP instead of the proxied tunnel CNAME. Migrate in
-  # small batches (canary: "status"); rollback = remove from the list and
-  # apply. The app's Ingress must carry the kirillorlov.pro/expose=external
-  # label BEFORE its hostname is added here. auth/appbahn go LAST (an auth
-  # outage breaks every OIDC login incl. headscale/headplane, and both need
-  # chart-level ingress labels rather than a hand-rolled ingress.yaml).
-  migrated_hostnames = [
-    "status",
-    "kirillorlov.pro",
-    "www",
-    "cloud",
-    "bonsai",
-    "vaultwarden",
-  ]
-
-  ingress_rules = [
-    {
-      short    = "kirillorlov.pro"
-      hostname = "kirillorlov.pro"
-      service  = "http://homepage.nextcloud.svc.cluster.local"
-      }, {
-      short    = "www"
-      hostname = "www.kirillorlov.pro"
-      service  = "http://homepage.nextcloud.svc.cluster.local"
-      }, {
-      short    = "cloud"
-      hostname = "cloud.kirillorlov.pro"
-      service  = "http://nextcloud.nextcloud.svc.cluster.local"
-      }, {
-      short    = "bonsai"
-      hostname = "bonsai.kirillorlov.pro"
-      service  = "http://bonsai.bonsai.svc.cluster.local"
-      }, {
-      short    = "auth"
-      hostname = "auth.kirillorlov.pro"
-      # Traefik lives in the `traefik` namespace (NOT kube-system) — the old
-      # kube-system URL made cloudflared 502 on the public path for years,
-      # unnoticed because LAN/WARP clients resolve via pihole -> internal
-      # traefik and never hit the tunnel.
-      service  = "https://traefik.traefik.svc.cluster.local:443"
-      originRequest = {
-        noTLSVerify = true
-      }
-      }, {
-      short    = "status"
-      hostname = "status.kirillorlov.pro"
-      service  = "http://homepage.statuspage.svc.cluster.local:3000"
-      }, {
-      short    = "vaultwarden"
-      hostname = "vaultwarden.kirillorlov.pro"
-      service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
-      }, {
-      short    = "appbahn"
-      hostname = "appbahn.kirillorlov.pro"
-      # Same namespace fix as `auth` above.
-      service  = "https://traefik.traefik.svc.cluster.local:443"
-      originRequest = {
-        noTLSVerify = true
-      }
-    }
-  ]
-}
-
 provider "cloudflare" {
   email   = ephemeral.vault_kv_secret_v2.cloudflare.data["email"]
   api_key = ephemeral.vault_kv_secret_v2.cloudflare.data["api_key"]
-}
-
-provider "kubernetes" {
-  config_path = var.kube_config
 }
 
 resource "cloudflare_account" "account" {

@@ -1,23 +1,9 @@
-# Legacy path: proxied CNAME -> cloudflared tunnel. Hostnames listed in
-# local.migrated_hostnames are excluded — they get DNS-only A records to the
-# Hetzner edge below.
-resource "cloudflare_dns_record" "records" {
-  for_each = { for rules in local.ingress_rules : rules.short => rules if !contains(local.migrated_hostnames, rules.short) }
-  name    = each.value.short
-
-  zone_id = cloudflare_zone.zone.id
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.kubernetes_account.id}.cfargotunnel.com"
-  ttl     = 1
-  proxied = true
-}
-
-# New path: DNS-only WILDCARD A -> midgard (traefik-external). Covers every
-# subdomain without a more-specific record (headscale, the remaining tunnel
-# CNAMEs for auth/appbahn, and mail records all win over the wildcard).
-# Actual exposure is controlled by the kirillorlov.pro/expose=external
-# ingress label (Kyverno generates the traefik-external ingress); names
-# without one just get traefik-external's default-cert 404.
+# DNS-only WILDCARD A -> midgard (traefik-external). Covers every subdomain
+# without a more-specific record (headscale and the mail records win over the
+# wildcard). Actual exposure is controlled by the
+# kirillorlov.pro/expose=external ingress label or annotation (Kyverno
+# generates the traefik-external ingress); names without one just get
+# traefik-external's default-cert 404.
 resource "cloudflare_dns_record" "public_wildcard" {
   name    = "*"
   zone_id = cloudflare_zone.zone.id
@@ -43,26 +29,6 @@ resource "cloudflare_dns_record" "public_apex" {
 moved {
   from = cloudflare_dns_record.public_a["kirillorlov.pro"]
   to   = cloudflare_dns_record.public_apex
-}
-
-resource "cloudflare_dns_record" "backup" {
-  name    = "yggdrasil"
-
-  zone_id = cloudflare_zone.zone.id
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.id}.cfargotunnel.com"
-  ttl     = 1
-  proxied = true
-}
-
-resource "cloudflare_dns_record" "backup-s" {
-  name    = "yggdrasil-s"
-
-  zone_id = cloudflare_zone.zone.id
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.yggdrasil.id}.cfargotunnel.com"
-  ttl     = 1
-  proxied = true
 }
 
 # headscale on bifrost — MUST be DNS-only (tailscale control + DERP cannot sit
