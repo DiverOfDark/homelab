@@ -78,8 +78,13 @@
             # Cloud providers
             pkgs.hcloud
 
-            # Config management (bifrost/yggdrasil VMs)
-            pkgs.ansible
+            # Config management (bifrost/yggdrasil VMs). ansible-core lives in
+            # a python env together with mitogen so the mitogen_linear
+            # strategy plugin (ansible/ansible.cfg) can import it — a separate
+            # pkgs.ansible would not see mitogen's libs. Playbooks use only
+            # ansible.builtin modules, so core (no community collections)
+            # suffices.
+            (pkgs.python3.withPackages (ps: with ps; [ ansible-core mitogen ]))
 
             # Container tooling
             peelboxPkg
@@ -107,6 +112,12 @@
             # Hetzner Cloud — hcloud CLI + packer work out of the box
             # (empty until secret/hcloud is seeded; silenced so shell entry stays clean)
             export HCLOUD_TOKEN=`bao kv get -field=token secret/hcloud 2>/dev/null || true`
+            # Mitogen strategy plugin for ansible (see ansible/ansible.cfg):
+            # the plugin dir lives in the nix store, so resolve it at shell
+            # entry. If this export is empty, ansible fails with "unknown
+            # strategy mitogen_linear" — fallback: ANSIBLE_STRATEGY=linear.
+            export ANSIBLE_STRATEGY_PLUGINS=$(python3 -c 'import ansible_mitogen.plugins.strategy as s, os; print(os.path.dirname(s.__file__))' 2>/dev/null || true)
+
             # SSH pubkey for hcloud_ssh_key.admin — a tofu variable rather than a
             # vault data source so the deprecated data.vault_kv_secret_v2 isn't
             # needed (the value is public anyway; only the token stays ephemeral)
