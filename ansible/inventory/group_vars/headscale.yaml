@@ -44,7 +44,7 @@ headscale_infra_user: infra
 # OIDC login exists, append its EXACT Username from `headscale users list`
 # ('@' suffix if it has no domain part), e.g. "kirill@". Only registered
 # users may be referenced — unknown users prevent headscale from starting.
-headscale_ssh_src_users: ["infra@"]
+headscale_ssh_src_users: ["infra@", "diverofdark@"]
 # Devices tailscale SSH may target (user@ = all nodes owned by that user)
 # and the unix logins allowed.
 headscale_ssh_dst_users: ["infra@"]

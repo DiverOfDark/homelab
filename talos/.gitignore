@@ -1,3 +1,6 @@
 clusterconfig/
 talsecret.yaml
 talenv.yaml
+# scratch dirs that have historically held decrypted secrets — never commit
+temp
+ansibleconfig/

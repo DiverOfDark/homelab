@@ -33,6 +33,16 @@ spec:
     helm:
       valuesObject:
         hostNetwork: true
+        # Keep off the Hetzner edge: a cloud VM's virtio disk has no SMART
+        # data, and the chart's default tolerate-everything would otherwise
+        # land it on midgard despite the edge taint.
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kirillorlov.pro/edge
+                      operator: DoesNotExist
         serviceMonitor:
           enabled: true
         prometheusRules:
