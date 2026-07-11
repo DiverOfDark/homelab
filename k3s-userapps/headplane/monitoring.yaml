@@ -48,7 +48,7 @@ spec:
     - labels:
         job: hermes
       targets:
-        - claw.ts.kirillorlov.pro:9100
+        - hermes.ts.kirillorlov.pro:9100
 ---
 # headscale's own metrics (metrics_listen_addr 0.0.0.0:9090 in the ansible
 # config template) — same tailnet-only exposure as node_exporter above.
