@@ -37,6 +37,9 @@ spec:
               disk:
                 bus: virtio
             - name: sa-disk
+              # Stable /dev/disk/by-id/virtio-sa-disk path — the guest fstab
+              # mounts it by id, so disk order changes can't break the mount.
+              serial: sa-disk
               disk:
                 bus: virtio
             - name: cloudinitdisk
