@@ -36,9 +36,6 @@ spec:
             - name: rootdisk
               disk:
                 bus: virtio
-            - name: swapdisk
-              disk:
-                bus: virtio
             - name: sa-disk
               disk:
                 bus: virtio
@@ -58,9 +55,6 @@ spec:
         - name: rootdisk
           dataVolume:
             name: claw-root
-        - name: swapdisk
-          emptyDisk:
-            capacity: 16Gi
         - name: sa-disk
           serviceAccount:
             serviceAccountName: claw-admin
