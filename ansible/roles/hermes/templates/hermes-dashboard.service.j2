@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Hermes Agent Web Dashboard
+After=network-online.target hermes-gateway.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart={{ hermes_home }}/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main dashboard --host 127.0.0.1 --port {{ hermes_dashboard_port }} --no-open --skip-build
+WorkingDirectory={{ hermes_home }}/.hermes
+Environment="PATH={{ hermes_home }}/.hermes/hermes-agent/venv/bin:{{ hermes_home }}/.hermes/hermes-agent/node_modules/.bin:/usr/bin:{{ hermes_home }}/.local/bin:{{ hermes_home }}/.cargo/bin:{{ hermes_home }}/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="VIRTUAL_ENV={{ hermes_home }}/.hermes/hermes-agent/venv"
+Environment="HERMES_HOME={{ hermes_home }}/.hermes"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

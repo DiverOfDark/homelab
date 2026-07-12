@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+# hermes dashboard: expose the loopback-bound web UI on :{{ hermes_ui_port }}
+# for the k8s Service/Ingress (hermes-ui.kirillorlov.pro).
+http://:{{ hermes_ui_port }} {
+	# The dashboard's DNS-rebinding guards only accept loopback Host/Origin
+	# values on a loopback bind. Rewrite Host always, but Origin ONLY when it
+	# is exactly our UI origin — foreign origins (CSRF / rebinding attacks)
+	# pass through unchanged and keep getting rejected by the app.
+	@ui_origin header Origin https://hermes-ui.kirillorlov.pro
+	request_header @ui_origin Origin "http://127.0.0.1:{{ hermes_dashboard_port }}"
+	reverse_proxy 127.0.0.1:{{ hermes_dashboard_port }} {
+		header_up Host "127.0.0.1:{{ hermes_dashboard_port }}"
+	}
+}

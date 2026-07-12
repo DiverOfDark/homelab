@@ -1,0 +1,76 @@
+---
+# The hermes-agent gateway itself (hermes-gateway.service, ~/.hermes) is
+# app-managed on the VM; this role only manages the infrastructure around
+# it: caddy in front of the dashboard and the dashboard user service.
+
+- name: Install caddy
+  ansible.builtin.apt:
+    name: caddy
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Configure caddy reverse proxy for the dashboard
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: /etc/caddy/Caddyfile
+    mode: "0644"
+    validate: /usr/bin/caddy validate --adapter caddyfile --config %s
+  notify: Reload caddy
+
+- name: Enable caddy
+  ansible.builtin.service:
+    name: caddy
+    enabled: true
+    state: started
+  ignore_errors: "{{ ansible_check_mode }}" # fresh host in --check: unit not installed yet
+
+# The dashboard reads HERMES_DASHBOARD_* from ~/.hermes/.env too — pin them
+# to the loopback bind so a manual `hermes dashboard` matches the unit.
+- name: Pin dashboard bind in .env
+  ansible.builtin.lineinfile:
+    path: "{{ hermes_home }}/.hermes/.env"
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  loop:
+    - { key: HERMES_DASHBOARD_HOST, value: 127.0.0.1 }
+    - { key: HERMES_DASHBOARD_PORT, value: "{{ hermes_dashboard_port }}" }
+  become: false
+
+- name: Ensure user systemd dir exists
+  ansible.builtin.file:
+    path: "{{ hermes_home }}/.config/systemd/user"
+    state: directory
+    owner: "{{ hermes_user }}"
+    group: "{{ hermes_user }}"
+    mode: "0755"
+
+- name: Install hermes-dashboard user unit
+  ansible.builtin.template:
+    src: hermes-dashboard.service.j2
+    dest: "{{ hermes_home }}/.config/systemd/user/hermes-dashboard.service"
+    owner: "{{ hermes_user }}"
+    group: "{{ hermes_user }}"
+    mode: "0644"
+  notify: Restart hermes-dashboard
+
+- name: Ensure linger so user services run without a login session
+  ansible.builtin.command: loginctl enable-linger {{ hermes_user }}
+  args:
+    creates: /var/lib/systemd/linger/{{ hermes_user }}
+
+# `systemctl --user` for another user needs the --machine=user@.host route;
+# the ansible systemd module's scope=user can't cross from root to the user
+# bus ("Operation not permitted").
+- name: Check hermes-dashboard user service state
+  ansible.builtin.command: systemctl --machine={{ hermes_user }}@.host --user is-active hermes-dashboard
+  register: hermes_dashboard_state
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Enable hermes-dashboard user service
+  ansible.builtin.command: >-
+    systemctl --machine={{ hermes_user }}@.host --user enable --now hermes-dashboard
+  when: hermes_dashboard_state.stdout != "active"
+  changed_when: true

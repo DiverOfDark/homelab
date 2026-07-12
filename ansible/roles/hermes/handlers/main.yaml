@@ -1,0 +1,11 @@
+---
+- name: Reload caddy
+  ansible.builtin.service:
+    name: caddy
+    state: reloaded
+
+- name: Restart hermes-dashboard
+  ansible.builtin.shell: >-
+    systemctl --machine={{ hermes_user }}@.host --user daemon-reload &&
+    systemctl --machine={{ hermes_user }}@.host --user restart hermes-dashboard
+  changed_when: true

@@ -46,3 +46,8 @@
     - base
     - tailscale
   post_tasks: *ssh_lockout_guard
+
+- name: Hermes VM — dashboard reverse proxy
+  hosts: hermes
+  roles:
+    - hermes

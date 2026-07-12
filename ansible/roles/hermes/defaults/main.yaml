@@ -1,0 +1,9 @@
+# Port the k8s Service/Ingress targets (nftables opens it via host vars).
+hermes_ui_port: 9119
+# Loopback port the dashboard binds. The June 2026 hermes-agent hardening
+# forbids unauthenticated non-loopback binds, so the dashboard stays on
+# 127.0.0.1 and caddy re-exposes it on hermes_ui_port (accepted trade-off:
+# the UI is reachable without auth from the LAN/tailnet, as before).
+hermes_dashboard_port: 9219
+hermes_user: diverofdark
+hermes_home: /home/diverofdark

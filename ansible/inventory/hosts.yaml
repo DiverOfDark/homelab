@@ -42,9 +42,11 @@ all:
           nftables_open_udp_ports: [53, 123, 5353]
         hermes:
           # KubeVirt VM (in kubevirt-vms ns, name=claw) running the hermes voice-assistant agent.
-          # Tailscale node name follows the guest hostname "hermes" (it was
-          # "claw" until a reboot on 2026-07-11 propagated the OS hostname).
-          ansible_host: hermes.ts.kirillorlov.pro
+          # Reached via the hermes-api LoadBalancer (OpenSSH on guest :22320):
+          # the VM's tailscale path (behind pod-network masquerade) flaps under
+          # load and kept killing ansible runs. Interactive fallback over the
+          # tailnet: hermes.ts.kirillorlov.pro (Tailscale SSH, port 22).
+          ansible_host: 192.168.179.20
           ansible_user: diverofdark
           ansible_become: true
           # Ports that must be open on the VM's main interface (nftables):
