@@ -10,7 +10,9 @@ spec:
   ports:
     - name: ssh
       port: 22
-      targetPort: 22
+      # sshd in the guest listens on 22320 (cloud-init hardening snippet);
+      # tailnet :22 is Tailscale SSH, which never hits this Service.
+      targetPort: 22320
       protocol: TCP
     - name: hermes-api
       port: 8642
