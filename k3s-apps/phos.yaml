@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: phos
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's master branch.
+    # The chart lives at helm/phos and moves in lockstep with the Rust code
+    # that produces the image, so chart-version drift and image-version
+    # drift can't diverge.
+    repoURL: https://github.com/DiverOfDark/phos.git
+    targetRevision: master
+    path: helm/phos
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/phos:sha-<7-char-sha> for every
+      # commit, so this resolves to the exact image built from the commit
+      # Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        # gethomepage's pod-selector annotation expects this exact label.
+        podLabels:
+          app.kubernetes.io/pod: phos
+
+        persistence:
+          # Adopts the pre-chart PVC (created 2026-03 by the old
+          # k3s-userapps/phos manifests) — annotated Delete=false so it
+          # survives app churn.
+          size: 50Gi
+          storageClassName: ceph-block
+
+        phos:
+          comfyuiUrl: "http://192.168.178.126:8188"
+
+        oidc:
+          issuer: "https://auth.kirillorlov.pro"
+          externalSecret:
+            enabled: true
+            store: openbao-store
+            storeKind: ClusterSecretStore
+
+        ingress:
+          enabled: true
+          host: phos.kirillorlov.pro
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://phos.kirillorlov.pro"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: Phos
+            gethomepage.dev/pod-selector: "app.kubernetes.io/pod=phos"
+            gethomepage.dev/description: "AI-Powered Photo Manager"
+          tls:
+            - hosts:
+                - phos.kirillorlov.pro
+              secretName: phos-tls
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: phos
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
