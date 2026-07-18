@@ -209,7 +209,9 @@ resource "zitadel_application_oidc" "phos_android" {
   redirect_uris               = ["dev.phos.android://callback", "http://localhost:3000/callback"]
   post_logout_redirect_uris   = ["dev.phos.android://callback", "http://localhost:3000"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
-  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  # Refresh Token grant required: the app requests offline_access and login
+  # fails outright without it.
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"]
   app_type                    = "OIDC_APP_TYPE_NATIVE"
   auth_method_type            = "OIDC_AUTH_METHOD_TYPE_NONE"
   version                     = "OIDC_VERSION_1_0"
@@ -290,6 +292,19 @@ resource "zitadel_application_saml" "ceph_dashboard" {
     </md:SPSSODescriptor>
 </md:EntityDescriptor>
 EOT
+}
+
+# --- Instance-wide OIDC token lifetimes ---
+
+# Singleton instance settings (affects ALL apps, not just Phos). The idle
+# expiration bounds how long an untouched phone can still refresh silently;
+# bumped from Zitadel's 30d default to 90d. Access/id/refresh lifetimes are
+# kept at the Zitadel defaults, just codified here.
+resource "zitadel_default_oidc_settings" "default" {
+  access_token_lifetime         = "12h0m0s"
+  id_token_lifetime             = "12h0m0s"
+  refresh_token_expiration      = "2160h0m0s" # 90d absolute
+  refresh_token_idle_expiration = "2160h0m0s" # 90d idle (default was 720h/30d)
 }
 
 # --- Email Provider (Mailgun SMTP) ---
