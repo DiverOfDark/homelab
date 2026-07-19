@@ -17,7 +17,7 @@ spec:
   sources:
     - repoURL: https://helm.goharbor.io
       chart: harbor
-      targetRevision: 1.18.4
+      targetRevision: 1.19.1
       helm:
         releaseName: harbor
         valuesObject:
