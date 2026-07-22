@@ -157,6 +157,14 @@ spec:
             cephConfig:
               global:
                 osd_memory_target: "2147483648"
+              osd:
+                # BLUESTORE_SLOW_OP_ALERT defaults latch HEALTH_WARN for 24h
+                # after a SINGLE slow op. osd.0 (DRAM-less Kingston NV3) emits
+                # short bursts during sustained writes (backfill, backups),
+                # which kept the cluster yellow ~half the time. Warn only on
+                # sustained stalling: >=20 slow ops within the last hour.
+                bluestore_slow_ops_warn_threshold: "20"
+                bluestore_slow_ops_warn_lifetime: "3600"
               mon:
                 mon_data_avail_warn: "5"
                 mon_data_avail_crit: "1"
