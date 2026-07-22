@@ -140,6 +140,11 @@ spec:
           cephClusterSpec:
             removeOSDsIfOutAndSafeToRemove: true
             dataDirHostPath: /var/lib/rook-ceph
+            # Serve reads from the OSD replica on the same node when one
+            # exists (CRUSH host buckets match kubernetes.io/hostname).
+            csi:
+              readAffinity:
+                enabled: true
             # All Ceph daemons (mon/mgr/mds/osd/rgw) run on hostNetwork so that
             # libceph in the kernel reaches mons via stable node IPs
             # (192.168.178.x) rather than service ClusterIPs. Required because

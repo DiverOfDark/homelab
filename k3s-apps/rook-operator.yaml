@@ -32,6 +32,11 @@ spec:
          allowLoopDevices: true
          csi:
            imagePullPolicy: Always
+           # csi-addons sidecars in the RBD/CephFS plugin pods; the matching
+           # v0.14.0 controller is vendored in k3s-userapps/csi-addons.
+           # Enables ReclaimSpace (fstrim/rbd sparsify) via PVC annotations.
+           csiAddons:
+             enabled: true
            csiCephFSPluginResource: |
              - name : driver-registrar
                resource:
