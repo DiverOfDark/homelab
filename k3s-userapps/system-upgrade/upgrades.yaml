@@ -9,6 +9,43 @@ spec:
     version: v1.13.7
   policy:
     rebootMode: powercycle
+    # Drain and wait for CSI volumes to detach before rebooting. Without this
+    # a reboot can pin an RBD volume to the dead node and the rescheduled pod
+    # sits in Multi-Attach until the node returns (harbor-db-1, 2026-07-19).
+    waitForVolumeDetach: true
+  # Gates evaluated before EACH node upgrade (and re-checked between nodes).
+  # A failing check makes tuppr wait and retry every minute — it does not fail
+  # the batch. Added after 2026-07-22: tuppr crashed mid-flow on a starved
+  # cluster, left asgard cordoned, and the resulting muspelheimr pileup took
+  # down the next node's upgrade too.
+  healthChecks:
+    # Every node Ready and schedulable — catches leaked cordons and refuses
+    # to start another reboot while capacity is already missing.
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.filter(c, c.type == "Ready").all(c, c.status == "True") && (!has(object.spec.unschedulable) || !object.spec.unschedulable)
+      timeout: 30m
+    # Ceph healthy enough to lose an OSD host — forces a re-replication pause
+    # between reboots. Strict HEALTH_OK is unusable here: the cluster sits in
+    # HEALTH_WARN ~half the time from BLUESTORE_SLOW_OP_ALERT (osd.0 thermal
+    # throttling, known hardware issue) and TOO_MANY_PGS, neither of which
+    # affects redundancy. Anything else (PG_DEGRADED, OSD_DOWN, *_NEARFULL,
+    # PG_BACKFILL_FULL, MON_DOWN, ...) still blocks the next node.
+    - apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      name: rook-ceph
+      namespace: rook-ceph
+      expr: >-
+        status.ceph.health == "HEALTH_OK" ||
+        (status.ceph.health == "HEALTH_WARN" &&
+         status.ceph.details.all(k, k in ["BLUESTORE_SLOW_OP_ALERT", "TOO_MANY_PGS"]))
+      timeout: 30m
+    # Every CNPG database cluster has all instances ready (all namespaces),
+    # so replicas finished rejoining before the next primary's node reboots.
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      expr: has(status.readyInstances) && status.readyInstances == status.instances
+      timeout: 30m
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
