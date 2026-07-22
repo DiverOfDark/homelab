@@ -1,0 +1,73 @@
+# Node-upgrade failsafe alerts.
+#
+# Added after the 2026-07-22 incident: tuppr's Talos rollout failed on
+# jotunheimr and stopped, leaving asgard cordoned. Nobody noticed for a day;
+# workloads piled onto 4-core muspelheimr (101% CPU), which caused cluster-wide
+# probe-timeout restart storms and made the DB clusters look broken. These
+# rules make each link of that chain page on Telegram instead of failing
+# silently. tuppr metrics come from its ServiceMonitor (monitoring.serviceMonitor
+# in k3s-apps/tuppr.yaml); the rest is kube-state-metrics / node_exporter.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: upgrade-failsafe-rules
+  namespace: prometheus
+  labels:
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    release: prometheus
+spec:
+  groups:
+    - name: upgrade-failsafe.rules
+      interval: 1m
+      rules:
+        - alert: TalosUpgradeFailed
+          expr: tuppr_talos_upgrade_phase{phase="Failed"} == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "tuppr Talos upgrade {{ $labels.name }} is in phase Failed"
+            description: >-
+              The batch stopped and will not resume on its own. Check for
+              leaked cordons and node version skew, then retry with:
+              kubectl annotate talosupgrade {{ $labels.name }}
+              tuppr.home-operations.com/reset="$(date)".
+
+        - alert: NodeCordonedTooLong
+          expr: kube_node_spec_unschedulable == 1
+          for: 45m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node {{ $labels.node }} has been cordoned for over 45m"
+            description: >-
+              A tuppr upgrade cordons a node for at most ~30m (per-node
+              timeout). A cordon older than that is leaked (operator crash,
+              aborted drain) and silently shrinks cluster capacity —
+              uncordon it or finish the maintenance.
+
+        - alert: NodeCPUSaturated
+          expr: (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.92
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node {{ $labels.instance }} CPU >92% for 30m"
+            description: >-
+              Sustained CPU saturation starves kubelet and liveness probes,
+              causing synchronized container restarts across namespaces.
+              Usually means workloads piled onto one node after an
+              upgrade/drain — rebalance (delete CNPG replica pods, restart
+              heavy deployments) so the scheduler respreads them.
+
+        - alert: PodRestartStorm
+          expr: sum(increase(kube_pod_container_status_restarts_total[30m])) > 25
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Cluster-wide pod restart storm ({{ $value | printf \"%.0f\" }} restarts in 30m)"
+            description: >-
+              Many containers restarting together usually means a starved or
+              flapping node, not broken apps. Check kubectl top node and
+              per-node pod counts before debugging individual workloads.
