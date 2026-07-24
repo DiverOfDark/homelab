@@ -3,7 +3,7 @@
 # renovate: image=ghcr.io/siderolabs/talosctl
 talosVersion: v1.13.7
 # renovate: image=registry.k8s.io/kube-apiserver
-kubernetesVersion: v1.36.2
+kubernetesVersion: v1.36.3
 
 clusterName: homelab
 endpoint: https://192.168.179.2:6443
