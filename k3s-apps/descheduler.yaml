@@ -75,6 +75,9 @@ spec:
                     evictableNamespaces:
                       exclude:
                         - rook-ceph
+                        # transient backup job pods only; evicting one
+                        # mid-run can fail the backup
+                        - velero
               plugins:
                 balance:
                   enabled:
