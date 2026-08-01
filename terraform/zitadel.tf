@@ -203,12 +203,48 @@ resource "zitadel_application_oidc" "phos" {
 }
 
 resource "zitadel_application_oidc" "phos_android" {
+  org_id                    = var.zitadel_org_id
+  project_id                = zitadel_project.homelab.id
+  name                      = "Phos Android"
+  redirect_uris             = ["dev.phos.android://callback", "http://localhost:3000/callback"]
+  post_logout_redirect_uris = ["dev.phos.android://callback", "http://localhost:3000"]
+  response_types            = ["OIDC_RESPONSE_TYPE_CODE"]
+  # Refresh Token grant required: the app requests offline_access and login
+  # fails outright without it.
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"]
+  app_type                    = "OIDC_APP_TYPE_NATIVE"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_NONE"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "picweight" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
-  name                        = "Phos Android"
-  redirect_uris               = ["dev.phos.android://callback", "http://localhost:3000/callback"]
-  post_logout_redirect_uris   = ["dev.phos.android://callback", "http://localhost:3000"]
+  name                        = "Picweight"
+  redirect_uris               = ["https://picweight.kirillorlov.pro/api/auth/callback"]
+  post_logout_redirect_uris   = ["https://picweight.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
+resource "zitadel_application_oidc" "picweight_android" {
+  org_id                    = var.zitadel_org_id
+  project_id                = zitadel_project.homelab.id
+  name                      = "Picweight Android"
+  redirect_uris             = ["dev.picweight.android://callback", "http://localhost:3000/callback"]
+  post_logout_redirect_uris = ["dev.picweight.android://callback", "http://localhost:3000"]
+  response_types            = ["OIDC_RESPONSE_TYPE_CODE"]
   # Refresh Token grant required: the app requests offline_access and login
   # fails outright without it.
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"]
@@ -335,20 +371,22 @@ resource "zitadel_sms_provider_twilio" "twilio" {
 
 locals {
   zitadel_apps = {
-    argocd           = zitadel_application_oidc.argocd
-    grafana          = zitadel_application_oidc.grafana
-    velero           = zitadel_application_oidc.velero
-    actual_budget    = zitadel_application_oidc.actual_budget
-    vaultwarden      = zitadel_application_oidc.vaultwarden
-    readur           = zitadel_application_oidc.readur
-    phos             = zitadel_application_oidc.phos
-    phos_android     = zitadel_application_oidc.phos_android
-    appbahn_platform = zitadel_application_oidc.appbahn_platform
-    harbor           = zitadel_application_oidc.harbor
+    argocd            = zitadel_application_oidc.argocd
+    grafana           = zitadel_application_oidc.grafana
+    velero            = zitadel_application_oidc.velero
+    actual_budget     = zitadel_application_oidc.actual_budget
+    vaultwarden       = zitadel_application_oidc.vaultwarden
+    readur            = zitadel_application_oidc.readur
+    phos              = zitadel_application_oidc.phos
+    phos_android      = zitadel_application_oidc.phos_android
+    picweight         = zitadel_application_oidc.picweight
+    picweight_android = zitadel_application_oidc.picweight_android
+    appbahn_platform  = zitadel_application_oidc.appbahn_platform
+    harbor            = zitadel_application_oidc.harbor
     # Consumed by ansible (roles/headscale) via `bao kv get secret/zitadel/headscale-credentials`
-    headscale        = zitadel_application_oidc.headscale
+    headscale = zitadel_application_oidc.headscale
     # Consumed in-cluster by ESO (k3s-userapps/headplane/externalsecret.yaml)
-    headplane        = zitadel_application_oidc.headplane
+    headplane = zitadel_application_oidc.headplane
   }
 }
 

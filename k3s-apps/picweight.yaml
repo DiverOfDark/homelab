@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: picweight
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's master branch.
+    # The chart lives at helm/picweight and moves in lockstep with the Rust
+    # code that produces the image, so chart-version drift and image-version
+    # drift can't diverge.
+    repoURL: https://github.com/DiverOfDark/picweight.git
+    targetRevision: master
+    path: helm/picweight
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/picweight:sha-<7-char-sha> for every
+      # commit, so this resolves to the exact image built from the commit
+      # Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        # gethomepage's pod-selector annotation expects this exact label.
+        podLabels:
+          app.kubernetes.io/pod: picweight
+
+        persistence:
+          size: 5Gi
+          storageClassName: ceph-block
+
+        oidc:
+          issuer: https://auth.kirillorlov.pro
+          # existingSecret defaults to "picweight-oidc" — created by the
+          # ExternalSecret in additionalObjects below.
+
+        # openai.existingSecret defaults to "picweight-openai" — created by
+        # the ExternalSecret in additionalObjects below.
+
+        ingress:
+          enabled: true
+          className: traefik
+          host: picweight.kirillorlov.pro
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://picweight.kirillorlov.pro"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: Picweight
+            gethomepage.dev/pod-selector: "app.kubernetes.io/pod=picweight"
+            gethomepage.dev/description: "AI calorie & macro tracker"
+          tls:
+            - hosts:
+                - picweight.kirillorlov.pro
+              secretName: picweight-tls
+
+        additionalObjects:
+          # Zitadel credentials written to OpenBao by terraform/zitadel.tf
+          # (zitadel_credentials for_each entries picweight / picweight_android).
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: picweight-oidc
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: picweight-oidc
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: client_id
+                  remoteRef:
+                    key: zitadel/picweight-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/picweight-credentials
+                    property: client_secret
+                # The Android app is a public (native) client — only its
+                # client_id exists.
+                - secretKey: mobile_client_id
+                  remoteRef:
+                    key: zitadel/picweight_android-credentials
+                    property: client_id
+
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: picweight-openai
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: picweight-openai
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: api_key
+                  remoteRef:
+                    key: picweight
+                    property: openai_api_key
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: picweight
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
