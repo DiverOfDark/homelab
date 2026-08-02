@@ -48,6 +48,9 @@ spec:
           host: picweight.kirillorlov.pro
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
+            # Opt into the Hetzner-edge twin: kyverno's generate-external-ingress
+            # policy clones this Ingress onto the traefik-external class.
+            kirillorlov.pro/expose: external
             gethomepage.dev/enabled: "true"
             gethomepage.dev/href: "https://picweight.kirillorlov.pro"
             gethomepage.dev/group: Apps
