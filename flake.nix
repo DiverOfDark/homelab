@@ -143,6 +143,14 @@
             export TF_VAR_quay_username=$(tfvar quay username)
             export TF_VAR_quay_token=$(tfvar quay token)
 
+            # kube-apiserver OIDC (Zitadel) trusts tokens minted for the Headlamp
+            # OIDC client, so its client_id is the apiserver's oidc-client-id.
+            # talhelper runs envsubst over talos/talconfig.yaml against the process
+            # environment, so exporting it here lets ${HEADLAMP_OIDC_CLIENT_ID}
+            # resolve at `task talos:genconfig`. Written to OpenBao by
+            # terraform/zitadel.tf, so `tofu apply` must run first.
+            export HEADLAMP_OIDC_CLIENT_ID=$(tfvar zitadel/headlamp-credentials client_id)
+
             # Fetch the age key used for all SOPS (Talos configs + terraform/tfstate.sops).
             # Safe for local dev (falls back to empty if bao not logged in).
             export SOPS_AGE_KEY=$(bao kv get -field=age_key secret/talos/config 2>/dev/null || true)

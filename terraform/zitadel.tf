@@ -308,6 +308,23 @@ resource "zitadel_application_oidc" "headplane" {
   id_token_userinfo_assertion = true
 }
 
+resource "zitadel_application_oidc" "headlamp" {
+  org_id                      = var.zitadel_org_id
+  project_id                  = zitadel_project.homelab.id
+  name                        = "Headlamp"
+  redirect_uris               = ["https://headlamp.kirillorlov.pro/oidc-callback"]
+  post_logout_redirect_uris   = ["https://headlamp.kirillorlov.pro"]
+  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
+  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+  app_type                    = "OIDC_APP_TYPE_WEB"
+  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version                     = "OIDC_VERSION_1_0"
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
+}
+
 resource "zitadel_application_saml" "ceph_dashboard" {
   org_id       = var.zitadel_org_id
   project_id   = zitadel_project.homelab.id
@@ -387,6 +404,11 @@ locals {
     headscale = zitadel_application_oidc.headscale
     # Consumed in-cluster by ESO (k3s-userapps/headplane/externalsecret.yaml)
     headplane = zitadel_application_oidc.headplane
+    # Consumed in-cluster by ESO (k3s-apps/headlamp/externalsecret.yaml). The
+    # client_id is ALSO fed to the kube-apiserver as its oidc-client-id (via
+    # HEADLAMP_OIDC_CLIENT_ID exported from flake.nix -> talos/talconfig.yaml),
+    # so `tofu apply` must run before regenerating Talos configs.
+    headlamp = zitadel_application_oidc.headlamp
   }
 }
 

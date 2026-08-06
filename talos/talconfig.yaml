@@ -418,6 +418,24 @@ controlPlane:
     - |-
       cluster:
         apiServer:
+          # OIDC (Zitadel) end-to-end auth. Headlamp (and any kubectl context set
+          # up the same way) logs the user in against Zitadel and forwards the
+          # resulting id_token to the API server; these flags make the API server
+          # validate it and map it to a user for RBAC (see
+          # k3s-objects/oidc-admin-rbac.yaml). oidc-client-id is the Headlamp
+          # Zitadel client_id, injected via envsubst from HEADLAMP_OIDC_CLIENT_ID
+          # (exported by flake.nix from OpenBao) — so `tofu apply` (which creates
+          # the Zitadel app) must precede regenerating configs, and genconfig must
+          # run inside the nix devshell with `bao` logged in, or the value renders
+          # empty and the API server refuses to start with an issuer set.
+          # Additive: existing PKI / ServiceAccount auth is untouched, and if
+          # Zitadel is unreachable only OIDC logins fail (JWKS fetch is retried,
+          # startup is not blocked on k8s 1.36).
+          extraArgs:
+            oidc-issuer-url: https://auth.kirillorlov.pro
+            oidc-client-id: ${HEADLAMP_OIDC_CLIENT_ID}
+            oidc-username-claim: email
+            oidc-username-prefix: "oidc:"
           disablePodSecurityPolicy: true
           admissionControl:
             - name: PodSecurity
