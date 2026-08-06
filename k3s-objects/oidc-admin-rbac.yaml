@@ -1,0 +1,23 @@
+# Grants the human operator — authenticated via Zitadel OIDC and mapped by the
+# kube-apiserver oidc-* flags in talos/talconfig.yaml — full cluster access.
+#
+# The API server runs with oidc-username-claim=email and
+# oidc-username-prefix="oidc:", so a Zitadel login for diverofdark@gmail.com
+# arrives at the API server as the user "oidc:diverofdark@gmail.com". This
+# binding is what makes Headlamp's end-to-end OIDC login able to actually
+# see/manage the cluster: Headlamp forwards the user's id_token, the API server
+# authenticates it and authorizes every request against this ClusterRoleBinding.
+# A kubectl context configured with the same Zitadel issuer/client resolves to
+# the same identity and reuses this binding.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: oidc-cluster-admin
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "oidc:diverofdark@gmail.com"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin

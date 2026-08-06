@@ -1,0 +1,76 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: headlamp
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  # Multi-source: the upstream Helm chart plus a git source that carries the
+  # OIDC ExternalSecret (k3s-apps/headlamp/externalsecret.yaml). Same shape as
+  # the kubescape app.
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/headlamp
+      chart: headlamp
+      targetRevision: 0.44.0
+      helm:
+        valuesObject:
+          fullnameOverride: headlamp
+          # End-to-end OIDC: every Kubernetes API call Headlamp makes carries the
+          # logged-in user's Zitadel id_token, which the kube-apiserver validates
+          # via its oidc-* flags (talos/talconfig.yaml) and authorizes against the
+          # per-user RBAC in k3s-objects/oidc-admin-rbac.yaml. Headlamp's own
+          # ServiceAccount therefore needs NO cluster access — do not bind it to
+          # cluster-admin (that would be the shared-credential model we chose
+          # against).
+          clusterRoleBinding:
+            create: false
+          config:
+            oidc:
+              # Credentials come from the ExternalSecret below, not a chart-managed
+              # Secret. hasScopes=true because that Secret carries OIDC_SCOPES.
+              secret:
+                create: false
+              externalSecret:
+                enabled: true
+                name: headlamp-oidc
+                hasScopes: true
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            # Internal-only (no kirillorlov.pro/expose label): a cluster-admin
+            # dashboard must never reach the public Hetzner edge. LAN + tailnet
+            # only, same posture as the other admin UIs here.
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://headlamp.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: Headlamp
+              gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/headlamp.png"
+              gethomepage.dev/description: Kubernetes web UI
+              gethomepage.dev/pod-selector: "app.kubernetes.io/name=headlamp"
+            hosts:
+              - host: headlamp.kirillorlov.pro
+                paths:
+                  - path: /
+                    type: Prefix
+            tls:
+              - secretName: headlamp-tls
+                hosts:
+                  - headlamp.kirillorlov.pro
+    - repoURL: https://github.com/DiverOfDark/homelab.git
+      targetRevision: HEAD
+      path: k3s-apps/headlamp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: headlamp
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
