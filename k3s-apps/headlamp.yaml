@@ -36,6 +36,76 @@ spec:
                 enabled: true
                 name: headlamp-oidc
                 hasScopes: true
+            # The pluginsManager sidecar installs into /headlamp/plugins AFTER the
+            # main container has already scanned it at startup, so without this the
+            # plugins only appear on the next restart. (Unrelated to the bundled
+            # Prometheus plugin, which lives in /headlamp/static-plugins.)
+            watchPlugins: true
+          # Headlamp's in-app "Plugin Catalog" is desktop-only — it installs via
+          # PluginManager, a wrapper around Electron's window.desktopApi, which
+          # doesn't exist in a browser (and a browser could not write into this
+          # pod's filesystem anyway). The in-cluster equivalent is this sidecar:
+          # it runs `pluginctl install --config plugin.yml --watch` against a
+          # shared emptyDir, so the plugin set is declarative and lives in git.
+          #
+          # Every version here is pinned deliberately. The sidecar pulls pluginctl
+          # from the public npm registry and the plugin tarballs from ArtifactHub —
+          # neither goes through Harbor — and this is a cluster-admin dashboard, so
+          # floating tags would mean unreviewed third-party JS landing in it on any
+          # pod restart. Renovate has no ArtifactHub-plugin manager; bump by hand.
+          pluginsManager:
+            enabled: true
+            version: "0.1.1"
+            # Downloads + unpacks 8 tarballs at startup, then idles on --watch.
+            resources:
+              requests:
+                cpu: 50m
+                memory: 192Mi
+              limits:
+                cpu: "1"
+                memory: 1Gi
+            configContent: |
+              plugins:
+                # Kubescape is already running here but had no UI: compliance
+                # scores, CVEs, network policies, runtime threats.
+                - name: headlamp_kubescape
+                  source: https://artifacthub.io/packages/headlamp/kubescape-headlamp-plugin/headlamp_kubescape
+                  version: 0.11.2
+                # CephCluster health, pool status and CSI driver views — the part
+                # of this cluster most likely to need a look at 3am.
+                - name: headlamp-rook-plugin
+                  source: https://artifacthub.io/packages/headlamp/headlamp-rook/headlamp-rook-plugin
+                  version: 1.0.2
+                # Certificate/Issuer/Order/Challenge status. Every ingress here is
+                # issued by acme-issuer, so this is the fast path to "why is this
+                # cert not renewing".
+                - name: headlamp_cert-manager
+                  source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
+                  version: 0.1.1
+                # Policies plus the wgpolicyk8s.io PolicyReports they produce.
+                - name: headlamp_kyverno
+                  source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kyverno
+                  version: 0.1.0
+                # App health/sync inline — everything in this cluster is ArgoCD-managed.
+                - name: headlamp-argocd
+                  source: https://artifacthub.io/packages/headlamp/headlamp-argocd/headlamp-argocd
+                  version: 0.1.3
+                - name: headlamp-metallb-plugin
+                  source: https://artifacthub.io/packages/headlamp/headlamp-metallb-plugin/headlamp-metallb-plugin
+                  version: 0.5.1
+                # Both of the following are stale upstream (ESO plugin untouched
+                # since 2025-07 and still beta; kubevirt since 2025-03). Kept
+                # because both operators are core here, but drop them rather than
+                # debug them if they break on a Headlamp bump.
+                - name: external-secrets-operator
+                  source: https://artifacthub.io/packages/headlamp/external-secrets-operator-headlamp-plugin/external-secrets-operator
+                  version: 0.1.0-beta7
+                - name: headlamp_kubevirt
+                  source: https://artifacthub.io/packages/headlamp/headlamp-kubevirt/headlamp_kubevirt
+                  version: 0.2.2
+              installOptions:
+                parallel: true
+                maxConcurrent: 3
           ingress:
             enabled: true
             ingressClassName: traefik
