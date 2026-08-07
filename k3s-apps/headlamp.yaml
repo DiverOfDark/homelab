@@ -56,7 +56,7 @@ spec:
           pluginsManager:
             enabled: true
             version: "0.1.1"
-            # Downloads + unpacks 8 tarballs at startup, then idles on --watch.
+            # Downloads + unpacks 7 tarballs at startup, then idles on --watch.
             resources:
               requests:
                 cpu: 50m
@@ -86,10 +86,20 @@ spec:
                 - name: headlamp_kyverno
                   source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kyverno
                   version: 0.1.0
-                # App health/sync inline — everything in this cluster is ArgoCD-managed.
-                - name: headlamp-argocd
-                  source: https://artifacthub.io/packages/headlamp/headlamp-argocd/headlamp-argocd
-                  version: 0.1.3
+                # NOTE: headlamp-argocd 0.1.3 was tried here and removed — it does
+                # not read argoproj.io CRDs, it proxies to ArgoCD's REST API via
+                # the hardcoded, unconfigurable URL
+                #   /api/v1/namespaces/argocd/services/argocd-server/proxy/api/v1/applications
+                # which fails twice over: the apiserver service proxy resolves an
+                # unspecified port by empty name and our argocd-server Service has
+                # two *named* ports (http/80, https/443), giving 503 "no endpoints
+                # available"; and even with a port specifier the proxy does not
+                # forward the caller's Authorization header, so ArgoCD answers 401
+                # "no session information". Making it work would need
+                # users.anonymous.enabled (unauthenticated in-cluster read access —
+                # not worth it) or a forked plugin holding an ArgoCD token.
+                # Headlamp's native custom-resource browser already lists all
+                # Applications with their health/sync status.
                 - name: headlamp-metallb-plugin
                   source: https://artifacthub.io/packages/headlamp/headlamp-metallb-plugin/headlamp-metallb-plugin
                   version: 0.5.1
