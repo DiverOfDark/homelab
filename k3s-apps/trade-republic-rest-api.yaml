@@ -32,19 +32,18 @@ spec:
 
         # Holds cookies.json — the Trade Republic session. It is the whole
         # reason a restart doesn't need a human: without it, every pod restart
-        # means port-forwarding in and running the login flow again. Tiny, but
-        # 1Gi is the smallest ceph-block volume worth asking for.
+        # means signing in again by hand. Tiny, but 1Gi is the smallest
+        # ceph-block volume worth asking for.
         persistence:
           enabled: true
           size: 1Gi
           storageClassName: ceph-block
 
-        # No credentials in the cluster. The phone number and PIN are posted
-        # once to /api/v1/auth/login; the resulting session lives on the PVC
-        # above and the pod refreshes it every 240s by itself. Nothing to add
-        # to OpenBao, and the PIN never sits in a Secret.
-        credentials:
-          enabled: false
+        # There is deliberately nothing here for the Trade Republic phone number
+        # and PIN: the chart has no setting for them at all. Sign in at
+        # https://traderepublic.kirillorlov.pro/ once, the pod keeps the session
+        # alive every 240s, and the cookie persists on the PVC above. Nothing to
+        # add to OpenBao, and the PIN never reaches a Secret or a pod env.
 
         ingress:
           enabled: true
@@ -68,7 +67,9 @@ spec:
             # responses without buffering and has no default idle timeout on
             # them — unlike nginx, which would need both.
             gethomepage.dev/enabled: "true"
-            gethomepage.dev/href: "https://traderepublic.kirillorlov.pro/api/docs"
+            # The panel, not the API docs: it is where you sign in and where the
+            # session status is, so it is what the tile should open.
+            gethomepage.dev/href: "https://traderepublic.kirillorlov.pro/"
             gethomepage.dev/group: Apps
             gethomepage.dev/name: Trade Republic
             gethomepage.dev/icon: mdi-chart-line
