@@ -26,18 +26,34 @@ spec:
         - name: image.tag
           value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
+        # Two replicas: one holds a lease file on the shared volume and owns the
+        # Trade Republic session, the other forwards to it. Only the lease
+        # holder ever writes the session — a refresh rotates the cookie, so two
+        # writers would take turns clobbering each other.
+        #
+        # What this buys: a rolling update keeps a replica serving while the new
+        # pod pulls, so a sync that lands before CI has published the image no
+        # longer causes a gap. And a node failure costs one lease TTL rather
+        # than a reschedule.
+        replicaCount: 2
+
         # gethomepage's pod-selector annotation expects this exact label.
         podLabels:
           app.kubernetes.io/pod: trade-republic-rest-api
 
-        # Holds cookies.json — the Trade Republic session. It is the whole
-        # reason a restart doesn't need a human: without it, every pod restart
-        # means signing in again by hand. Tiny, but 1Gi is the smallest
-        # ceph-block volume worth asking for.
+        # Holds cookies.json and leader.lease, shared by both replicas. It is
+        # the whole reason a restart doesn't need a human: without it, every pod
+        # restart means signing in again by hand.
+        #
+        # ceph-filesystem, not ceph-block: two pods mount this at once, so it
+        # has to be ReadWriteMany. The chart refuses the combination otherwise
+        # rather than leaving the second pod unschedulable.
         persistence:
           enabled: true
           size: 1Gi
-          storageClassName: ceph-block
+          storageClassName: ceph-filesystem
+          accessModes:
+            - ReadWriteMany
 
         # There is deliberately nothing here for the Trade Republic phone number
         # and PIN: the chart has no setting for them at all. Sign in at
