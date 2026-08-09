@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trade-republic-rest-api
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's master branch.
+    # The chart lives at helm/trade-republic-rest-api and moves in lockstep
+    # with the Rust code that produces the image, so chart-version drift and
+    # image-version drift can't diverge.
+    repoURL: https://github.com/DiverOfDark/trade-republic-rest-api.git
+    targetRevision: master
+    path: helm/trade-republic-rest-api
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/trade-republic-rest-api:sha-<7-char-sha>
+      # for every commit, so this resolves to the exact image built from the
+      # commit Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        # gethomepage's pod-selector annotation expects this exact label.
+        podLabels:
+          app.kubernetes.io/pod: trade-republic-rest-api
+
+        # Holds cookies.json — the Trade Republic session. It is the whole
+        # reason a restart doesn't need a human: without it, every pod restart
+        # means port-forwarding in and running the login flow again. Tiny, but
+        # 1Gi is the smallest ceph-block volume worth asking for.
+        persistence:
+          enabled: true
+          size: 1Gi
+          storageClassName: ceph-block
+
+        # No credentials in the cluster. The phone number and PIN are posted
+        # once to /api/v1/auth/login; the resulting session lives on the PVC
+        # above and the pod refreshes it every 240s by itself. Nothing to add
+        # to OpenBao, and the PIN never sits in a Secret.
+        credentials:
+          enabled: false
+
+        ingress:
+          enabled: true
+          className: traefik
+          host: traderepublic.kirillorlov.pro
+          # Internal only: no `kirillorlov.pro/expose: external` annotation, so
+          # kyverno's generate-external-ingress policy does NOT clone this onto
+          # traefik-external. This must stay off the Hetzner edge.
+          #
+          # The chart normally refuses to render an Ingress without a bearer
+          # token, because an open one publishes the whole portfolio and
+          # transaction history. Acknowledged deliberately here: the service is
+          # reachable from the LAN only. To require a token instead, drop this
+          # flag, set apiToken.enabled=true, and add a `token` entry to OpenBao
+          # wired up through additionalObjects.
+          allowUnauthenticated: true
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            # No buffering or timeout annotations: /api/v1/instruments/{isin}/
+            # ticker/stream is an unending SSE response, and Traefik streams
+            # responses without buffering and has no default idle timeout on
+            # them — unlike nginx, which would need both.
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://traderepublic.kirillorlov.pro/api/docs"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: Trade Republic
+            gethomepage.dev/icon: mdi-chart-line
+            gethomepage.dev/pod-selector: "app.kubernetes.io/pod=trade-republic-rest-api"
+            gethomepage.dev/description: "Unofficial read-only Trade Republic API"
+          tls:
+            - hosts:
+                - traderepublic.kirillorlov.pro
+              secretName: trade-republic-rest-api-tls
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trade-republic
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
