@@ -26,10 +26,10 @@ spec:
         - name: image.tag
           value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
-        # Two replicas: one holds a lease file on the shared volume and owns the
-        # Trade Republic session, the other forwards to it. Only the lease
-        # holder ever writes the session — a refresh rotates the cookie, so two
-        # writers would take turns clobbering each other.
+        # Two replicas: one holds a Kubernetes Lease and owns the Trade Republic
+        # session, the other forwards to it. Only the lease holder ever writes
+        # the session — a refresh rotates the cookie, so two writers would take
+        # turns clobbering each other.
         #
         # What this buys: a rolling update keeps a replica serving while the new
         # pod pulls, so a sync that lands before CI has published the image no
@@ -41,19 +41,15 @@ spec:
         podLabels:
           app.kubernetes.io/pod: trade-republic-rest-api
 
-        # Holds cookies.json and leader.lease, shared by both replicas. It is
-        # the whole reason a restart doesn't need a human: without it, every pod
-        # restart means signing in again by hand.
+        # No volume at all. Clustered replicas keep the session in a Secret
+        # (trade-republic-session, created by the app itself), which is what
+        # lets them share it without sharing storage — no ReadWriteMany, no
+        # storage class, nothing to migrate when this rolls out.
         #
-        # ceph-filesystem, not ceph-block: two pods mount this at once, so it
-        # has to be ReadWriteMany. The chart refuses the combination otherwise
-        # rather than leaving the second pod unschedulable.
+        # The chart creates a ServiceAccount and a Role granting get/update on
+        # that one Lease and that one Secret by name.
         persistence:
-          enabled: true
-          size: 1Gi
-          storageClassName: ceph-filesystem
-          accessModes:
-            - ReadWriteMany
+          enabled: false
 
         # There is deliberately nothing here for the Trade Republic phone number
         # and PIN: the chart has no setting for them at all. Sign in at
