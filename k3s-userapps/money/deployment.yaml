@@ -23,6 +23,11 @@ spec:
           persistentVolumeClaim:
             claimName: actualbudget
       containers:
+        # Version must stay identical to actualbudget-api below: the API image bundles
+        # @actual-app/api, which keeps a local SQLite replica and applies this server's
+        # sync messages against it. A lagging client fails with SyncError: invalid-schema.
+        # Renovate pegs this tag to jhonderson/actual-http-api's release feed (see renovate.json).
+        # renovate: datasource=docker depName=jhonderson/actual-http-api
         - image: 'actualbudget/actual-server:26.7.0'
           imagePullPolicy: IfNotPresent
           name: actualbudget
@@ -90,7 +95,8 @@ spec:
         app.kubernetes.io/name: actualbudget
     spec:
       containers:
-        - image: 'jhonderson/actual-http-api:26.5.2'
+        # Keep in lockstep with actualbudget/actual-server above.
+        - image: 'jhonderson/actual-http-api:26.7.0'
           imagePullPolicy: IfNotPresent
           name: actualbudget-api
           env:

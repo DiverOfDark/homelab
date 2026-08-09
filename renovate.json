@@ -35,9 +35,30 @@
         "patch"
       ],
       "automerge": true
+    },
+    {
+      "description": "actual-server must never outrun jhonderson/actual-http-api (which bundles @actual-app/api and syncs against the server's schema). The server's tag is driven by the actualbudget-lockstep customManager below, keyed to the API image's release feed, so both bump together in one PR. Disable the direct dep so the generic image manager doesn't propose the server independently.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "actualbudget/actual-server"
+      ],
+      "enabled": false
     }
   ],
   "customManagers": [
+    {
+      "description": "actualbudget-lockstep: resolve an `image:` tag against a different image's release feed. Used to peg actualbudget/actual-server to the tags jhonderson/actual-http-api actually publishes, so the server can never be ahead of the API client's bundled schema.",
+      "customType": "regex",
+      "versioningTemplate": "docker",
+      "managerFilePatterns": [
+        "/(^|/).*\\.y[a]?ml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s+-?\\s*image:\\s*[\"']?[^:\\s\"']+:(?<currentValue>[\\w+\\.\\-]+)"
+      ]
+    },
     {
       "customType": "regex",
       "datasourceTemplate": "docker",
