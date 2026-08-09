@@ -257,23 +257,6 @@ resource "zitadel_application_oidc" "picweight_android" {
   id_token_userinfo_assertion = true
 }
 
-resource "zitadel_application_oidc" "appbahn_platform" {
-  org_id                      = var.zitadel_org_id
-  project_id                  = zitadel_project.homelab.id
-  name                        = "AppBahn Platform"
-  redirect_uris               = ["https://appbahn.kirillorlov.pro/login/oauth2/code/appbahn"]
-  post_logout_redirect_uris   = ["https://appbahn.kirillorlov.pro"]
-  response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
-  grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
-  app_type                    = "OIDC_APP_TYPE_WEB"
-  auth_method_type            = "OIDC_AUTH_METHOD_TYPE_BASIC"
-  version                     = "OIDC_VERSION_1_0"
-  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
-  access_token_role_assertion = true
-  id_token_role_assertion     = true
-  id_token_userinfo_assertion = true
-}
-
 resource "zitadel_application_oidc" "headscale" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
@@ -398,7 +381,6 @@ locals {
     phos_android      = zitadel_application_oidc.phos_android
     picweight         = zitadel_application_oidc.picweight
     picweight_android = zitadel_application_oidc.picweight_android
-    appbahn_platform  = zitadel_application_oidc.appbahn_platform
     harbor            = zitadel_application_oidc.harbor
     # Consumed by ansible (roles/headscale) via `bao kv get secret/zitadel/headscale-credentials`
     headscale = zitadel_application_oidc.headscale

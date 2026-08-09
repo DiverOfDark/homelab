@@ -22,16 +22,41 @@ tasks:
   _decrypt-state:
     internal: true
     cmds:
+      # Refuses to clobber a plaintext tfstate that is AHEAD of tfstate.sops.
+      # That happens whenever a previous tofu run died before _encrypt-state
+      # could persist it: the changes are real (already applied to the
+      # providers) but live only in the plaintext file. Decrypting over them
+      # loses them silently and the next apply fails with "AlreadyExists".
       - |
-        if [ -f tfstate.sops ]; then
-          echo "Decrypting tfstate.sops → tfstate"
-          sops --config ../.sops.yaml -d tfstate.sops > tfstate
-        else
+        if [ ! -f tfstate.sops ]; then
           echo "No tfstate.sops yet (will start with empty state)"
+          exit 0
         fi
+        decrypted=$(sops --config ../.sops.yaml -d tfstate.sops)
+        if [ -f tfstate ]; then
+          sops_lineage=$(printf '%s' "$decrypted" | jq -r '.lineage // ""')
+          sops_serial=$(printf '%s' "$decrypted" | jq -r '.serial // 0')
+          local_lineage=$(jq -r '.lineage // ""' tfstate)
+          local_serial=$(jq -r '.serial // 0' tfstate)
+          if [ "$sops_lineage" = "$local_lineage" ] && [ "$local_serial" -gt "$sops_serial" ]; then
+            echo "" >&2
+            echo "REFUSING to overwrite tfstate: the plaintext state is NEWER than tfstate.sops" >&2
+            echo "  tfstate (plaintext) serial=$local_serial" >&2
+            echo "  tfstate.sops        serial=$sops_serial" >&2
+            echo "" >&2
+            echo "A previous tofu run failed before its state could be re-encrypted, so the" >&2
+            echo "plaintext file holds changes tfstate.sops does not. Inspect it, then run" >&2
+            echo "'task state-pull' to promote it - or delete tfstate to discard those changes." >&2
+            exit 1
+          fi
+        fi
+        echo "Decrypting tfstate.sops → tfstate"
+        printf '%s' "$decrypted" > tfstate
     preconditions:
       - sh: command -v sops
         msg: "sops not found - enter the nix dev shell first"
+      - sh: command -v jq
+        msg: "jq not found - enter the nix dev shell first"
 
   _encrypt-state:
     internal: true
@@ -54,8 +79,9 @@ tasks:
     desc: tofu plan (automatically handles tfstate.sops). Kubernetes resources were moved out so this no longer needs cluster access.
     cmds:
       - task: _decrypt-state
+      # deferred so state is re-encrypted even when tofu exits non-zero
+      - defer: { task: _encrypt-state }
       - tofu plan {{.CLI_ARGS | default ""}}
-      - task: _encrypt-state
     preconditions: &tf-preconditions
       - sh: command -v tofu
         msg: "tofu not found - enter the nix dev shell first"
@@ -70,10 +96,12 @@ tasks:
     desc: tofu apply with interactive approval (handles encrypted state)
     cmds:
       - task: _decrypt-state
+      # deferred so a half-applied state is re-encrypted even when tofu exits
+      # non-zero - otherwise the applied changes are lost on the next decrypt
+      - defer: { task: _encrypt-state }
       - tofu apply {{.CLI_ARGS | default ""}}
-      - task: _encrypt-state
     preconditions: *tf-preconditions
-    prompt: "Run tofu apply? (tfstate.sops will be updated on success)"
+    prompt: "Run tofu apply? (tfstate.sops will be updated even if apply fails partway)"
 
   state-pull:
     desc: Force-refresh tfstate.sops from current tofu state (safe anytime)
