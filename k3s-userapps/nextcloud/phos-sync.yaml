@@ -1,0 +1,168 @@
+# Mirror the phos photo library into Nextcloud, replacing the S3 external
+# storage mount that used to expose it at /phos.
+#
+# Why not files_external any more: that mount pointed at the *public*
+# hostname (phos.kirillorlov.pro), so every directory listing left the
+# cluster, crossed the Hetzner edge and came back — and on top of that
+# phos' S3 implementation only answers *delimited* (one-directory-at-a-time)
+# LIST requests. A recursive ListObjectsV2 (no delimiter) returns an empty
+# result set instead of an error, which is what made the mount look empty
+# or half-broken at random. This job talks to the in-cluster Service and
+# passes `--disable ListR`, which forces rclone to walk directory by
+# directory — the only listing mode phos actually implements. Never add
+# `--fast-list` here: it silently syncs nothing.
+#
+# /Phos in Nextcloud is a *mirror*, not a place to put things: `rclone sync`
+# deletes anything there that phos no longer has, so treat it as read-only
+# the way the old mount was (it carried readonly: 1).
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: phos-sync
+  namespace: nextcloud
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: phos-sync
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    # phos-issued S3 access key (the same pair the old external storage
+    # mount used).
+    - secretKey: s3_access_key
+      remoteRef:
+        key: phos-sync
+        property: s3_access_key
+    - secretKey: s3_secret_key
+      remoteRef:
+        key: phos-sync
+        property: s3_secret_key
+    # Nextcloud app password, created with
+    # `occ user:auth-tokens:add --name=phos-sync i@kirillorlov.pro`.
+    # Revoking it in Settings → Security is all it takes to cut the job off.
+    - secretKey: webdav_user
+      remoteRef:
+        key: phos-sync
+        property: webdav_user
+    - secretKey: webdav_password
+      remoteRef:
+        key: phos-sync
+        property: webdav_password
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: phos-sync
+  namespace: nextcloud
+spec:
+  schedule: "17 * * * *"
+  # Forbid, not Replace: a run that is still uploading must not be cut off
+  # mid-file by the next hour's tick.
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      # Generous enough for the initial ~17 GiB seed (everything after that
+      # is a listing plus the handful of new files).
+      activeDeadlineSeconds: 10800
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: rclone
+              image: rclone/rclone:1.71.2
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                # Remotes are declared entirely through RCLONE_CONFIG_* env
+                # vars, so no config file (and no secret on disk) is needed.
+                - name: HOME
+                  value: /tmp
+                - name: RCLONE_CONFIG_PHOS_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_PHOS_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_PHOS_ENDPOINT
+                  value: http://phos.phos.svc
+                - name: RCLONE_CONFIG_PHOS_REGION
+                  value: us-east-1
+                - name: RCLONE_CONFIG_PHOS_FORCE_PATH_STYLE
+                  value: "true"
+                - name: RCLONE_CONFIG_PHOS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: phos-sync
+                      key: s3_access_key
+                - name: RCLONE_CONFIG_PHOS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: phos-sync
+                      key: s3_secret_key
+                - name: RCLONE_CONFIG_NC_TYPE
+                  value: webdav
+                # Uploading over WebDAV (rather than writing into the data
+                # dir on the RWX volume) keeps Nextcloud's file cache,
+                # previews and activity feed correct — no `occ files:scan`
+                # needed afterwards.
+                - name: RCLONE_CONFIG_NC_URL
+                  value: http://nextcloud.nextcloud.svc/remote.php/dav/files/i@kirillorlov.pro/
+                # vendor=nextcloud enables chunked uploads and the
+                # X-OC-Mtime header, so modification times survive the copy
+                # and the next run compares size+mtime and transfers nothing.
+                - name: RCLONE_CONFIG_NC_VENDOR
+                  value: nextcloud
+                - name: RCLONE_CONFIG_NC_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: phos-sync
+                      key: webdav_user
+                - name: WEBDAV_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: phos-sync
+                      key: webdav_password
+              command:
+                - /bin/sh
+                - -c
+                # rclone only accepts obscured passwords in config, so the
+                # plaintext app password from OpenBao is obscured at start-up
+                # instead of being stored pre-obscured (which would make the
+                # OpenBao entry unreadable to a human rotating it).
+                - |
+                  set -eu
+                  export RCLONE_CONFIG_NC_PASS="$(rclone obscure "$WEBDAV_PASSWORD")"
+                  exec rclone sync phos:phos nc:Phos \
+                    --disable ListR \
+                    --transfers 4 \
+                    --checkers 8 \
+                    --retries 2 \
+                    --stats 1m \
+                    --stats-one-line \
+                    -v
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: tmp
+              emptyDir: {}
