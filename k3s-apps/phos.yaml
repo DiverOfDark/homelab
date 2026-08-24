@@ -37,6 +37,9 @@ spec:
           size: 50Gi
           storageClassName: ceph-block
 
+        nodeSelector:
+          kubernetes.io/hostname: asgard
+
         phos:
           comfyuiUrl: "http://192.168.178.126:8188"
 
