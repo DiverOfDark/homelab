@@ -24,7 +24,7 @@ spec:
       # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
       parameters:
         - name: image.tag
-          value: latest
+          value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
         # gethomepage's pod-selector annotation expects this exact label.
         podLabels:
