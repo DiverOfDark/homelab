@@ -53,12 +53,8 @@ spec:
           resources:
             requests:
               cpu: 100m
-              # Reserve the tmpfs footprint at schedule time so asgard is never memory-overcommitted
-              # (no swap on Talos — overcommit would mean a node OOM next to etcd/apiserver).
-              memory: 20Gi
+              memory: 2Gi
             limits:
-              # MUST exceed the tmpfs sizeLimit (20Gi) + dockerd RSS. The in-RAM image store (shmem) is
-              # charged to this container's memory cgroup; if limit <= tmpfs cap, dind is OOM-killed when full.
               memory: 24Gi
       volumes:
         - name: data
@@ -86,8 +82,8 @@ metadata:
   name: shared-dind-prune
   namespace: github-runner
 spec:
-  # Every 3h: the docker store now lives in a 16Gi tmpfs (in shared-dind), so it must be kept lean
-  # to avoid ENOSPC mid-build. Tune frequency/retention by how fast the tmpfs fills under real CI load.
+  # Every 3h: keeps the docker store lean so builds don't hit ENOSPC. The store is a disk-backed
+  # emptyDir on the node's ephemeral storage (it used to be a tmpfs — hence the old memory sizing).
   schedule: "0 */3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
