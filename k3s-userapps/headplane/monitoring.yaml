@@ -50,6 +50,20 @@ spec:
       targets:
         - hermes.ts.kirillorlov.pro:9100
 ---
+# freya KubeVirt VM (second hermes instance) — same tailnet scrape as above.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: freya-nodeexporter
+  namespace: headplane
+spec:
+  metricsPath: /metrics
+  staticConfigs:
+    - labels:
+        job: freya
+      targets:
+        - freya.ts.kirillorlov.pro:9100
+---
 # headscale's own metrics (metrics_listen_addr 0.0.0.0:9090 in the ansible
 # config template) — same tailnet-only exposure as node_exporter above.
 apiVersion: monitoring.coreos.com/v1alpha1
