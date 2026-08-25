@@ -1,0 +1,93 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: freya
+spec:
+  runStrategy: Always
+  dataVolumeTemplates:
+    - metadata:
+        name: freya-root
+        labels:
+          velero.io/backup-type: "snapshot"
+      spec:
+        pvc:
+          # RWX + Block is what makes this VM live-migratable — KubeVirt refuses
+          # to migrate a VMI whose PVCs aren't shared. claw-root predates this
+          # and is stuck RWO (accessModes are immutable after binding).
+          accessModes:
+            - ReadWriteMany
+          storageClassName: ceph-block
+          volumeMode: Block
+          resources:
+            requests:
+              storage: 100Gi
+        source:
+          http:
+            url: https://cloudfront.debian.net/cdimage/cloud/trixie/latest/debian-13-generic-amd64.qcow2
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: freya
+    spec:
+      # Drain the node → migrate instead of shutting the guest down.
+      evictionStrategy: LiveMigrate
+      domain:
+        cpu:
+          cores: 2
+          model: host-passthrough
+        devices:
+          rng: { }
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+        resources:
+          requests:
+            memory: 4Gi
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: freya-root
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              users:
+                - name: diverofdark
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  groups: sudo
+                  shell: /bin/bash
+                  ssh_authorized_keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz5Mz8hwMB+mmNPB3g8NLUNq5SoWzoXRxOlSDQKpaGcPJCJaemXf3BVMFHdy/6pBnsrsD/aaA80ouJd40cu6jEdwy/9Z6VD65N8feNzV2xcdRoHUdAHyjyICkipX8kBTvhU4RznoGQFhunqwORuAhE4+7pEXyRHd/PUfKreYAXVuMGmh1Cs5WHmNLPje1VBdg4BgL9kSZbCkKlUsAp5KeAzvRHnJaCNAUkARDD4Bjdcm36uyctIg06AEMpun6GcEmMGSLoCwjl8S4SUCYbNbXK4mPmrGKS2Vm+tSbc3VH7JZwynHC8HQcAFiuQcXXM/j7UxWCyr8huvPTKILRIaZQZ g33k@ARCHER
+              package_update: true
+              package_upgrade: true
+              packages:
+                - qemu-guest-agent
+                - prometheus-node-exporter
+                - btop
+                - fastfetch
+                - tailscale
+              write_files:
+                - path: /etc/update-motd.d/01-fastfetch
+                  permissions: '0755'
+                  owner: root:root
+                  content: |
+                    #!/bin/sh
+                    fastfetch --pipe false
+
+              runcmd:
+                - systemctl enable --now qemu-guest-agent
+                - systemctl enable --now prometheus-node-exporter
+                - systemctl enable --now tailscaled
+                # Note: actual tailnet join (with authkey from headscale) is done via Ansible
+                # after adding the host to inventory/hosts.yaml under tailnet_members.
+                # See ansible/README.md for bootstrap steps.

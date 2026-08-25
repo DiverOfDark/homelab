@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+  name: freya
+spec:
+  rules:
+    - host: freya.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: freya-api
+                port:
+                  name: freya-api
+  tls:
+    - hosts:
+        - freya.kirillorlov.pro
+      secretName: freya-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://freya-ui.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Freya
+    gethomepage.dev/pod-selector: "kubevirt.io/domain=freya"
+  name: freya-ui
+spec:
+  rules:
+    - host: freya-ui.kirillorlov.pro
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: freya-api
+                port:
+                  name: freya-webui
+  tls:
+    - hosts:
+        - freya-ui.kirillorlov.pro
+      secretName: freya-ui-tls

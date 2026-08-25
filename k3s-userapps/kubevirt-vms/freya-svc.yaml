@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: freya-api
+spec:
+  type: LoadBalancer
+  # Next free address in the MetalLB pool (k3s-objects/metallb-pool.yaml);
+  # .20 is hermes-api, .21 is the voice-assistant STUNner.
+  loadBalancerIP: 192.168.179.22
+  selector:
+    kubevirt.io/domain: freya
+  ports:
+    - name: ssh
+      port: 22
+      # sshd in the guest listens on 22320 (base role, ssh_port host var);
+      # tailnet :22 is Tailscale SSH, which never hits this Service.
+      targetPort: 22320
+      protocol: TCP
+    - name: freya-api
+      port: 8642
+      targetPort: 8642
+      protocol: TCP
+    - name: freya-webui
+      port: 9119
+      targetPort: 9119
+      protocol: TCP
