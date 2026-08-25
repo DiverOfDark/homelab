@@ -31,6 +31,20 @@ spec:
     spec:
       # Drain the node → migrate instead of shutting the guest down.
       evictionStrategy: LiveMigrate
+      affinity:
+        nodeAffinity:
+          # Soft, not a nodeSelector: asgard is the preferred home, but the VM
+          # must stay schedulable elsewhere or evictionStrategy: LiveMigrate
+          # has nowhere to migrate to when asgard drains. Nothing pulls it back
+          # to asgard afterwards — re-run `virtctl migrate freya` by hand.
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - asgard
       domain:
         cpu:
           cores: 2
