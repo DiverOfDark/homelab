@@ -1,3 +1,8 @@
 # Must match local.bifrost_ssh_port in terraform/hetzner.tf (cloud-init moves
 # sshd off 22 on first boot; ansible only manages the full hardened config).
 ssh_port: 22320
+
+# Wall-clock timezone for every managed host. The Debian cloud images and the
+# Hetzner image both ship Etc/UTC, which made `journalctl`/`last` timestamps
+# disagree with everything else we look at (grafana, k8s events are local).
+system_timezone: Europe/Berlin

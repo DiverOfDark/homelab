@@ -14,3 +14,11 @@ swapfile_size_mb: 8192
 # a last-resort overflow at default priority (-2).
 swap_use_zram: false
 swap_zram_size_mb: 4096
+
+# Turn IPv6 off entirely (sysctl + sshd AddressFamily). Only for hosts on an
+# IPv4-only network: the KubeVirt VMs sit behind a pod network with no IPv6 at
+# all, where the only thing IPv6 achieved was a 120s systemd-networkd-wait-online
+# timeout on every boot. Leave false anywhere with real IPv6 (bifrost's public
+# hcloud address) — and note this also drops tailscale0's fd7a::/48 ULA, so the
+# tailnet runs IPv4-only (100.64.0.0/10) on these hosts.
+disable_ipv6: false

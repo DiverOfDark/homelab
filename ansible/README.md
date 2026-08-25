@@ -118,3 +118,51 @@ Bootstrap tailscale (one-time):
    (Tailscale is used for Ansible reachability now that the VM has joined the tailnet.)
 
 5. Run the playbook. From now on Ansible manages it over the tailnet (base + tailscale).
+
+## Freya (KubeVirt VM — second hermes instance)
+
+`freya` is a second Debian KubeVirt VM (`k3s-userapps/kubevirt-vms/freya-*.yaml`)
+running its own hermes-agent, for Kirill's wife. It is a copy of the claw/hermes
+VM with two deliberate differences:
+
+- its root DataVolume is **RWX + Block**, and the VM sets
+  `evictionStrategy: LiveMigrate`, so it live-migrates instead of being shut
+  down when a node drains. (`claw-root` is stuck RWO — accessModes are
+  immutable once the PVC is bound, so claw still can't migrate.)
+- no `sa-disk` / cluster-admin ServiceAccount — freya only runs hermes.
+
+Endpoints: `freya-api` LoadBalancer on `192.168.179.22`
+(:22 → guest :22320, :8642 API, :9119 WebUI), Ingresses `freya.kirillorlov.pro`
+(API) and `freya-ui.kirillorlov.pro` (dashboard).
+
+Bootstrap tailscale (one-time):
+
+1. Get preauth key: `bao kv get -field=authkey secret/headscale`
+
+2. `ssh diverofdark@192.168.179.22` from the LAN — works from first boot with
+   the cloud-init key. (cloud-init sets no password, so `virtctl console` is a
+   dead end; keep sshd on :22 so the Service's :22 -> :22 hop never breaks.)
+
+3. Inside the VM:
+   ```sh
+   curl -fsSL https://tailscale.com/install.sh | sh
+   tailscale up --login-server=https://headscale.kirillorlov.pro --authkey=<key>
+   tailscale status
+   ```
+
+4. Install hermes-agent in `~/.hermes` (app-managed, same as on hermes) — do
+   this *before* the playbook: the `hermes` role edits `~/.hermes/.env` and
+   fails if it doesn't exist yet. Give freya its **own** Telegram bot token /
+   API key; sharing hermes's would make both instances poll the same bot.
+
+5. `ansible-playbook playbooks/site.yaml --limit freya` — base hardening +
+   tailscale + the `hermes` role (caddy, `hermes-dashboard` user unit). Both
+   VMs are covered by the `hermes_vms` group.
+
+Check migratability once it is running:
+
+```sh
+kubectl get vmi freya -n kubevirt-vms -o jsonpath='{.status.conditions}' | jq
+# LiveMigratable must be True; then:
+virtctl migrate freya -n kubevirt-vms
+```

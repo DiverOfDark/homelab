@@ -40,14 +40,14 @@
       ansible.builtin.wait_for_connection:
         timeout: 60
 
-- name: Tailnet members (yggdrasil, alfheimr, hermes, ...)
+- name: Tailnet members (yggdrasil, alfheimr, hermes, freya, ...)
   hosts: tailnet_members
   roles:
     - base
     - tailscale
   post_tasks: *ssh_lockout_guard
 
-- name: Hermes VM — dashboard reverse proxy
-  hosts: hermes
+- name: Hermes VMs — dashboard reverse proxy (hermes, freya)
+  hosts: hermes_vms
   roles:
     - hermes

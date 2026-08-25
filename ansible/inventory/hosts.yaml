@@ -19,8 +19,12 @@ all:
     # Full management: base hardening + tailscale
     tailnet_members:
       vars:
-        # Not publicly exposed (behind NAT, reached over the tailnet) — sshd
-        # stays on 22. The non-default port is only for bifrost's public IP.
+        # NOTE: this override does NOT take effect. Group vars written inline
+        # in the inventory file are precedence 3; inventory/group_vars/all.yaml
+        # is precedence 4 and wins, so every host here actually runs sshd on
+        # 22320 (verified on hermes and freya). Kept and documented rather than
+        # silently dropped: actually moving these hosts to :22 would break the
+        # hermes-api / freya-api Services, which forward :22 -> :22320.
         ssh_port: 22
       hosts:
         yggdrasil:
@@ -59,3 +63,32 @@ all:
           # into cluster I/O. zram is the primary swap; /swapfile is only an
           # emergency overflow (see roles/base/tasks/swap.yaml).
           swap_use_zram: true
+        freya:
+          # KubeVirt VM (kubevirt-vms ns, name=freya) running a second hermes
+          # instance for Kirill's wife. Same shape as hermes, except its root
+          # PVC is RWX/Block so the VM can live-migrate between nodes.
+          # Managed over the tailnet (MagicDNS): ansible_port stays 22, which
+          # is Tailscale SSH — the guest's own sshd is on 22320, same as hermes
+          # (ssh_port from group_vars/all.yaml). If the tailscale path flaps
+          # under load the way hermes' does, switch ansible_host to the
+          # freya-api LoadBalancer at 192.168.179.22, whose :22 -> :22320.
+          ansible_host: 192.168.179.22
+          ansible_user: diverofdark
+          ansible_become: true
+          # Same port set as hermes: 8642 API, 9119 WebUI, 9100 node-exporter.
+          nftables_open_tcp_ports: [8642, 9119, 9100]
+          # Ceph RBD root disk — see the note on hermes above.
+          swap_use_zram: true
+    # Hosts running the hermes-agent stack (caddy + dashboard user unit).
+    hermes_vms:
+      vars:
+        # Both are KubeVirt VMs on an IPv4-only pod network (masquerade, guest
+        # gets 10.0.2.2/24 and nothing else). IPv6 bought us nothing there but a
+        # 120s systemd-networkd-wait-online timeout on every boot, because the
+        # link never reaches "routable" while it waits for RA/DHCPv6 that no one
+        # sends. Deliberately includes tailscale0 — the tailnet runs IPv4-only
+        # (100.64.0.0/10) on these two hosts.
+        disable_ipv6: true
+      hosts:
+        hermes:
+        freya:

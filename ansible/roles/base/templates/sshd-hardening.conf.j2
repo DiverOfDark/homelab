@@ -1,6 +1,11 @@
 # Managed by ansible (roles/base). Port must match terraform/hetzner.tf
 # local.bifrost_ssh_port and inventory ansible_port.
 Port {{ ssh_port }}
+{% if disable_ipv6 %}
+# Without this sshd still tries to bind [::]:{{ ssh_port }} and fails to start
+# once net.ipv6.conf.all.disable_ipv6 is set.
+AddressFamily inet
+{% endif %}
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin prohibit-password

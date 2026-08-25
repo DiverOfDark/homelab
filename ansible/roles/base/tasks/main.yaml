@@ -2,6 +2,19 @@
 - name: Configure apt sources (Debian testing)
   ansible.builtin.import_tasks: apt_sources.yaml
 
+# timedatectl rather than community.general.timezone: no requirements.yml in
+# this repo, so keep the base role on ansible-core built-ins only.
+- name: Read current timezone
+  ansible.builtin.command: timedatectl show -p Timezone --value
+  register: base_current_tz
+  changed_when: false
+  check_mode: false
+
+- name: Set system timezone
+  ansible.builtin.command: timedatectl set-timezone {{ system_timezone }}
+  when: base_current_tz.stdout != system_timezone
+  changed_when: true
+
 - name: Swapfile for low-memory hosts
   ansible.builtin.import_tasks: swap.yaml
 
@@ -19,6 +32,17 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
+
+# These arrived via cloud-init on the KubeVirt VMs only, and from the stock
+# image suite — freya ended up on fastfetch 2.40.4 (renders the logo and no
+# info column at all) while hermes had 2.66.0. Managing them here converges
+# every host on the testing version instead of whatever the image shipped.
+- name: Install shell/diagnostic tools
+  ansible.builtin.apt:
+    name:
+      - fastfetch
+      - btop
+    state: latest
 
 - name: Enable node exporter
   ansible.builtin.service:
@@ -80,6 +104,28 @@
       APT::Periodic::Unattended-Upgrade "1";
     mode: "0644"
 
+# Debian phases testing rollouts by machine-id, so a host can sit on a months-old
+# package while `apt upgrade` reports nothing to do — that is exactly how freya
+# stayed on fastfetch 2.40.4 with 2.66.0 marked "phased 17%". We want every host
+# on the same version, so opt out of phasing.
+- name: Don't let phased rollouts pin hosts to stale versions
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/25phased-updates
+    content: |
+      APT::Get::Always-Include-Phased-Updates "true";
+    mode: "0644"
+
+# Was written by cloud-init on the KubeVirt VMs only. pam_motd runs
+# /etc/update-motd.d via run-parts on login and caches the result in
+# /run/motd.dynamic.
+- name: Show fastfetch on login (motd)
+  ansible.builtin.copy:
+    dest: /etc/update-motd.d/01-fastfetch
+    content: |
+      #!/bin/sh
+      fastfetch --pipe false
+    mode: "0755"
+
 - name: Basic kernel hardening sysctls
   ansible.builtin.copy:
     dest: /etc/sysctl.d/90-hardening.conf
@@ -95,7 +141,28 @@
     mode: "0644"
   register: sysctl_conf
 
+- name: Disable IPv6
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/91-disable-ipv6.conf
+    # `all` covers tailscale0 too, so tailscaled runs IPv4-only here. lo is
+    # included because nothing on these hosts binds ::1 (caddy and the hermes
+    # dashboard are both on 127.0.0.1) — check before enabling this elsewhere.
+    content: |
+      net.ipv6.conf.all.disable_ipv6 = 1
+      net.ipv6.conf.default.disable_ipv6 = 1
+      net.ipv6.conf.lo.disable_ipv6 = 1
+    mode: "0644"
+  when: disable_ipv6
+  register: sysctl_ipv6
+
+- name: Re-enable IPv6 where it was previously disabled
+  ansible.builtin.file:
+    path: /etc/sysctl.d/91-disable-ipv6.conf
+    state: absent
+  when: not disable_ipv6
+  register: sysctl_ipv6_removed
+
 - name: Apply sysctls
   ansible.builtin.command: sysctl --system
-  when: sysctl_conf.changed
+  when: sysctl_conf.changed or sysctl_ipv6.changed | default(false) or sysctl_ipv6_removed.changed | default(false)
   changed_when: true
