@@ -112,19 +112,39 @@ spec:
                 secretKeyRef:
                   name: actualbudget
                   key: apikey
+            - name: BUDGET_SYNC_ID
+              valueFrom:
+                secretKeyRef:
+                  name: actualbudget
+                  key: syncid
           ports:
             - containerPort: 5007
               protocol: TCP
               name: "http"
+          # The process caches one @actual-app/api client (and its actual-server
+          # session token) and recycles it on an hourly timer. If the shutdown()
+          # in that timer throws -- which it does once the cached token stops being
+          # accepted -- the client is never nulled out, so every later sync fails
+          # with `PostError: unauthorized` forever while the process stays healthy.
+          # /api-docs keeps returning 200 through all of that, so liveness has to
+          # hit a budget-scoped route instead: those open the budget and run a real
+          # sync, and answer 500 when the cached session is dead. A restart re-inits
+          # the client with a fresh login, which is the only known recovery.
           livenessProbe:
-            httpGet:
-              path: /api-docs
-              port: 5007
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'wget -q -O /dev/null --header="x-api-key: $API_KEY" "http://127.0.0.1:5007/v1/budgets/$BUDGET_SYNC_ID/accounts"'
+            initialDelaySeconds: 90
+            # Each probe reloads the budget and syncs, so keep it infrequent;
+            # two failures (~10 min) before restarting rides out server blips.
+            periodSeconds: 300
+            timeoutSeconds: 60
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 2
+          # Readiness stays cheap: a slow sync should not pull the pod out of the
+          # Service, only a persistently broken client should restart it.
           readinessProbe:
             httpGet:
               path: /api-docs
