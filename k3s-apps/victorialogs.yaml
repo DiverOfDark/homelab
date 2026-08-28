@@ -159,12 +159,33 @@ spec:
           minAvailable: 1
         server:
           replicaCount: 2
-          retentionPeriod: 7d
+          retentionPeriod: 30d
           retentionDiskSpaceUsage: 15 # GB
+
+          # Without a cgroup memory limit VictoriaLogs sizes its caches to 60%
+          # of the WHOLE node (~9.8GB on jotunheimr's 16GB) and the pod lands in
+          # BestEffort QoS — so the kernel OOM killer picks it first. That's what
+          # killed server-1 13x after the 2026-08-25 node reboot (exit 137,
+          # Reason: Error, no SIGTERM = system OOM, not a cgroup OOM). A memory
+          # limit fixes both: caches size to 60% of 2Gi and QoS becomes Burstable.
+          # No CPU limit on purpose — throttling merges hurts and doesn't help.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
 
           persistentVolume:
             enabled: true
             storageClassName: ceph-block
+            # Live PVCs are 20Gi (grown out-of-band), but this MUST stay 10Gi:
+            # a StatefulSet's volumeClaimTemplates are immutable, so rendering
+            # 20Gi makes ArgoCD sync fail ("updates to statefulset spec for
+            # fields other than 'replicas'/'template'/... are forbidden").
+            # Aligning it needs `kubectl delete sts --cascade=orphan` first.
+            # Trap: a 3rd replica would get a 10Gi volume with a 15GB retention
+            # cap — grow this (via the orphan dance) before raising replicaCount.
             size: 10Gi
 
           ingress:
