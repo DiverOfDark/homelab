@@ -239,6 +239,13 @@ spec:
 
         configuration:
           itemBlockWorkerCount: 4
+          # garage (yggdrasil) returns composite multipart checksums that
+          # aws-sdk-go-v2's default integrity validation rejects ("checksum did
+          # not match: algorithm CRC32"), which blocked expired-backup deletion
+          # since plugin v1.14.2 and filled yggdrasil's disk
+          extraEnvVars:
+            AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+            AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
           backupStorageLocation:
           - name: yggdrasil
             default: true
@@ -251,6 +258,7 @@ spec:
               region: us-east-1
               s3ForcePathStyle: true
               s3Url: http://yggdrasil.ts.kirillorlov.pro:3900/
+              checksumAlgorithm: ""
           - name: wasabi
             provider: aws
             bucket: diverofdark-homelab-backup
