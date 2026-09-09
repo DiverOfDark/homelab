@@ -244,8 +244,10 @@ spec:
           # not match: algorithm CRC32"), which blocked expired-backup deletion
           # since plugin v1.14.2 and filled yggdrasil's disk
           extraEnvVars:
-            AWS_REQUEST_CHECKSUM_CALCULATION: when_required
-            AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: when_required
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: when_required
           backupStorageLocation:
           - name: yggdrasil
             default: true
