@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ipadpub
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Pull the helm chart straight from the source repo's master branch.
+    # The chart lives at helm/ipadpub and moves in lockstep with the Rust
+    # code that produces the image.
+    repoURL: https://github.com/DiverOfDark/ipadpub.git
+    targetRevision: master
+    path: helm/ipadpub
+    helm:
+      # Image tag is set via --set so Argo's build-environment substitution
+      # kicks in (interpolation does NOT work inside valuesObject). CI
+      # publishes ghcr.io/diverofdark/ipadpub:sha-<7-char-sha> for every
+      # commit, so this resolves to the exact image built from the commit
+      # Argo is currently syncing.
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
+      parameters:
+        - name: image.tag
+          value: sha-$ARGOCD_APP_REVISION_SHORT
+      valuesObject:
+        # gethomepage's pod-selector annotation expects this exact label.
+        podLabels:
+          app.kubernetes.io/pod: ipadpub
+
+        persistence:
+          size: 20Gi
+          storageClassName: ceph-block
+
+        oidc:
+          issuer: https://auth.kirillorlov.pro
+          # existingSecret defaults to "ipadpub-oidc" — created by the
+          # ExternalSecret in additionalObjects below.
+
+        # HTTPS entry for Ofira's /admin (OIDC login).
+        ingress:
+          enabled: true
+          className: traefik
+          host: ipadpub.kirillorlov.pro
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            # Opt into the Hetzner-edge twin: kyverno's generate-external-ingress
+            # policy clones this Ingress onto the traefik-external class.
+            kirillorlov.pro/expose: external
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://ipadpub.kirillorlov.pro/admin"
+            gethomepage.dev/group: Apps
+            gethomepage.dev/name: iPad Books
+            gethomepage.dev/pod-selector: "app.kubernetes.io/pod=ipadpub"
+            gethomepage.dev/description: "Book shelf for mom's iPad"
+          tls:
+            - hosts:
+                - ipadpub.kirillorlov.pro
+              secretName: ipadpub-tls
+
+        # Plain-HTTP entry for mom's iPad 1 (iOS 5 can't do modern TLS):
+        # a traefik-external IngressRoute on `web` for everything except
+        # /admin and /auth. Only works together with the lowered redirect
+        # priority in k3s-apps/traefik-external.yaml
+        # (ports.web.http.redirections.entryPoint.priority).
+        plainHttp:
+          enabled: true
+          ingressClass: traefik-external
+          priority: 1000001
+
+        additionalObjects:
+          # Zitadel credentials written to OpenBao by terraform/zitadel.tf
+          # (zitadel_credentials for_each entry ipadpub).
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: ipadpub-oidc
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: ipadpub-oidc
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: client_id
+                  remoteRef:
+                    key: zitadel/ipadpub-credentials
+                    property: client_id
+                - secretKey: client_secret
+                  remoteRef:
+                    key: zitadel/ipadpub-credentials
+                    property: client_secret
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ipadpub
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

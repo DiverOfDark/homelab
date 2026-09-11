@@ -48,6 +48,16 @@ spec:
                     to: websecure
                     scheme: https
                     permanent: true
+                    # In Traefik 3.7 the redirect is its own catch-all router
+                    # with default priority MaxInt-1, which beats every user
+                    # router (those are capped at MaxInt-1000). ipadpub needs a
+                    # plain-HTTP route for an iOS 5 iPad that can't do modern
+                    # TLS; its IngressRoute (priority 1000001) outranks this.
+                    # Routers without an explicit priority use their rule
+                    # length, so every other host still redirects.
+                    # Quoted on purpose: a bare number reaches the chart as a
+                    # float and renders as `priority=1e+06`.
+                    priority: "1000000"
             websecure:
               hostPort: 443
               http3:
