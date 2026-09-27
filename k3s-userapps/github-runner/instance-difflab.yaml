@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-difflab
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.14.2
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+        githubConfigUrl: "https://github.com/DiverOfDark/difflab"
+        githubConfigSecret: github-secret
+
+        # No containerMode: difflab's image workflow runs steps directly on the runner (no job
+        # `container:`), which kubernetes-novolume refuses. Docker/buildx talk to shared-dind instead.
+        # One runner at a time: each card's build is a 10 GB+ CUDA image on asgard's SATA SSD, which it
+        # shares with etcd — the matrix runs serially rather than tripling the I/O.
+        maxRunners: 1
+        minRunners: 0
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner"
+
+        template:
+          spec:
+            restartPolicy: Never
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values:
+                            - asgard
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: DOCKER_HOST
+                    value: tcp://shared-dind.github-runner.svc:2375
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 512Mi
+                  limits:
+                    cpu: "2"
+                    memory: 4Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
