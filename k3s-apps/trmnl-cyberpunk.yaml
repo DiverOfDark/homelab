@@ -49,6 +49,15 @@ spec:
 
         trackhoundBaseUrl: "https://trackhound.kirillorlov.pro"
 
+        # Memo written in the web editor at / is stored on this volume
+        # ($DATA_DIR/note.md). CephFS + ReadWriteMany lets old and new pod
+        # mount it together, so the chart keeps rolling updates.
+        persistence:
+          enabled: true
+          storageClass: ceph-filesystem
+          accessMode: ReadWriteMany
+          size: 64Mi
+
         # Pull every secret from OpenBao via external-secrets-operator. The
         # ExternalSecret produces a plain Secret named "trmnl-cyberpunk"
         # which the deployment consumes via envFrom.
