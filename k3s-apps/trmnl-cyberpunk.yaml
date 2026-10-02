@@ -49,6 +49,10 @@ spec:
 
         trackhoundBaseUrl: "https://trackhound.kirillorlov.pro"
 
+        # Desk screen: contribution heatmap of this GitHub account (public
+        # profile calendar, no token needed).
+        githubUser: "DiverOfDark"
+
         # Memo written in the web editor at / is stored on this volume
         # ($DATA_DIR/note.md). CephFS + ReadWriteMany lets old and new pod
         # mount it together, so the chart keeps rolling updates.
