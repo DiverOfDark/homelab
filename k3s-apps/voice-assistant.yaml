@@ -61,6 +61,10 @@ spec:
               remoteKey: voice-assistant/elevenlabs
               property: api_key
         esp32Compat: true
+        # Femto StackChan: live Claude usage for the butler persona, from
+        # trmnl-cyberpunk's /api/stackchan/usage.
+        stackchan:
+          usageUrl: https://trmnl.kirillorlov.pro
         # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
         # 192.168.179.21 is a free IP in the MetalLB pool.
         stunner:
