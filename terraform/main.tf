@@ -11,7 +11,7 @@ terraform {
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "5.9.0"
+      version = "5.12.0"
     }
     aws = {
       source  = "registry.terraform.io/hashicorp/aws"
