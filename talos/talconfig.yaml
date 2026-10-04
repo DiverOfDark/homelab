@@ -467,7 +467,9 @@ controlPlane:
           - issuer:
               url: https://auth.kirillorlov.pro
               audiences:
-                - ${HEADLAMP_OIDC_CLIENT_ID}
+                # quoted: an unquoted numeric client_id becomes a YAML int and fails
+                # Talos' typed validation of AuthenticationConfiguration
+                - "${HEADLAMP_OIDC_CLIENT_ID}"
             claimValidationRules:
               - expression: "claims.?email_verified.orValue(true) == true"
                 message: email must be verified
