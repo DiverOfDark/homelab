@@ -33,7 +33,8 @@ spec:
         - --source=ingress
         - --source=traefik-proxy
         - --registry=noop
-        # - --policy=upsert-only
+        # Required since v0.22 (no default). sync = the old implicit default.
+        - --policy=sync
         - --provider=pihole
         - --pihole-api-version=6
         - --pihole-server=http://192.168.178.2
