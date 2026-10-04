@@ -45,6 +45,16 @@
         "actualbudget/actual-server"
       ],
       "enabled": false
+    },
+    {
+      "description": "Emby: odd minor versions (4.9, 4.11, ...) are beta builds; stay on stable even minors.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "emby/embyserver"
+      ],
+      "allowedVersions": "/^\\d+\\.\\d*[02468]\\.\\d+\\.\\d+$/"
     }
   ],
   "customManagers": [
