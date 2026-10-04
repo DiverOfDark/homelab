@@ -295,6 +295,14 @@ schematic: &schematic
 
 # Patches applied to all nodes
 patches:
+  # Talos 1.14 moved host DNS out of machine.features into ResolverConfig;
+  # setting both fails validation ("already set in v1alpha1 config").
+  - |-
+    apiVersion: v1alpha1
+    kind: ResolverConfig
+    hostDNS:
+      enabled: false
+      forwardKubeDNSToHost: false
   - |-
     machine:
       kubelet:
@@ -327,9 +335,6 @@ patches:
         kubePrism:
           enabled: true
           port: 7445
-        hostDNS:
-          enabled: false
-          forwardKubeDNSToHost: false
       logging:
         destinations:
           - endpoint: udp://127.0.0.1:5050
@@ -338,12 +343,9 @@ patches:
     cluster:
       coreDNS:
         disabled: true
-      discovery:
-        enabled: true
-        registries:
-          kubernetes:
-            disabled: true
-          service: {}
+      # discovery: Talos 1.14 generates DiscoveryServiceConfig (discovery.talos.dev)
+      # by default and dropped the Kubernetes registry — same as the old
+      # `enabled: true, kubernetes.disabled: true`, so nothing to set here.
   - |-
     apiVersion: v1alpha1
     kind: KmsgLogConfig
@@ -417,106 +419,6 @@ controlPlane:
               - system-upgrade
     - |-
       cluster:
-        apiServer:
-          # OIDC (Zitadel) end-to-end auth. Headlamp (and any kubectl context set
-          # up the same way) logs the user in against Zitadel and forwards the
-          # resulting id_token to the API server; these flags make the API server
-          # validate it and map it to a user for RBAC (see
-          # k3s-objects/oidc-admin-rbac.yaml). oidc-client-id is the Headlamp
-          # Zitadel client_id, injected via envsubst from HEADLAMP_OIDC_CLIENT_ID
-          # (exported by flake.nix from OpenBao) — so `tofu apply` (which creates
-          # the Zitadel app) must precede regenerating configs, and genconfig must
-          # run inside the nix devshell with `bao` logged in, or the value renders
-          # empty and the API server refuses to start with an issuer set.
-          # Additive: existing PKI / ServiceAccount auth is untouched, and if
-          # Zitadel is unreachable only OIDC logins fail (JWKS fetch is retried,
-          # startup is not blocked on k8s 1.36).
-          extraArgs:
-            oidc-issuer-url: https://auth.kirillorlov.pro
-            oidc-client-id: ${HEADLAMP_OIDC_CLIENT_ID}
-            oidc-username-claim: email
-            oidc-username-prefix: "oidc:"
-          disablePodSecurityPolicy: true
-          admissionControl:
-            - name: PodSecurity
-              configuration:
-                apiVersion: pod-security.admission.config.k8s.io/v1alpha1
-                defaults:
-                  audit: restricted
-                  audit-version: latest
-                  enforce: baseline
-                  enforce-version: latest
-                  warn: restricted
-                  warn-version: latest
-                exemptions:
-                  namespaces: []
-                  runtimeClasses: []
-                  usernames:
-                    - system:serviceaccount:velero:velero-server
-                kind: PodSecurityConfiguration
-          # Audit policy is on the etcd-disk write path: every API call lands in
-          # /var/log/audit/kube on the system SATA SSD. The default
-          # "Metadata for everything" generates ~100MB every 20 min — most of
-          # it leader-election lease renewals, kubelet self-status, controller
-          # endpoint-slice churn, and healthz probes. Filter the noise to
-          # leave only meaningful events.
-          auditPolicy:
-            apiVersion: audit.k8s.io/v1
-            kind: Policy
-            omitStages:
-              - RequestReceived
-            rules:
-              # Non-resource URLs (healthz/livez/readyz/metrics/openapi) — pure noise.
-              - level: None
-                nonResourceURLs:
-                  - /healthz*
-                  - /livez*
-                  - /readyz*
-                  - /version*
-                  - /metrics*
-                  - /openapi*
-                  - /swagger*
-              # Leader-election leases — kube-controller-manager / kube-scheduler
-              # renew every 2s, every controller does the same. ~1 audit line per
-              # renewal across dozens of controllers.
-              - level: None
-                resources:
-                  - group: coordination.k8s.io
-                    resources: ["leases"]
-                verbs: ["get", "update", "patch"]
-              # Controllers list/watch endpointslices and endpoints constantly.
-              - level: None
-                resources:
-                  - group: discovery.k8s.io
-                    resources: ["endpointslices"]
-                  - group: ""
-                    resources: ["endpoints"]
-                verbs: ["get", "list", "watch"]
-              # Events are high-volume and already captured by the event store.
-              - level: None
-                resources:
-                  - group: ""
-                    resources: ["events"]
-              # Kubelet self-status / node lease — every node every 10s.
-              - level: None
-                userGroups: ["system:nodes"]
-                verbs: ["get", "list", "watch", "patch", "update"]
-                resources:
-                  - group: ""
-                    resources: ["nodes", "nodes/status"]
-              # Core control-plane components doing read traffic — already
-              # implicit in their function, audit trail not useful.
-              - level: None
-                users:
-                  - system:kube-scheduler
-                  - system:kube-controller-manager
-                  - system:apiserver
-                verbs: ["get", "list", "watch"]
-              # Everything else: keep Metadata so the audit trail still exists
-              # for real authn/authz events, writes, and exec/portforward.
-              - level: Metadata
-        proxy:
-          disabled: true
         etcd:
           # Pin etcd peer advertisement to the LAN. Same failure mode as the
           # kubelet nodeIP pin above: once tailscale0 exists, etcd re-elects
@@ -531,18 +433,156 @@ controlPlane:
             # election-timeout must be >= 5× heartbeat-interval.
             heartbeat-interval: "250"
             election-timeout: "2500"
-        controllerManager:
-          extraArgs:
-            bind-address: 0.0.0.0
-            # Default is 12500 — way above any realistic count for this
-            # cluster — so terminated ReplicaSet-owned pods (e.g. Ceph
-            # daemons that crash during an MDS hiccup, or any RS pod
-            # left in Failed/Completed state after a rolling update)
-            # never get garbage-collected by Kubernetes' built-in podGC.
-            # kube-cleanup-operator handles Job/CronJob-spawned pods,
-            # not RS-spawned ones, so without lowering this the cluster
-            # accumulates Failed pods indefinitely.
-            terminated-pod-gc-threshold: "200"
-        scheduler:
-          extraArgs:
-            bind-address: 0.0.0.0
+    # Talos 1.14 moved .cluster.apiServer / .cluster.proxy into standalone
+    # documents; setting both fails validation.
+    - |-
+      # talhelper doesn't map additionalApiServerCertSans into the 1.14
+      # KubeAPIServerConfig document; without this the API server cert loses
+      # the cluster endpoint VIP.
+      apiVersion: v1alpha1
+      kind: KubeAPIServerConfig
+      certExtraSANs:
+        - 192.168.179.2
+    - |-
+      # OIDC (Zitadel) end-to-end auth. Headlamp (and any kubectl context set
+      # up the same way) logs the user in against Zitadel and forwards the
+      # resulting id_token to the API server; these flags make the API server
+      # validate it and map it to a user for RBAC (see
+      # k3s-objects/oidc-admin-rbac.yaml). oidc-client-id is the Headlamp
+      # Zitadel client_id, injected via envsubst from HEADLAMP_OIDC_CLIENT_ID
+      # (exported by flake.nix from OpenBao) — so `tofu apply` (which creates
+      # the Zitadel app) must precede regenerating configs, and genconfig must
+      # run inside the nix devshell with `bao` logged in, or the value renders
+      # empty and the API server refuses to start with an issuer set.
+      # Additive: existing PKI / ServiceAccount auth is untouched, and if
+      # Zitadel is unreachable only OIDC logins fail (JWKS fetch is retried,
+      # startup is not blocked on k8s 1.36).
+      # Talos 1.14 rejects the --oidc-* flags; same settings as structured
+      # AuthenticationConfiguration. The email_verified rule reproduces what
+      # --oidc-username-claim=email enforced implicitly.
+      apiVersion: v1alpha1
+      kind: KubeAuthenticationConfig
+      configuration:
+        jwt:
+          - issuer:
+              url: https://auth.kirillorlov.pro
+              audiences:
+                # quoted: an unquoted numeric client_id becomes a YAML int and fails
+                # Talos' typed validation of AuthenticationConfiguration
+                - "${HEADLAMP_OIDC_CLIENT_ID}"
+            claimValidationRules:
+              - expression: "claims.?email_verified.orValue(true) == true"
+                message: email must be verified
+            claimMappings:
+              username:
+                claim: email
+                prefix: "oidc:"
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeAdmissionControlConfig
+      name: PodSecurity
+      configuration:
+        apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+        defaults:
+          audit: restricted
+          audit-version: latest
+          enforce: baseline
+          enforce-version: latest
+          warn: restricted
+          warn-version: latest
+        exemptions:
+          namespaces: []
+          runtimeClasses: []
+          usernames:
+            - system:serviceaccount:velero:velero-server
+        kind: PodSecurityConfiguration
+    - |-
+      # Audit policy is on the etcd-disk write path: every API call lands in
+      # /var/log/audit/kube on the system SATA SSD. The default
+      # "Metadata for everything" generates ~100MB every 20 min — most of
+      # it leader-election lease renewals, kubelet self-status, controller
+      # endpoint-slice churn, and healthz probes. Filter the noise to
+      # leave only meaningful events.
+      apiVersion: v1alpha1
+      kind: KubeAuditPolicyConfig
+      configuration:
+        apiVersion: audit.k8s.io/v1
+        kind: Policy
+        omitStages:
+          - RequestReceived
+        rules:
+          # Non-resource URLs (healthz/livez/readyz/metrics/openapi) — pure noise.
+          - level: None
+            nonResourceURLs:
+              - /healthz*
+              - /livez*
+              - /readyz*
+              - /version*
+              - /metrics*
+              - /openapi*
+              - /swagger*
+          # Leader-election leases — kube-controller-manager / kube-scheduler
+          # renew every 2s, every controller does the same. ~1 audit line per
+          # renewal across dozens of controllers.
+          - level: None
+            resources:
+              - group: coordination.k8s.io
+                resources: ["leases"]
+            verbs: ["get", "update", "patch"]
+          # Controllers list/watch endpointslices and endpoints constantly.
+          - level: None
+            resources:
+              - group: discovery.k8s.io
+                resources: ["endpointslices"]
+              - group: ""
+                resources: ["endpoints"]
+            verbs: ["get", "list", "watch"]
+          # Events are high-volume and already captured by the event store.
+          - level: None
+            resources:
+              - group: ""
+                resources: ["events"]
+          # Kubelet self-status / node lease — every node every 10s.
+          - level: None
+            userGroups: ["system:nodes"]
+            verbs: ["get", "list", "watch", "patch", "update"]
+            resources:
+              - group: ""
+                resources: ["nodes", "nodes/status"]
+          # Core control-plane components doing read traffic — already
+          # implicit in their function, audit trail not useful.
+          - level: None
+            users:
+              - system:kube-scheduler
+              - system:kube-controller-manager
+              - system:apiserver
+            verbs: ["get", "list", "watch"]
+          # Everything else: keep Metadata so the audit trail still exists
+          # for real authn/authz events, writes, and exec/portforward.
+          - level: Metadata
+    - |-
+      # kube-proxy replaced by Cilium (kubeProxyReplacement).
+      apiVersion: v1alpha1
+      kind: KubeProxyConfig
+      enabled: false
+    # Talos 1.14 moved these out of .cluster.{controllerManager,scheduler}
+    # into standalone documents; setting both fails validation.
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeControllerManagerConfig
+      extraArgs:
+        bind-address: 0.0.0.0
+        # Default is 12500 — way above any realistic count for this
+        # cluster — so terminated ReplicaSet-owned pods (e.g. Ceph
+        # daemons that crash during an MDS hiccup, or any RS pod
+        # left in Failed/Completed state after a rolling update)
+        # never get garbage-collected by Kubernetes' built-in podGC.
+        # kube-cleanup-operator handles Job/CronJob-spawned pods,
+        # not RS-spawned ones, so without lowering this the cluster
+        # accumulates Failed pods indefinitely.
+        terminated-pod-gc-threshold: "200"
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeSchedulerConfig
+      extraArgs:
+        bind-address: 0.0.0.0
