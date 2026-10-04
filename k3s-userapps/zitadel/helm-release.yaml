@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://charts.zitadel.com
-    targetRevision: 10.0.4
+    targetRevision: 10.0.6
     chart: zitadel
     helm:
       valuesObject:
