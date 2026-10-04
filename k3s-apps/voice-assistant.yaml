@@ -11,13 +11,15 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    # Pipecat voice assistant — Helm chart lives in its own repo.
-    repoURL: https://github.com/DiverOfDark/pipecat-voice-assistant.git
+    # Femto voice backend (pipecat) — Helm chart lives in the stackchan repo.
+    repoURL: https://github.com/DiverOfDark/stackchan.git
     targetRevision: HEAD
-    path: chart
+    path: backend/chart
     helm:
       releaseName: voice-assistant
       parameters:
+        - name: image.repository
+          value: ghcr.io/diverofdark/stackchan-voice
         - name: image.tag
           value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
@@ -61,6 +63,10 @@ spec:
               remoteKey: voice-assistant/elevenlabs
               property: api_key
         esp32Compat: true
+        # Femto StackChan: live Claude usage for the butler persona, from
+        # trmnl-cyberpunk's /api/stackchan/usage.
+        stackchan:
+          usageUrl: https://trmnl.kirillorlov.pro
         # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
         # 192.168.179.21 is a free IP in the MetalLB pool.
         stunner:
