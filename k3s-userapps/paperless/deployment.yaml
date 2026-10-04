@@ -49,7 +49,7 @@ spec:
             timeoutSeconds: 3
             successThreshold: 1
             failureThreshold: 15
-        - image: 'ghcr.io/paperless-ngx/paperless-ngx:2.20.15'
+        - image: 'ghcr.io/paperless-ngx/paperless-ngx:3.2.1'
           name: paperless
           ports:
             - containerPort: 8000
@@ -58,6 +58,12 @@ spec:
           env:
             - name: PAPERLESS_PORT
               value: "8000"
+            # Keep v2 behaviour: v3 defaults to skipping archives for born-digital
+            # PDFs and to accepting duplicate documents.
+            - name: PAPERLESS_ARCHIVE_FILE_GENERATION
+              value: always
+            - name: PAPERLESS_CONSUMER_DELETE_DUPLICATES
+              value: "true"
             - name: PAPERLESS_REDIS
               value: redis://localhost:6379
             - name: PAPERLESS_OCR_LANGUAGES
