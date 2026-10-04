@@ -433,6 +433,31 @@ controlPlane:
             # election-timeout must be >= 5× heartbeat-interval.
             heartbeat-interval: "250"
             election-timeout: "2500"
+    # CRITICAL: Talos 1.14 generates this as secretbox key "key1" with no
+    # identity fallback, but the cluster was created with the v1alpha1 config,
+    # which names the same secret "key2" (+ identity). Data in etcd is tagged
+    # with the key name, so key1 makes kube-apiserver unable to read ANY Secret
+    # (2026-10-04, jotunheimr). Must match the live encryption config exactly.
+    # Lists merge by appending, so drop the generated document first.
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeEtcdEncryptionConfig
+      $$patch: delete
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeEtcdEncryptionConfig
+      config:
+        apiVersion: v1
+        kind: EncryptionConfig
+        resources:
+          - resources:
+              - secrets
+            providers:
+              - secretbox:
+                  keys:
+                    - name: key2
+                      secret: ${SECRETBOX_ENCRYPTION_SECRET}
+              - identity: {}
     # Talos 1.14 moved .cluster.apiServer / .cluster.proxy into standalone
     # documents; setting both fails validation.
     - |-
