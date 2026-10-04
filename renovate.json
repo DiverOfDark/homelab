@@ -55,6 +55,27 @@
         "emby/embyserver"
       ],
       "allowedVersions": "/^\\d+\\.\\d*[02468]\\.\\d+\\.\\d+$/"
+    },
+    {
+      "description": "Ceph: x.0/x.1 releases are dev/RC; only offer stable x.2.z.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "quay.io/ceph/ceph"
+      ],
+      "allowedVersions": "/^v\\d+\\.2\\.\\d+$/"
+    },
+    {
+      "description": "CNPG ClusterImageCatalog entries are digest-pinned per PG major; the regex manager only bumps the tag (not the digest), producing misleading PRs. Clusters set imageName directly.",
+      "matchFileNames": [
+        "k3s-apps/cnpg-postgres-operator.yaml"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/cloudnative-pg/postgresql",
+        "ghcr.io/cloudnative-pg/postgis"
+      ],
+      "enabled": false
     }
   ],
   "customManagers": [
