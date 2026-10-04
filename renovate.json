@@ -76,6 +76,16 @@
         "ghcr.io/cloudnative-pg/postgis"
       ],
       "enabled": false
+    },
+    {
+      "description": "cloudflare provider 5.26.0+ breaks apply: modified_on 'inconsistent result' (cloudflare/terraform-provider-cloudflare#7387) and include_shadow_metadata PUT rejected on Email Routing records (#7396). Lift once both are fixed.",
+      "matchDatasources": [
+        "terraform-provider"
+      ],
+      "matchPackageNames": [
+        "cloudflare/cloudflare"
+      ],
+      "allowedVersions": "<5.26.0"
     }
   ],
   "customManagers": [
