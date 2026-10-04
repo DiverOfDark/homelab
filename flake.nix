@@ -3,6 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Bumped independently of `nixpkgs` so talosctl/talhelper can track the
+    # cluster's Talos version without dragging opentofu & co. along.
+    nixpkgs-talos.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     peelbox = {
       url = "github:DiverOfDark/peelbox";
@@ -10,10 +13,11 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, peelbox }:
+  outputs = { self, nixpkgs, nixpkgs-talos, flake-utils, peelbox }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+        talosPkgs = import nixpkgs-talos { inherit system; };
         peelboxPkg = pkgs.rustPlatform.buildRustPackage {
           pname = "peelbox";
           version = "0.4.0";
@@ -40,8 +44,8 @@
             pkgs.kubectl
             pkgs.kubectx
             pkgs.kubernetes-helm
-            pkgs.talosctl
-            pkgs.talhelper
+            talosPkgs.talosctl
+            talosPkgs.talhelper
             pkgs.argocd
             pkgs.k9s
             pkgs.krew
