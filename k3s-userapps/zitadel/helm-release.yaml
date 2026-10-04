@@ -7,6 +7,22 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
+  # The chart's login-service keypair comes from `lookup` (reuse existing) or
+  # genSelfSignedCert. ArgoCD renders via `helm template`, where lookup is
+  # always empty, so every render produces a fresh cert -> permanent
+  # OutOfSync, and every sync would rotate the key + restart both
+  # Deployments (checksum annotation). Ignore both; RespectIgnoreDifferences
+  # keeps the live keypair on sync.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: zitadel-app-login-service-key
+      jsonPointers:
+        - /data
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - '.spec.template.metadata.annotations."checksum/secret-login-service-key"'
   source:
     repoURL: https://charts.zitadel.com
     targetRevision: 10.0.6
@@ -138,3 +154,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
