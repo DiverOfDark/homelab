@@ -23,10 +23,12 @@ spec:
               backend: local
               local:
                 path: /var/tempo/traces
-          persistence:
-            enabled: true
-            storageClass: ceph-block
-            size: 10Gi
+        # top-level key (it was nested under `tempo:`, where the chart ignores it,
+        # so traces lived on the container filesystem)
+        persistence:
+          enabled: true
+          storageClassName: ceph-block
+          size: 10Gi
   syncPolicy:
     automated:
       prune: true
