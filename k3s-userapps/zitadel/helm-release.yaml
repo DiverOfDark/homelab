@@ -13,6 +13,14 @@ spec:
     chart: zitadel
     helm:
       valuesObject:
+        # The chart defaults the kubectl helper tag to the cluster version
+        # (e.g. 1.36.3), which alpine/k8s doesn't always publish -> setup Job
+        # stuck in ImagePullBackOff. Pin a tag that exists.
+        tools:
+          kubectl:
+            image:
+              # renovate: datasource=docker depName=alpine/k8s
+              tag: "1.37.1"
         cleanupJob:
           enabled: false
         zitadel:
