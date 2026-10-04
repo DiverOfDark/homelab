@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/href: "https://notebook.kirillorlov.pro"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/name: Open Notebook
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/1007066?s=48&v=4
+    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=open-notebook"
+    gethomepage.dev/description: "Self-hosted NotebookLM"
+  name: open-notebook
+  namespace: open-notebook
+spec:
+  rules:
+  - host: notebook.kirillorlov.pro
+    http:
+      paths:
+      # Browser calls API_URL/api/* directly; send it straight to uvicorn
+      # instead of through the Next.js proxy (avoids its body/timeout limits
+      # on large uploads and long LLM calls).
+      - backend:
+          service:
+            name: open-notebook
+            port:
+              number: 5055
+        path: /api
+        pathType: Prefix
+      - backend:
+          service:
+            name: open-notebook
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - notebook.kirillorlov.pro
+    secretName: open-notebook-tls
