@@ -26,116 +26,15 @@ spec:
   sources:
     - chart: rook-ceph
       repoURL: https://charts.rook.io/release
-      targetRevision: v1.19.6
+      targetRevision: v1.20.7
       helm:
         valuesObject:
          allowLoopDevices: true
+         # Rook 1.20 no longer deploys the CSI drivers: driver settings
+         # (resources, replicas, csi-addons sidecars) live in the
+         # ceph-csi-drivers app (k3s-apps/rook-csi-drivers.yaml).
          csi:
            imagePullPolicy: Always
-           # csi-addons sidecars in the RBD/CephFS plugin pods; the matching
-           # v0.15.1 controller is vendored in k3s-userapps/csi-addons.
-           # Enables ReclaimSpace (fstrim/rbd sparsify) via PVC annotations.
-           csiAddons:
-             enabled: true
-           csiCephFSPluginResource: |
-             - name : driver-registrar
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-cephfsplugin
-               resource:
-                 requests:
-                   memory: 512Mi
-                   cpu: 50m
-             - name : liveness-prometheus
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-
-           csiCephFSProvisionerResource: |
-             - name : csi-provisioner
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-resizer
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-attacher
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-snapshotter
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-cephfsplugin
-               resource:
-                 requests:
-                   memory: 512Mi
-                   cpu: 50m
-             - name : liveness-prometheus
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-           csiRBDPluginResource: |
-             - name : driver-registrar
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-             - name : csi-rbdplugin
-               resource:
-                 requests:
-                   memory: 512Mi
-                   cpu: 50m
-             - name : liveness-prometheus
-               resource:
-                 requests:
-                   memory: 128Mi
-                   cpu: 50m
-           csiRBDProvisionerResource: |
-              - name : csi-provisioner
-                resource:
-                  requests:
-                    memory: 128Mi
-                    cpu: 50m
-              - name : csi-resizer
-                resource:
-                  requests:
-                    memory: 128Mi
-                    cpu: 50m
-              - name : csi-attacher
-                resource:
-                  requests:
-                    memory: 128Mi
-                    cpu: 50m
-              - name : csi-snapshotter
-                resource:
-                  requests:
-                    memory: 128Mi
-                    cpu: 50m
-              - name : csi-rbdplugin
-                resource:
-                  requests:
-                    memory: 512Mi
-              - name : csi-omap-generator
-                resource:
-                  requests:
-                    memory: 512Mi
-                    cpu: 50m
-              - name : liveness-prometheus
-                resource:
-                  requests:
-                    memory: 128Mi
-                    cpu: 50m
   destination:
     server: https://kubernetes.default.svc
     namespace: rook-system
