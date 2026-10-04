@@ -1,0 +1,165 @@
+# Rook >= 1.20 no longer deploys the Ceph-CSI drivers itself; the rook-ceph
+# chart only installs ceph-csi-operator (1.0.4 bundled with rook v1.20.7) and
+# this chart creates the Driver/OperatorConfig CRs plus the per-driver
+# ServiceAccounts/RBAC. Driver names keep the operator-namespace prefix
+# (rook-system.*) used by the existing StorageClasses/PVs. Values mirror what
+# Rook 1.19 generated (2 controller replicas on hostNetwork, csi-addons
+# sidecars, Always pull, resource requests, no host log rotation).
+# Keep targetRevision in lockstep with rook-ceph's ceph-csi-operator dependency.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-csi-drivers
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: ceph-csi-drivers
+    repoURL: https://ceph.github.io/ceph-csi-operator
+    targetRevision: 1.0.4
+    helm:
+      releaseName: ceph-csi-drivers
+      valuesObject:
+        operatorConfig:
+          namespace: rook-system
+          driverSpecDefaults:
+            clusterName: rook-ceph
+            imageSet:
+              name: rook-csi-operator-image-set-configmap
+            deployCsiAddons: true
+            log:
+              verbosity: 0
+              rotation:
+                enabled: false
+            nodePlugin:
+              priorityClassName: system-node-critical
+              imagePullPolicy: Always
+              enableSeLinuxHostMount: false
+            controllerPlugin:
+              priorityClassName: system-cluster-critical
+              replicas: 2
+              hostNetwork: true
+              deploymentStrategy:
+                type: Recreate
+              imagePullPolicy: Always
+        drivers:
+          rbd:
+            enabled: true
+            name: rook-system.rbd.csi.ceph.com
+            nodePlugin:
+              resources:
+                registrar:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                plugin:
+                  requests:
+                    cpu: 50m
+                    memory: 512Mi
+              priorityClassName: system-node-critical
+              imagePullPolicy: Always
+            controllerPlugin:
+              resources:
+                provisioner:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                resizer:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                attacher:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                snapshotter:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                plugin:
+                  requests:
+                    memory: 512Mi
+                omapGenerator:
+                  requests:
+                    cpu: 50m
+                    memory: 512Mi
+              priorityClassName: system-cluster-critical
+              replicas: 2
+              hostNetwork: true
+              deploymentStrategy:
+                type: Recreate
+              imagePullPolicy: Always
+            clusterName: rook-ceph
+            imageSet: &id001
+              name: rook-csi-operator-image-set-configmap
+            deployCsiAddons: true
+            log: &id002
+              verbosity: 0
+              rotation:
+                enabled: false
+            snapshotPolicy: none
+          cephfs:
+            enabled: true
+            name: rook-system.cephfs.csi.ceph.com
+            nodePlugin:
+              resources:
+                registrar:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                plugin:
+                  requests:
+                    cpu: 50m
+                    memory: 512Mi
+              priorityClassName: system-node-critical
+              imagePullPolicy: Always
+            controllerPlugin:
+              resources:
+                provisioner:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                resizer:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                attacher:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                snapshotter:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                plugin:
+                  requests:
+                    cpu: 50m
+                    memory: 512Mi
+              priorityClassName: system-cluster-critical
+              replicas: 2
+              hostNetwork: true
+              deploymentStrategy:
+                type: Recreate
+              imagePullPolicy: Always
+            clusterName: rook-ceph
+            imageSet: *id001
+            deployCsiAddons: true
+            log: *id002
+            snapshotPolicy: volumeGroupSnapshot
+          nfs:
+            enabled: false
+            name: rook-system.nfs.csi.ceph.com
+          nvmeof:
+            enabled: false
+            name: rook-system.nvmeof.csi.ceph.com
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-system
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
