@@ -1,4 +1,5 @@
 TAILSCALE_AUTHKEY: ENC[AES256_GCM,data:MEbkyzfni56E3JeZD1vGaOiWUK6rFAQzbA+uvPMCgT+rSqlL3IykeGozlWPve0HT,iv:Nqz4q8jUjH3eUxvBR9oKUNMlQg5E1qeF0YpAYPjOndg=,tag:vl8h0MaJnYFqkEVoxZNrRg==,type:str]
+SECRETBOX_ENCRYPTION_SECRET: ENC[AES256_GCM,data:1ynhdwLWXgOeLAb80gOJAMjMMx95815Z4WIcwj82OSW+GtUjZJa/8IcEnts=,iv:Gafpe/WW1/IW+igUGEDO1efT37z1dBYXHooS4jJQBJA=,tag:hNajhST1EZdNvViKldkuKQ==,type:str]
 sops:
     age:
         - enc: |
@@ -25,7 +26,7 @@ sops:
             /5Em7cQMXkoR39sZFO67Jpize3jew6pD9s0FqZ8kYL8QVNaak0alfg==
             -----END AGE ENCRYPTED FILE-----
           recipient: age13jdehut862zq4zp5cnglmxs4twhudhll7zdmt0ga2uqee9uaacqsthywd4
-    lastmodified: "2026-07-05T22:11:12Z"
-    mac: ENC[AES256_GCM,data:+hSJA+0EN2+YjsKyA9Niz/xFy6pmkSDhgRoowpri/roOibUB5RQlQHdlqFWIqAhpRimM0++S5I0WM+MGdBcrKy4wePdaR8ZdbkL0WnGXjN3Z8t9mvgj2J6Ne56Wuc2ds/IXIC+qA3bRCQrzvGSwwa/UztIZHorRF1sMQuiZLvh0=,iv:8p2W7uj+iKWioSJetOnws6PKgWhU+7wLHgI6ioO0kbQ=,tag:2ZRHRsD5/r28TN/Xx0LBRQ==,type:str]
+    lastmodified: "2026-10-04T22:47:14Z"
+    mac: ENC[AES256_GCM,data:UmQU1lCPNYgEkmFZSlndsJ1BNqkxKwCRL4D+iV/ACcUZUb/N9jLRu2zwayMwCt7CiQkbhQCSHWqqMQuwurAUdqD86LrPqjxOPdOGq58IESqqSMMgmH5C20rv3385/AZ8RCqEyOLl2qicwX+HV0yyyX1MHs5Y3QAwckih/0J4qUU=,iv:IJbDpQAN9psDu96GIqaVowvyq8Tfa/a5K+vdYD0new4=,tag:ftvRGiLYoiKk+iCMdTpeBg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1
