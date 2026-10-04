@@ -13,7 +13,9 @@ spec:
   source:
     # Femto voice backend (pipecat) — Helm chart lives in the stackchan repo.
     repoURL: https://github.com/DiverOfDark/stackchan.git
-    targetRevision: HEAD
+    # `deploy` moves only after CI built and pushed that commit's image, so a
+    # red build is never deployed (it would sit in ImagePullBackOff).
+    targetRevision: deploy
     path: backend/chart
     helm:
       releaseName: voice-assistant
