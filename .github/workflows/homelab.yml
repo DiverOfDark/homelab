@@ -22,7 +22,7 @@ jobs:
     runs-on: github-runner-instance
     container: buildpack-deps:trixie
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Fetch nix cache S3 credentials
         id: cache
@@ -84,7 +84,7 @@ jobs:
     environment:
       name: Homelab
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Fetch nix cache S3 credentials
         id: cache
