@@ -6,7 +6,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-    version: v1.13.7
+    version: v1.14.2
   policy:
     rebootMode: powercycle
     # Drain and wait for CSI volumes to detach before rebooting. Without this
@@ -31,6 +31,10 @@ spec:
     # throttling, known hardware issue) and TOO_MANY_PGS, neither of which
     # affects redundancy. Anything else (PG_DEGRADED, OSD_DOWN, *_NEARFULL,
     # PG_BACKFILL_FULL, MON_DOWN, ...) still blocks the next node.
+    # AUTH_INSECURE_* warnings remain after the CVE-2025-30156 rotation (2026-10-04):
+    # CSI keys must stay `aes` until every node runs kernel >= 7.0, so the mons keep
+    # allowing/creating aes keys. AUTH_INSECURE_SERVICE_TICKETS (= CVE not resolved)
+    # is deliberately NOT tolerated.
     - apiVersion: ceph.rook.io/v1
       kind: CephCluster
       name: rook-ceph
@@ -38,7 +42,9 @@ spec:
       expr: >-
         status.ceph.health == "HEALTH_OK" ||
         (status.ceph.health == "HEALTH_WARN" &&
-         status.ceph.details.all(k, k in ["BLUESTORE_SLOW_OP_ALERT", "TOO_MANY_PGS"]))
+         status.ceph.details.all(k, k in ["BLUESTORE_SLOW_OP_ALERT", "TOO_MANY_PGS",
+           "AUTH_INSECURE_CLIENT_KEY_TYPE", "AUTH_INSECURE_KEYS_ALLOWED",
+           "AUTH_INSECURE_KEYS_CREATABLE", "AUTH_INSECURE_ROTATING_SERVICE_KEY_TYPE"]))
       timeout: 30m
     # Every CNPG database cluster has all instances ready (all namespaces),
     # so replicas finished rejoining before the next primary's node reboots.
@@ -54,7 +60,7 @@ spec:
     image:
       repository: ghcr.io/siderolabs/talosctl
       # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-      tag: v1.13.7
+      tag: v1.14.2
 ---
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: KubernetesUpgrade
