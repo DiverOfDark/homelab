@@ -124,7 +124,8 @@ spec:
         valuesObject:
           cephImage:
             repository: quay.io/ceph/ceph
-            tag: v20.2.0
+            # renovate: datasource=docker depName=quay.io/ceph/ceph
+            tag: v20.2.4
             imagePullPolicy: Always
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
@@ -139,6 +140,17 @@ spec:
             createPrometheusRules: true
           cephClusterSpec:
             removeOSDsIfOutAndSafeToRemove: true
+            # CVE-2025-30156: Ceph >= 20.2.4 + one-off rotation of the core daemon
+            # keys to AES256K (Rook's quick resolution guide). Bump keyGeneration
+            # to rotate again. CSI keys stay `aes` (chart default) until every
+            # node runs kernel >= 7.0.
+            security:
+              cephx:
+                daemon:
+                  keyRotationPolicy: KeyGeneration
+                  keyGeneration: 2
+                csi:
+                  keyType: aes
             dataDirHostPath: /var/lib/rook-ceph
             # Serve reads from the OSD replica on the same node when one
             # exists (CRUSH host buckets match kubernetes.io/hostname).
