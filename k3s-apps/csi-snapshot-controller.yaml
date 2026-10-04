@@ -36,7 +36,10 @@ spec:
           revisionHistoryLimit: 1
           serviceMonitor:
             create: true
+        # 5.3.0 turned the conversion webhook off by default; keep it on so the
+        # CRD conversion config + webhook Deployment stay as they were.
         webhook:
+          enabled: true
           replicaCount: 2
   syncPolicy:
     automated:
