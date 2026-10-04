@@ -52,15 +52,13 @@ spec:
       kind: Cluster
       expr: has(status.readyInstances) && status.readyInstances == status.instances
       timeout: 30m
-  # asgard (64 GB) carries most of the workload; the other nodes can't absorb
-  # a full drain of it (2026-10-04: jotunheimr hit load 94 / 78% IO pressure
-  # and openbao lost readiness). Upgrade the others first, then asgard on its
-  # own with load shed beforehand (remove this exclusion for that run).
+  # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
+  # overloads the other nodes. For the next Talos upgrade, either shed load
+  # first or upgrade asgard separately with policy.nodrain.
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: NotIn
-        values: [asgard]
+        operator: Exists
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
