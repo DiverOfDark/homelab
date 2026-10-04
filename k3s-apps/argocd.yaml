@@ -83,11 +83,14 @@ spec:
   sources:
     - chart: argo-helm/argo-cd
       repoURL: ghcr.io/argoproj
-      targetRevision: 9.7.1
+      targetRevision: 10.9.6
       helm:
         valuesObject:
             global:
               domain: argo.kirillorlov.pro
+              # chart 10 creates NetworkPolicies by default; keep networking as-is
+              networkPolicy:
+                create: false
               affinity.nodeAffinity.type: soft
         
             server:
