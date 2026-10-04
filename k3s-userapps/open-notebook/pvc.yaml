@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: surrealdb
+  namespace: open-notebook
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: "ceph-block"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-notebook
+  namespace: open-notebook
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: "ceph-block"

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-notebook
+  namespace: open-notebook
+spec:
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/pod: open-notebook
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/pod: open-notebook
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: open-notebook
+      containers:
+        - name: open-notebook
+          image: lfnovo/open_notebook:1.14.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8502
+              name: http
+            - containerPort: 5055
+              name: api
+          envFrom:
+            - secretRef:
+                name: open-notebook
+          env:
+            - name: SURREAL_URL
+              value: "ws://surrealdb:8000/rpc"
+            - name: SURREAL_USER
+              value: "root"
+            - name: SURREAL_NAMESPACE
+              value: "open_notebook"
+            - name: SURREAL_DATABASE
+              value: "open_notebook"
+            - name: API_URL
+              value: "https://notebook.kirillorlov.pro"
+            - name: CORS_ORIGINS
+              value: "https://notebook.kirillorlov.pro"
+          volumeMounts:
+            - mountPath: /app/data
+              name: data
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 5055
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5055
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8502
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
