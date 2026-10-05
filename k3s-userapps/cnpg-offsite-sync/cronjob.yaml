@@ -6,10 +6,13 @@
 # (internal/cnpgi/instance/backup.go builds the config from the Cluster). So
 # the old wasabi/bunny ScheduledBackups only ever wrote to yggdrasil.
 #
-# Instead, mirror s3://cnpg-backups from yggdrasil into the same
-# cnpg-backups/<ns>/<cluster>/ layout the wasabi-store / bunny-store
-# ObjectStores (k3s-objects/cnpg-backup-policy.yaml) point at, so a restore
-# from either off-site copy works through those ObjectStores unchanged.
+# Instead, mirror s3://cnpg-backups from yggdrasil into the dedicated
+# diverofdark-homelab-cnpg bucket on wasabi and bunny (terraform/wasabi.tf,
+# terraform/bunny.tf), keeping the <ns>/<cluster>/ layout the wasabi-store /
+# bunny-store ObjectStores (k3s-objects/cnpg-backup-policy.yaml) point at, so a
+# restore from either off-site copy works through those ObjectStores unchanged.
+# Never write into the Velero buckets: Velero's BackupStorageLocation uses their
+# root and goes Unavailable on any unknown top-level directory.
 #
 # `sync` mirrors barman's 30d retention deletions too. Guard: if yggdrasil
 # lists far fewer objects than the destination (e.g. the bucket was wiped),
@@ -23,6 +26,7 @@ spec:
   # After the 00:00 yggdrasil base backups and the overnight Velero run, to
   # stay off yggdrasil's (slow) disk during its busiest window.
   schedule: "30 6 * * *"
+  suspend: false
   timeZone: Etc/UTC
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
@@ -59,7 +63,7 @@ spec:
                   echo "source $src: $srcn objects"
                   [ "$srcn" -gt 0 ] || { echo "source empty/unreadable, aborting"; exit 1; }
                   rc=0
-                  for dst in wasabi:diverofdark-homelab-backup/cnpg-backups bunny:diverofdark-homelab-backups/cnpg-backups; do
+                  for dst in wasabi:diverofdark-homelab-cnpg bunny:diverofdark-homelab-cnpg; do
                     dstn=$(count "$dst"); dstn=${dstn:-0}
                     echo "dest $dst: $dstn objects"
                     if [ "$dstn" -gt 0 ] && [ $((srcn * 2)) -lt "$dstn" ]; then
