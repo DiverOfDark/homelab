@@ -18,7 +18,7 @@ spec:
   source:
     chart: ceph-csi-drivers
     repoURL: https://ceph.github.io/ceph-csi-operator
-    targetRevision: 1.0.4
+    targetRevision: 1.0.5
     helm:
       releaseName: ceph-csi-drivers
       valuesObject:
