@@ -5,7 +5,7 @@
 #
 #  - CNPG  yggdrasil s3://cnpg-backups/<ns>/<cluster>/: deleted when no such
 #    Cluster exists AND nothing was written there for GRACE_DAYS. The off-site
-#    copies follow via k3s-userapps/cnpg-offsite-sync (rclone sync).
+#    copies follow via the cnpg-offsite-sync CronJob (rclone sync).
 #  - Velero kopia/<ns>/ in every BackupStorageLocation bucket: deleted when the
 #    namespace is gone AND no PodVolumeBackup/DataUpload references it (i.e.
 #    every Velero backup containing it has expired). Its BackupRepository CRs
@@ -16,7 +16,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: backup-orphan-cleanup
-  namespace: backup-orphan-cleanup
+  namespace: backups
 spec:
   schedule: "0 9 * * 0"
   timeZone: Etc/UTC
@@ -119,25 +119,25 @@ spec:
                 - {name: RCLONE_CONFIG_YGG_REGION, value: us-east-1}
                 - {name: RCLONE_CONFIG_YGG_FORCE_PATH_STYLE, value: "true"}
                 - name: RCLONE_CONFIG_YGG_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_access_key}}
                 - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_secret_key}}
                 - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
                 - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
                 - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
                 - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_access_key}}
                 - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_secret_key}}
                 - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
                 - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
                 - {name: RCLONE_CONFIG_BUNNY_REGION, value: de}
                 - name: RCLONE_CONFIG_BUNNY_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_velero_access_key}}
                 - name: RCLONE_CONFIG_BUNNY_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_velero_secret_key}}
               resources:
                 requests: {cpu: 20m, memory: 64Mi}
                 limits: {memory: 512Mi}

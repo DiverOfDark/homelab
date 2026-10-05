@@ -21,7 +21,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: cnpg-offsite-sync
-  namespace: cnpg-offsite-sync
+  namespace: backups
 spec:
   # After the 00:00 yggdrasil base backups and the overnight Velero run, to
   # stay off yggdrasil's (slow) disk during its busiest window.
@@ -80,25 +80,25 @@ spec:
                 - {name: RCLONE_CONFIG_YGG_REGION, value: us-east-1}
                 - {name: RCLONE_CONFIG_YGG_FORCE_PATH_STYLE, value: "true"}
                 - name: RCLONE_CONFIG_YGG_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: yggdrasil_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_access_key}}
                 - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: yggdrasil_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_secret_key}}
                 - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
                 - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
                 - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
                 - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: wasabi_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_access_key}}
                 - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: wasabi_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_secret_key}}
                 - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
                 - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
                 - {name: RCLONE_CONFIG_BUNNY_REGION, value: de}
                 - name: RCLONE_CONFIG_BUNNY_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: bunny_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_cnpg_access_key}}
                 - name: RCLONE_CONFIG_BUNNY_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: bunny_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_cnpg_secret_key}}
               resources:
                 requests: {cpu: 50m, memory: 128Mi}
                 limits: {memory: 512Mi}

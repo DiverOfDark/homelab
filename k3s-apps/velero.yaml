@@ -50,7 +50,7 @@ spec:
                     type: skip
                 # CNPG data volumes: CloudNativePG already ships base backups +
                 # WAL (k3s-objects/cnpg-backup-policy.yaml, mirrored off-site by
-                # k3s-userapps/cnpg-offsite-sync); a file-level copy of a live
+                # k3s-userapps/backups (cnpg-offsite-sync CronJob)); a file-level copy of a live
                 # PGDATA is redundant and was a big share of the nightly load.
                 - conditions:
                     pvcLabels:
