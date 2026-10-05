@@ -23,3 +23,25 @@ resource "vault_kv_secret_v2" "bunny_storage" {
     hostname           = bunnynet_storage_zone.homelab.hostname
   })
 }
+
+# Off-site copies of the CNPG backups (k3s-userapps/cnpg-offsite-sync). Separate
+# zone because Velero's BackupStorageLocation uses the homelab zone's root and
+# goes Unavailable on any unknown top-level directory.
+resource "bunnynet_storage_zone" "cnpg" {
+  name      = "diverofdark-homelab-cnpg"
+  region    = "DE"
+  zone_tier = "Standard"
+  type      = "S3"
+}
+
+resource "vault_kv_secret_v2" "bunny_storage_cnpg" {
+  mount = "secret"
+  name  = "bunny/storage-cnpg"
+
+  data_json = jsonencode({
+    access_key         = bunnynet_storage_zone.cnpg.name
+    secret_key         = bunnynet_storage_zone.cnpg.password
+    read_only_password = bunnynet_storage_zone.cnpg.password_readonly
+    hostname           = bunnynet_storage_zone.cnpg.hostname
+  })
+}
