@@ -1,0 +1,143 @@
+# Weekly removal of backup data whose owner no longer exists in the cluster
+# (e.g. deleted apps like appbahn, artifact-keeper). Nothing else ever cleans
+# these up: CNPG retention only runs for live Clusters, and Velero keeps a
+# Kopia repository (+ maintenance) per namespace even after it is gone.
+#
+#  - CNPG  yggdrasil s3://cnpg-backups/<ns>/<cluster>/: deleted when no such
+#    Cluster exists AND nothing was written there for GRACE_DAYS. The off-site
+#    copies follow via k3s-userapps/cnpg-offsite-sync (rclone sync).
+#  - Velero kopia/<ns>/ in every BackupStorageLocation bucket: deleted when the
+#    namespace is gone AND no PodVolumeBackup/DataUpload references it (i.e.
+#    every Velero backup containing it has expired). Its BackupRepository CRs
+#    are deleted first so maintenance can't recreate files mid-purge.
+#
+# DRY_RUN=true only logs what would be deleted.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-orphan-cleanup
+  namespace: backup-orphan-cleanup
+spec:
+  schedule: "0 9 * * 0"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 14400
+      template:
+        spec:
+          serviceAccountName: backup-orphan-cleanup
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+            - name: tools
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}
+          initContainers:
+            # alpine/k8s has kubectl/bash but no rclone; borrow the static binary.
+            - name: rclone-bin
+              image: rclone/rclone:1.75.1
+              command: ["cp", "/usr/local/bin/rclone", "/tools/rclone"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: ["ALL"]}
+              volumeMounts:
+                - {name: tools, mountPath: /tools}
+          containers:
+            - name: cleanup
+              image: alpine/k8s:1.37.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: ["ALL"]}
+              volumeMounts:
+                - {name: tools, mountPath: /tools}
+                - {name: tmp, mountPath: /tmp}
+              command: ["/bin/bash", "-c"]
+              args:
+                - |
+                  set -uo pipefail
+                  R=/tools/rclone; now=$(date +%s)
+                  act() { if [ "$DRY_RUN" = false ]; then echo "DELETE: $*"; "$@"; else echo "DRY-RUN would: $*"; fi; }
+                  die() { echo "ABORT: $*"; exit 1; }
+
+                  kubectl get clusters.postgresql.cnpg.io -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' > /tmp/clusters || die "list clusters"
+                  kubectl get ns -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' > /tmp/ns || die "list namespaces"
+                  { kubectl get podvolumebackups.velero.io -A -o jsonpath='{range .items[*]}{.spec.pod.namespace}{"\n"}{end}' &&
+                    kubectl get datauploads.velero.io -A -o jsonpath='{range .items[*]}{.spec.sourceNamespace}{"\n"}{end}'; } > /tmp/refns || die "list velero refs"
+                  # Partial/empty API answers must never turn into mass deletion.
+                  [ "$(wc -l < /tmp/clusters)" -ge 1 ] || die "no CNPG clusters listed"
+                  [ "$(wc -l < /tmp/ns)" -ge 20 ] || die "suspiciously few namespaces"
+                  echo "live: $(wc -l < /tmp/clusters) clusters, $(wc -l < /tmp/ns) namespaces"
+
+                  echo "== CNPG (yggdrasil cnpg-backups, grace ${GRACE_DAYS}d)"
+                  for ns in $($R lsf ygg:cnpg-backups --dirs-only) ; do ns=${ns%/}
+                    for cl in $($R lsf "ygg:cnpg-backups/$ns" --dirs-only); do cl=${cl%/}
+                      grep -qx "$ns/$cl" /tmp/clusters && continue
+                      newest=$($R lsf -R --files-only --format t "ygg:cnpg-backups/$ns/$cl" | sort | tail -1)
+                      ts=$(date -d "$newest" +%s 2>/dev/null) || { echo "skip $ns/$cl: no timestamp"; continue; }
+                      age=$(( (now - ts) / 86400 ))
+                      if [ "$age" -ge "$GRACE_DAYS" ]; then
+                        echo "orphan $ns/$cl (last write ${age}d ago)"
+                        act $R purge "ygg:cnpg-backups/$ns/$cl"
+                      else
+                        echo "keep $ns/$cl: cluster gone but last write ${age}d ago (< ${GRACE_DAYS}d)"
+                      fi
+                    done
+                  done
+
+                  echo "== Velero kopia repositories"
+                  for loc in yggdrasil:ygg:ceph-backups wasabi:wasabi:diverofdark-homelab-backup bunny:bunny:diverofdark-homelab-backups; do
+                    bsl=${loc%%:*}; rest=${loc#*:}; remote=${rest%%:*}; bucket=${rest#*:}
+                    for ns in $($R lsf "$remote:$bucket/kopia" --dirs-only); do ns=${ns%/}
+                      grep -qx "$ns" /tmp/ns && continue
+                      if grep -qx "$ns" /tmp/refns; then echo "keep $bsl/kopia/$ns: namespace gone, still referenced by a backup"; continue; fi
+                      echo "orphan $bsl/kopia/$ns"
+                      act kubectl -n velero delete backuprepositories.velero.io -l "velero.io/volume-namespace=$ns,velero.io/storage-location=$bsl" --ignore-not-found
+                      act $R purge "$remote:$bucket/kopia/$ns"
+                    done
+                  done
+                  echo "done"
+              env:
+                - {name: DRY_RUN, value: "true"}
+                - {name: GRACE_DAYS, value: "14"}
+                - {name: HOME, value: /tmp}
+                - {name: RCLONE_CONFIG_YGG_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_YGG_PROVIDER, value: Other}
+                - {name: RCLONE_CONFIG_YGG_ENDPOINT, value: "http://yggdrasil.ts.kirillorlov.pro:3900"}
+                - {name: RCLONE_CONFIG_YGG_REGION, value: us-east-1}
+                - {name: RCLONE_CONFIG_YGG_FORCE_PATH_STYLE, value: "true"}
+                - name: RCLONE_CONFIG_YGG_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_access_key}}
+                - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_secret_key}}
+                - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
+                - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
+                - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
+                - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_access_key}}
+                - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_secret_key}}
+                - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
+                - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
+                - {name: RCLONE_CONFIG_BUNNY_REGION, value: de}
+                - name: RCLONE_CONFIG_BUNNY_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_access_key}}
+                - name: RCLONE_CONFIG_BUNNY_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_secret_key}}
+              resources:
+                requests: {cpu: 20m, memory: 64Mi}
+                limits: {memory: 512Mi}
