@@ -11,8 +11,13 @@ metadata:
     policies.kyverno.io/category: CloudNativePG
     policies.kyverno.io/description: >-
       For every CloudNativePG Cluster, generate the backup-credential
-      ExternalSecrets and the yggdrasil / wasabi / bunny ObjectStore and
-      ScheduledBackup resources in the same namespace. destinationPath is
+      ExternalSecrets and the yggdrasil / wasabi / bunny ObjectStores, plus
+      the yggdrasil ScheduledBackup, in the same namespace. Only yggdrasil
+      gets a ScheduledBackup: plugin-barman-cloud always backs up to the
+      Cluster's own ObjectStore (yggdrasil-store) and ignores a
+      ScheduledBackup's barmanObjectName. wasabi/bunny hold off-site copies
+      mirrored by k3s-userapps/cnpg-offsite-sync; their ObjectStores stay for
+      restores. destinationPath is
       derived from the cluster's namespace and name. Note: the Cluster's own
       spec.plugins block (which sets isWALArchiver and the WAL archive target)
       still has to be declared on each Cluster manifest - a generate policy
@@ -248,45 +253,6 @@ spec:
               data:
                 compression: gzip
             retentionPolicy: "30d"
-    - name: wasabi-scheduledbackup
-      match:
-        any:
-          - resources:
-              kinds:
-                - postgresql.cnpg.io/v1/Cluster
-      generate:
-        apiVersion: postgresql.cnpg.io/v1
-        kind: ScheduledBackup
-        name: "{{request.object.metadata.name}}-backup-wasabi"
-        namespace: "{{request.object.metadata.namespace}}"
-        # synchronize is intentionally false: ExternalSecret has its own
-        # active controller (ESO) that continuously writes back to the object.
-        # With synchronize: true, Kyverno's downstream-watch reacted to every
-        # ESO write, producing an UpdateRequest storm and resourceVersion
-        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
-        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
-        # policy edits to existing generated resources.
-        synchronize: false
-        data:
-          metadata:
-            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
-            # and ArgoCD nests these under the (git-managed) Cluster in its
-            # resource tree, instead of flagging them as missing from git.
-            ownerReferences:
-              - apiVersion: postgresql.cnpg.io/v1
-                kind: Cluster
-                name: "{{request.object.metadata.name}}"
-                uid: "{{request.object.metadata.uid}}"
-          spec:
-            schedule: "0 0 12 * * *"
-            backupOwnerReference: self
-            cluster:
-              name: "{{request.object.metadata.name}}"
-            method: plugin
-            pluginConfiguration:
-              name: barman-cloud.cloudnative-pg.io
-              parameters:
-                barmanObjectName: wasabi-store
     # --- bunny (cloud S3) ---
     - name: bunny-creds
       match:
@@ -381,42 +347,3 @@ spec:
               data:
                 compression: gzip
             retentionPolicy: "30d"
-    - name: bunny-scheduledbackup
-      match:
-        any:
-          - resources:
-              kinds:
-                - postgresql.cnpg.io/v1/Cluster
-      generate:
-        apiVersion: postgresql.cnpg.io/v1
-        kind: ScheduledBackup
-        name: "{{request.object.metadata.name}}-backup-bunny"
-        namespace: "{{request.object.metadata.namespace}}"
-        # synchronize is intentionally false: ExternalSecret has its own
-        # active controller (ESO) that continuously writes back to the object.
-        # With synchronize: true, Kyverno's downstream-watch reacted to every
-        # ESO write, producing an UpdateRequest storm and resourceVersion
-        # conflicts. Lifecycle/cleanup is instead handled by the ownerReference
-        # to the Cluster (k8s GC). Re-trigger (touch the Cluster) to push
-        # policy edits to existing generated resources.
-        synchronize: false
-        data:
-          metadata:
-            # ownerReference -> Cluster so k8s GC cascades on Cluster deletion
-            # and ArgoCD nests these under the (git-managed) Cluster in its
-            # resource tree, instead of flagging them as missing from git.
-            ownerReferences:
-              - apiVersion: postgresql.cnpg.io/v1
-                kind: Cluster
-                name: "{{request.object.metadata.name}}"
-                uid: "{{request.object.metadata.uid}}"
-          spec:
-            schedule: "0 0 18 * * *"
-            backupOwnerReference: self
-            cluster:
-              name: "{{request.object.metadata.name}}"
-            method: plugin
-            pluginConfiguration:
-              name: barman-cloud.cloudnative-pg.io
-              parameters:
-                barmanObjectName: bunny-store

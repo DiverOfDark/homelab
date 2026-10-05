@@ -1,0 +1,100 @@
+# Off-site copies of the CNPG backups.
+#
+# plugin-barman-cloud always backs up to the ObjectStore named in each
+# Cluster's own spec.plugins block (yggdrasil-store); a ScheduledBackup's
+# pluginConfiguration.parameters.barmanObjectName is ignored
+# (internal/cnpgi/instance/backup.go builds the config from the Cluster). So
+# the old wasabi/bunny ScheduledBackups only ever wrote to yggdrasil.
+#
+# Instead, mirror s3://cnpg-backups from yggdrasil into the same
+# cnpg-backups/<ns>/<cluster>/ layout the wasabi-store / bunny-store
+# ObjectStores (k3s-objects/cnpg-backup-policy.yaml) point at, so a restore
+# from either off-site copy works through those ObjectStores unchanged.
+#
+# `sync` mirrors barman's 30d retention deletions too. Guard: if yggdrasil
+# lists far fewer objects than the destination (e.g. the bucket was wiped),
+# skip that destination instead of propagating the loss off-site.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cnpg-offsite-sync
+  namespace: cnpg-offsite-sync
+spec:
+  # After the 00:00 yggdrasil base backups and the overnight Velero run, to
+  # stay off yggdrasil's (slow) disk during its busiest window.
+  schedule: "30 6 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 3600
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 14400
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: rclone
+              image: rclone/rclone:1.75.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -u
+                  count() { rclone size --json "$1" 2>/dev/null | sed -n 's/.*"count":\([0-9]*\).*/\1/p'; }
+                  src="ygg:cnpg-backups"
+                  srcn=$(count "$src"); srcn=${srcn:-0}
+                  echo "source $src: $srcn objects"
+                  [ "$srcn" -gt 0 ] || { echo "source empty/unreadable, aborting"; exit 1; }
+                  rc=0
+                  for dst in wasabi:diverofdark-homelab-backup/cnpg-backups bunny:diverofdark-homelab-backups/cnpg-backups; do
+                    dstn=$(count "$dst"); dstn=${dstn:-0}
+                    echo "dest $dst: $dstn objects"
+                    if [ "$dstn" -gt 0 ] && [ $((srcn * 2)) -lt "$dstn" ]; then
+                      echo "source has <50% of $dst's objects, skipping (refusing to mirror a mass deletion)"; rc=1; continue
+                    fi
+                    rclone sync "$src" "$dst" --size-only --transfers 4 --checkers 8 --stats 5m --stats-one-line -v || rc=1
+                  done
+                  exit $rc
+              env:
+                - {name: HOME, value: /tmp}
+                - {name: RCLONE_CONFIG_YGG_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_YGG_PROVIDER, value: Other}
+                - {name: RCLONE_CONFIG_YGG_ENDPOINT, value: "http://yggdrasil.ts.kirillorlov.pro:3900"}
+                - {name: RCLONE_CONFIG_YGG_REGION, value: us-east-1}
+                - {name: RCLONE_CONFIG_YGG_FORCE_PATH_STYLE, value: "true"}
+                - name: RCLONE_CONFIG_YGG_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: yggdrasil_access_key}}
+                - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: yggdrasil_secret_key}}
+                - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
+                - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
+                - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
+                - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: wasabi_access_key}}
+                - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: wasabi_secret_key}}
+                - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
+                - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
+                - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
+                - {name: RCLONE_CONFIG_BUNNY_REGION, value: de}
+                - name: RCLONE_CONFIG_BUNNY_ACCESS_KEY_ID
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: bunny_access_key}}
+                - name: RCLONE_CONFIG_BUNNY_SECRET_ACCESS_KEY
+                  valueFrom: {secretKeyRef: {name: cnpg-offsite-sync, key: bunny_secret_key}}
+              resources:
+                requests: {cpu: 50m, memory: 128Mi}
+                limits: {memory: 512Mi}
