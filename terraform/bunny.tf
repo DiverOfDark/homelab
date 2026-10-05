@@ -24,7 +24,7 @@ resource "vault_kv_secret_v2" "bunny_storage" {
   })
 }
 
-# Off-site copies of the CNPG backups (k3s-userapps/cnpg-offsite-sync). Separate
+# Off-site copies of the CNPG backups (k3s-userapps/backups (cnpg-offsite-sync CronJob)). Separate
 # zone because Velero's BackupStorageLocation uses the homelab zone's root and
 # goes Unavailable on any unknown top-level directory.
 resource "bunnynet_storage_zone" "cnpg" {

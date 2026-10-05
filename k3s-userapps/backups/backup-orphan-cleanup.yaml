@@ -5,7 +5,7 @@
 #
 #  - CNPG  yggdrasil s3://cnpg-backups/<ns>/<cluster>/: deleted when no such
 #    Cluster exists AND nothing was written there for GRACE_DAYS. The off-site
-#    copies follow via k3s-userapps/cnpg-offsite-sync (rclone sync).
+#    copies follow via the cnpg-offsite-sync CronJob (rclone sync).
 #  - Velero kopia/<ns>/ in every BackupStorageLocation bucket: deleted when the
 #    namespace is gone AND no PodVolumeBackup/DataUpload references it (i.e.
 #    every Velero backup containing it has expired). Its BackupRepository CRs
@@ -16,7 +16,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: backup-orphan-cleanup
-  namespace: backup-orphan-cleanup
+  namespace: backups
 spec:
   schedule: "0 9 * * 0"
   timeZone: Etc/UTC
@@ -71,6 +71,20 @@ spec:
                   R=/tools/rclone; now=$(date +%s)
                   act() { if [ "$DRY_RUN" = false ]; then echo "DELETE: $*"; "$@"; else echo "DRY-RUN would: $*"; fi; }
                   die() { echo "ABORT: $*"; exit 1; }
+                  # Newest object time under a barman prefix. A full recursive listing of a
+                  # long-lived cluster means tens of thousands of WAL files on yggdrasil's slow
+                  # disk; WAL lives in <server>/wals/<timeline+segment-high>/ folders that sort
+                  # chronologically, so only the last such folder needs listing.
+                  newest_write() {
+                    local p=$1 srv w last t best=""
+                    for srv in $($R lsf "$p" --dirs-only); do
+                      w="$p/${srv}wals"; last=$($R lsf "$w" --dirs-only 2>/dev/null | sort | tail -1)
+                      if [ -n "$last" ]; then t=$($R lsf --files-only --format t "$w/$last" | sort | tail -1)
+                      else t=$($R lsf -R --files-only --format t "$p/$srv" | sort | tail -1); fi
+                      [[ "$t" > "$best" ]] && best=$t
+                    done
+                    echo "$best"
+                  }
 
                   kubectl get clusters.postgresql.cnpg.io -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' > /tmp/clusters || die "list clusters"
                   kubectl get ns -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' > /tmp/ns || die "list namespaces"
@@ -85,7 +99,7 @@ spec:
                   for ns in $($R lsf ygg:cnpg-backups --dirs-only) ; do ns=${ns%/}
                     for cl in $($R lsf "ygg:cnpg-backups/$ns" --dirs-only); do cl=${cl%/}
                       grep -qx "$ns/$cl" /tmp/clusters && continue
-                      newest=$($R lsf -R --files-only --format t "ygg:cnpg-backups/$ns/$cl" | sort | tail -1)
+                      newest=$(newest_write "ygg:cnpg-backups/$ns/$cl")
                       ts=$(date -d "$newest" +%s 2>/dev/null) || { echo "skip $ns/$cl: no timestamp"; continue; }
                       age=$(( (now - ts) / 86400 ))
                       if [ "$age" -ge "$GRACE_DAYS" ]; then
@@ -119,25 +133,25 @@ spec:
                 - {name: RCLONE_CONFIG_YGG_REGION, value: us-east-1}
                 - {name: RCLONE_CONFIG_YGG_FORCE_PATH_STYLE, value: "true"}
                 - name: RCLONE_CONFIG_YGG_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_access_key}}
                 - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: yggdrasil_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_secret_key}}
                 - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
                 - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
                 - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
                 - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_access_key}}
                 - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: wasabi_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_secret_key}}
                 - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
                 - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
                 - {name: RCLONE_CONFIG_BUNNY_REGION, value: de}
                 - name: RCLONE_CONFIG_BUNNY_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_access_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_velero_access_key}}
                 - name: RCLONE_CONFIG_BUNNY_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-orphan-cleanup, key: bunny_secret_key}}
+                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: bunny_velero_secret_key}}
               resources:
                 requests: {cpu: 20m, memory: 64Mi}
                 limits: {memory: 512Mi}

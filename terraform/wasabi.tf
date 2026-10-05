@@ -22,7 +22,7 @@ resource "aws_s3_bucket" "wasabi_homelab_backup" {
   provider = aws.wasabi
   bucket   = "diverofdark-homelab-backup"
 }
-# Off-site copies of the CNPG backups (k3s-userapps/cnpg-offsite-sync). Kept out
+# Off-site copies of the CNPG backups (k3s-userapps/backups (cnpg-offsite-sync CronJob)). Kept out
 # of diverofdark-homelab-backup: Velero's BackupStorageLocation uses that
 # bucket's root and goes Unavailable on any unknown top-level directory.
 resource "aws_s3_bucket" "wasabi_cnpg" {

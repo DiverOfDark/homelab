@@ -16,7 +16,7 @@ metadata:
       gets a ScheduledBackup: plugin-barman-cloud always backs up to the
       Cluster's own ObjectStore (yggdrasil-store) and ignores a
       ScheduledBackup's barmanObjectName. wasabi/bunny hold off-site copies
-      mirrored by k3s-userapps/cnpg-offsite-sync into dedicated
+      mirrored by k3s-userapps/backups (cnpg-offsite-sync CronJob) into dedicated
       diverofdark-homelab-cnpg buckets (NOT the Velero buckets: Velero's
       BackupStorageLocation goes Unavailable on unknown top-level dirs); their
       ObjectStores stay for restores. destinationPath is
