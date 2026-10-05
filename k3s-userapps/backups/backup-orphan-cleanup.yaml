@@ -71,6 +71,20 @@ spec:
                   R=/tools/rclone; now=$(date +%s)
                   act() { if [ "$DRY_RUN" = false ]; then echo "DELETE: $*"; "$@"; else echo "DRY-RUN would: $*"; fi; }
                   die() { echo "ABORT: $*"; exit 1; }
+                  # Newest object time under a barman prefix. A full recursive listing of a
+                  # long-lived cluster means tens of thousands of WAL files on yggdrasil's slow
+                  # disk; WAL lives in <server>/wals/<timeline+segment-high>/ folders that sort
+                  # chronologically, so only the last such folder needs listing.
+                  newest_write() {
+                    local p=$1 srv w last t best=""
+                    for srv in $($R lsf "$p" --dirs-only); do
+                      w="$p/${srv}wals"; last=$($R lsf "$w" --dirs-only 2>/dev/null | sort | tail -1)
+                      if [ -n "$last" ]; then t=$($R lsf --files-only --format t "$w/$last" | sort | tail -1)
+                      else t=$($R lsf -R --files-only --format t "$p/$srv" | sort | tail -1); fi
+                      [[ "$t" > "$best" ]] && best=$t
+                    done
+                    echo "$best"
+                  }
 
                   kubectl get clusters.postgresql.cnpg.io -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' > /tmp/clusters || die "list clusters"
                   kubectl get ns -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' > /tmp/ns || die "list namespaces"
@@ -85,7 +99,7 @@ spec:
                   for ns in $($R lsf ygg:cnpg-backups --dirs-only) ; do ns=${ns%/}
                     for cl in $($R lsf "ygg:cnpg-backups/$ns" --dirs-only); do cl=${cl%/}
                       grep -qx "$ns/$cl" /tmp/clusters && continue
-                      newest=$($R lsf -R --files-only --format t "ygg:cnpg-backups/$ns/$cl" | sort | tail -1)
+                      newest=$(newest_write "ygg:cnpg-backups/$ns/$cl")
                       ts=$(date -d "$newest" +%s 2>/dev/null) || { echo "skip $ns/$cl: no timestamp"; continue; }
                       age=$(( (now - ts) / 86400 ))
                       if [ "$age" -ge "$GRACE_DAYS" ]; then
