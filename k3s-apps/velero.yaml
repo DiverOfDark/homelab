@@ -48,6 +48,22 @@ spec:
                       velero.io/exclude-from-backup: "true"
                   action:
                     type: skip
+                # CNPG data volumes: CloudNativePG already ships base backups +
+                # WAL (k3s-objects/cnpg-backup-policy.yaml, mirrored off-site by
+                # k3s-userapps/cnpg-offsite-sync); a file-level copy of a live
+                # PGDATA is redundant and was a big share of the nightly load.
+                - conditions:
+                    pvcLabels:
+                      cnpg.io/pvcRole: PG_DATA
+                  action:
+                    type: skip
+                # Prometheus TSDB (35Gi, regenerable metrics): its fs-backup to
+                # yggdrasil alone ran past the 4h pod-volume timeout.
+                - conditions:
+                    pvcLabels:
+                      operator.prometheus.io/name: prometheus-kube-prometheus-prometheus
+                  action:
+                    type: skip
                 - conditions:
                     # nfs could be empty which matches any nfs volume source
                     nfs: {}
