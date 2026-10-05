@@ -124,7 +124,7 @@ spec:
                   done
                   echo "done"
               env:
-                - {name: DRY_RUN, value: "true"}
+                - {name: DRY_RUN, value: "false"}
                 - {name: GRACE_DAYS, value: "14"}
                 - {name: HOME, value: /tmp}
                 - {name: RCLONE_CONFIG_YGG_TYPE, value: s3}
