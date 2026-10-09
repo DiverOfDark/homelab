@@ -25,7 +25,7 @@ spec:
         - '.spec.template.metadata.annotations."checksum/secret-login-service-key"'
   source:
     repoURL: https://charts.zitadel.com
-    targetRevision: 10.0.6
+    targetRevision: 10.3.0
     chart: zitadel
     helm:
       valuesObject:
