@@ -46,7 +46,7 @@ spec:
           initContainers:
             # alpine/k8s has kubectl/bash but no rclone; borrow the static binary.
             - name: rclone-bin
-              image: rclone/rclone:1.75.1
+              image: rclone/rclone:1.75.2
               command: ["cp", "/usr/local/bin/rclone", "/tools/rclone"]
               securityContext:
                 allowPrivilegeEscalation: false
