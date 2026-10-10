@@ -36,7 +36,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: homepage
-          image: "ghcr.io/gethomepage/homepage:v2.4.0"
+          image: "ghcr.io/gethomepage/homepage:v2.5.0"
           imagePullPolicy: Always
           ports:
             - name: http
