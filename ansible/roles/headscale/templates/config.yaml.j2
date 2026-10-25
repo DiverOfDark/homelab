@@ -39,6 +39,14 @@ derp:
     stun_listen_addr: 0.0.0.0:3478
     private_key_path: /var/lib/headscale/derp_server_private.key
     automatically_add_embedded_derp_region: true
+    # Publish literal IPs in the DERP map so clients never need DNS to reach
+    # the relay. Without them, a phone with "Use Tailscale DNS" on resolves
+    # headscale.kirillorlov.pro via pihole-over-tailnet — which itself needs
+    # DERP on CGNAT'd mobile: no-derp-connection deadlock.
+    ipv4: {{ ansible_facts['default_ipv4']['address'] }}
+{% if ansible_facts['default_ipv6']['address'] is defined %}
+    ipv6: {{ ansible_facts['default_ipv6']['address'] }}
+{% endif %}
   # Embedded region only — do not pull Tailscale's public DERP map.
   urls: []
   paths: []
