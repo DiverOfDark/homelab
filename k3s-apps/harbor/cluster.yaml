@@ -19,7 +19,7 @@ spec:
       database: harbor
       owner: harbor
   # WAL archiving target. The cnpg-backup-policy Kyverno policy generates the
-  # yggdrasil/wasabi/bunny ObjectStores, backup-credential ExternalSecrets and
+  # yggdrasil/bunny ObjectStores, backup-credential ExternalSecrets and
   # ScheduledBackups in this namespace, but each Cluster must still declare its
   # own plugin block (see k3s-objects/cnpg-backup-policy.yaml).
   plugins:

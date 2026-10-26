@@ -26,14 +26,6 @@ ephemeral "vault_kv_secret_v2" "cloudflare" {
   name  = "cloudflare"
 }
 
-# Wasabi credentials from OpenBao (ephemeral — only feeds the aws provider
-# config, never persisted to state/plan)
-# Expected keys: access_key, secret_key
-ephemeral "vault_kv_secret_v2" "wasabi" {
-  mount = "secret"
-  name  = "wasabi"
-}
-
 # Bunny.net API key from OpenBao (ephemeral — only feeds the provider config)
 # Expected keys: api_key
 ephemeral "vault_kv_secret_v2" "bunny" {

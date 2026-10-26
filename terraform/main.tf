@@ -13,10 +13,6 @@ terraform {
       source  = "hashicorp/vault"
       version = "5.12.0"
     }
-    aws = {
-      source  = "registry.terraform.io/hashicorp/aws"
-      version = "~> 6.0"
-    }
     bunnynet = {
       source  = "registry.terraform.io/BunnyWay/bunnynet"
       version = "0.19.1"

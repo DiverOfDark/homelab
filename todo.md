@@ -31,7 +31,6 @@ alerts and rules to make sure that I have:
  - backups state
  - ceph usage 
  - free space on yggdrasil / s3
- - free space on wasabi
  - out-of-sync or failing argo apps
  
 

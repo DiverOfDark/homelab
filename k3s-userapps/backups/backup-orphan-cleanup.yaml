@@ -112,7 +112,7 @@ spec:
                   done
 
                   echo "== Velero kopia repositories"
-                  for loc in yggdrasil:ygg:ceph-backups wasabi:wasabi:diverofdark-homelab-backup bunny:bunny:diverofdark-homelab-backups; do
+                  for loc in yggdrasil:ygg:ceph-backups bunny:bunny:diverofdark-homelab-backups; do
                     bsl=${loc%%:*}; rest=${loc#*:}; remote=${rest%%:*}; bucket=${rest#*:}
                     for ns in $($R lsf "$remote:$bucket/kopia" --dirs-only); do ns=${ns%/}
                       grep -qx "$ns" /tmp/ns && continue
@@ -136,14 +136,6 @@ spec:
                   valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_access_key}}
                 - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
                   valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_secret_key}}
-                - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
-                - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
-                - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
-                - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
-                - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_access_key}}
-                - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_secret_key}}
                 - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
                 - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}

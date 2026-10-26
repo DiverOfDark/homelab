@@ -7,10 +7,10 @@
 # the old wasabi/bunny ScheduledBackups only ever wrote to yggdrasil.
 #
 # Instead, mirror s3://cnpg-backups from yggdrasil into the dedicated
-# diverofdark-homelab-cnpg bucket on wasabi and bunny (terraform/wasabi.tf,
-# terraform/bunny.tf), keeping the <ns>/<cluster>/ layout the wasabi-store /
-# bunny-store ObjectStores (k3s-objects/cnpg-backup-policy.yaml) point at, so a
-# restore from either off-site copy works through those ObjectStores unchanged.
+# diverofdark-homelab-cnpg zone on bunny (terraform/bunny.tf), keeping the
+# <ns>/<cluster>/ layout the bunny-store ObjectStore
+# (k3s-objects/cnpg-backup-policy.yaml) points at, so a restore from the
+# off-site copy works through that ObjectStore unchanged.
 # Never write into the Velero buckets: Velero's BackupStorageLocation uses their
 # root and goes Unavailable on any unknown top-level directory.
 #
@@ -63,7 +63,7 @@ spec:
                   echo "source $src: $srcn objects"
                   [ "$srcn" -gt 0 ] || { echo "source empty/unreadable, aborting"; exit 1; }
                   rc=0
-                  for dst in wasabi:diverofdark-homelab-cnpg bunny:diverofdark-homelab-cnpg; do
+                  for dst in bunny:diverofdark-homelab-cnpg; do
                     dstn=$(count "$dst"); dstn=${dstn:-0}
                     echo "dest $dst: $dstn objects"
                     if [ "$dstn" -gt 0 ] && [ $((srcn * 2)) -lt "$dstn" ]; then
@@ -83,14 +83,6 @@ spec:
                   valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_access_key}}
                 - name: RCLONE_CONFIG_YGG_SECRET_ACCESS_KEY
                   valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: yggdrasil_secret_key}}
-                - {name: RCLONE_CONFIG_WASABI_TYPE, value: s3}
-                - {name: RCLONE_CONFIG_WASABI_PROVIDER, value: Wasabi}
-                - {name: RCLONE_CONFIG_WASABI_ENDPOINT, value: "https://s3.eu-central-2.wasabisys.com"}
-                - {name: RCLONE_CONFIG_WASABI_REGION, value: eu-central-2}
-                - name: RCLONE_CONFIG_WASABI_ACCESS_KEY_ID
-                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_access_key}}
-                - name: RCLONE_CONFIG_WASABI_SECRET_ACCESS_KEY
-                  valueFrom: {secretKeyRef: {name: backup-s3-credentials, key: wasabi_secret_key}}
                 - {name: RCLONE_CONFIG_BUNNY_TYPE, value: s3}
                 - {name: RCLONE_CONFIG_BUNNY_PROVIDER, value: Other}
                 - {name: RCLONE_CONFIG_BUNNY_ENDPOINT, value: "https://de-s3.storage.bunnycdn.com"}
