@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: ghcr.io/home-operations/charts
     chart: tuppr
-    targetRevision: 0.5.7
+    targetRevision: 0.5.10
     helm:
       valuesObject:
         controller:
