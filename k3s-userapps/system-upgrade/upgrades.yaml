@@ -6,7 +6,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-    version: v1.14.2
+    version: v1.14.5
   policy:
     rebootMode: powercycle
     # Drain and wait for CSI volumes to detach before rebooting. Without this
@@ -63,7 +63,7 @@ spec:
     image:
       repository: ghcr.io/siderolabs/talosctl
       # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-      tag: v1.14.2
+      tag: v1.14.5
 ---
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: KubernetesUpgrade
