@@ -22,7 +22,7 @@ spec:
           persistentVolumeClaim:
             claimName: jackett
       containers:
-        - image: 'ghcr.io/linuxserver/jackett:0.24.3003'
+        - image: 'ghcr.io/linuxserver/jackett:0.24.3009'
           imagePullPolicy: IfNotPresent
           name: jackett
           env:
