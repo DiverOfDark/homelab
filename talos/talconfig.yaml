@@ -3,7 +3,7 @@
 # renovate: image=ghcr.io/siderolabs/talosctl
 talosVersion: v1.14.5
 # renovate: image=registry.k8s.io/kube-apiserver
-kubernetesVersion: v1.37.1
+kubernetesVersion: v1.37.2
 
 clusterName: homelab
 endpoint: https://192.168.179.2:6443
@@ -271,6 +271,12 @@ schematic: &schematic
       # deep power state and fail controller reset (-ENODEV), crashing the OSD.
       - nvme_core.default_ps_max_latency_us=0
       - pcie_aspm=off
+      # Also disable PCIe port runtime PM (the kernel's own suggestion on
+      # "controller is down; CSTS=0xffffffff"). asgard's SN770 (fw 731100WD)
+      # kept falling off the bus with the two args above (osd.1 EIO crashes
+      # 2026-04-15, 05-14, 07-23, 10-28, 11-02). Drive also flashed to 731150WD
+      # on 2026-11-05; if it still drops, replace the disk.
+      - pcie_port_pm=off
     systemExtensions:
       # Curated for all-Intel hardware (i5-12400 / N100): amd-ucode + amdgpu
       # dropped as dead weight. kata-containers is intended (kata RuntimeClass +
