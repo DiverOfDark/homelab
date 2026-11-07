@@ -47,6 +47,16 @@
       "enabled": false
     },
     {
+      "description": "actualbudget-lockstep: jhonderson/actual-http-api publishes API-only patch tags (e.g. 26.10.1) that have no matching actualbudget/actual-server tag, so the lockstep would propose a nonexistent server image (ImagePullBackOff + Recreate = outage, 2026-11-08). Only follow X.Y.0 releases, which both images publish.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "jhonderson/actual-http-api"
+      ],
+      "allowedVersions": "/^[0-9]+\\.[0-9]+\\.0$/"
+    },
+    {
       "description": "Emby: odd minor versions (4.9, 4.11, ...) are beta builds; stay on stable even minors.",
       "matchDatasources": [
         "docker"
