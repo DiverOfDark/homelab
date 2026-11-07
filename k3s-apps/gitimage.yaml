@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitimage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # GitImage: git URL -> image built in-cluster (Kata) -> pods by digest.
+    # https://diverofdark.github.io/gitimage/
+    repoURL: ghcr.io/diverofdark/charts
+    chart: gitimage
+    targetRevision: 0.1.3
+    helm:
+      releaseName: gitimage
+      valuesObject:
+        buildPolicy:
+          isolation:
+            # Each build runs in its own Kata VM. privilegedInSandbox: rootful BuildKit,
+            # privileged inside the guest only — the Talos kata extension sets
+            # privileged_without_host_devices = true for the kata handler, so no host devices
+            # are passed into the VM. midgard (no Kata) is tainted edge, so builds never land there.
+            mode: runtimeClass
+            runtimeClassName: kata
+            privilegedInSandbox: true
+        # No registry: images live in Ceph RGW and nodes pull them from gitimage-node on
+        # localhost:25050 (containerd allows plain HTTP to localhost without node config).
+        storage:
+          type: s3
+          s3:
+            bucket: gitimage
+            endpoint: http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc
+            secret: gitimage          # created by the ObjectBucketClaim below
+            pathStyle: true
+        network:
+          # Build egress may reach the internet but not pods (10.244/16) or services (10.96/12).
+          clusterCIDRs: [10.244.0.0/16, 10.96.0.0/12]
+        podMonitor:
+          enabled: true
+        extraObjects:
+          - apiVersion: objectbucket.io/v1alpha1
+            kind: ObjectBucketClaim
+            metadata:
+              name: gitimage
+              namespace: gitimage-system
+            spec:
+              bucketName: gitimage
+              storageClassName: ceph-bucket
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitimage-system
+  # The controller fills in the webhook caBundle at startup.
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name: gitimage
+      jqPathExpressions:
+        - '.webhooks[].clientConfig.caBundle'
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        # gitimage-node uses hostNetwork; the isolation check runs a privileged-in-VM pod.
+        pod-security.kubernetes.io/enforce: privileged
