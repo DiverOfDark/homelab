@@ -166,6 +166,11 @@ spec:
             # stuck on dead ClusterIPs and the node stalled mid-shutdown.
             network:
               provider: host
+              # rook-ceph-cluster 1.21 defaults requireMsgr2: true. Existing
+              # kernel CephFS/RBD mounts are on msgr v1 until remounted, so
+              # keep v1 allowed; flip after rolling node reboots.
+              connections:
+                requireMsgr2: false
             cephConfig:
               global:
                 osd_memory_target: "2147483648"
