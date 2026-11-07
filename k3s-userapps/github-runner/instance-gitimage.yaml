@@ -66,6 +66,9 @@ spec:
                   # peer" on git clone in container jobs). kind copies the default bridge MTU
                   # into its own network, so this covers the kind clusters too.
                   - --mtu=1230
+                  # --mtu only covers the default bridge; job containers run on networks the
+                  # runner creates (github_network_*), which would still default to 1500.
+                  - --default-network-opt=bridge=com.docker.network.driver.mtu=1230
                 env:
                   - name: DOCKER_GROUP_GID
                     value: "123"
