@@ -14,8 +14,7 @@ spec:
   # Deployments (checksum annotation). Ignore both; RespectIgnoreDifferences
   # keeps the live keypair on sync.
   ignoreDifferences:
-    - group: ""
-      kind: Secret
+    - kind: Secret
       name: zitadel-app-login-service-key
       jsonPointers:
         - /data
