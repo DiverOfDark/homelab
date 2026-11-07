@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-gitimage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.15.1
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+        githubConfigUrl: "https://github.com/DiverOfDark/gitimage"
+        githubConfigSecret: github-secret
+        # Workflows use `runs-on: gitimage-e2e` (repo variable E2E_RUNS_ON). Fork PRs never
+        # reach these runners: the pipeline routes them to GitHub-hosted runners.
+        runnerScaleSetName: gitimage-e2e
+
+        # Each e2e job creates a kind cluster (plus registry, S3, Gitea containers) in its own
+        # dind sidecar: no shared docker names between parallel jobs, and the containers' ports
+        # published on 127.0.0.1 are reachable from the runner (same pod network). The sidecar is
+        # privileged, so /dev/kvm is visible for the Kata e2e jobs.
+        containerMode:
+          type: dind
+
+        # 3 kind clusters at a time on asgard (12 threads / 64 GB); the pipeline's matrix is 6 jobs.
+        maxRunners: 3
+        minRunners: 0
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner"
+
+        template:
+          spec:
+            restartPolicy: Never
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values:
+                            - asgard
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: ["/home/runner/run.sh"]
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 1Gi
+                  limits:
+                    cpu: "4"
+                    memory: 12Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
