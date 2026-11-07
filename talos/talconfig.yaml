@@ -309,6 +309,16 @@ patches:
     hostDNS:
       enabled: false
       forwardKubeDNSToHost: false
+  # User namespaces. Talos ships user.max_user_namespaces=0; this re-enables them for
+  # Kubernetes user namespaces (pods with hostUsers: false), gVisor and rootless BuildKit
+  # (GitImage userns/gvisor modes, gVisor e2e on the gitimage runners). Unprivileged
+  # containers still cannot create them: defaultRuntimeSeccompProfileEnabled below gives every
+  # pod RuntimeDefault seccomp, which blocks CLONE_NEWUSER without CAP_SYS_ADMIN, and the
+  # baseline PodSecurity default forbids Unconfined. Value from the Talos user-namespaces guide.
+  - |-
+    machine:
+      sysctls:
+        user.max_user_namespaces: "11255"
   - |-
     machine:
       kubelet:
