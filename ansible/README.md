@@ -50,7 +50,7 @@ used at first registration).
 
 ```sh
 headscale nodes list
-headscale nodes approve-routes --identifier <id> --routes <routes>   # approve advertised subnet routes
+headscale nodes approve-routes --identifier <id> --routes <routes>   # approve advertised subnet routes (never pod CIDRs 10.244.x — see TS_ROUTES in talos/talconfig.yaml)
 ```
 
 Humans log in via Zitadel OIDC (no preauth keys); infrastructure registers
