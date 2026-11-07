@@ -77,7 +77,12 @@ nodes:
           - TS_AUTH_ONCE=true
           - TS_ACCEPT_DNS=false
           - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
-          - TS_ROUTES=192.168.178.11/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/24,10.244.1.0/24,10.244.2.0/24,10.244.3.0/24,10.96.0.0/12
+          # No pod CIDRs (10.244.x/24) here: midgard accepts routes, and with pod CIDRs routed
+          # over tailscale its WireGuard tried peers' cilium_host IPs (10.244.x.y) as direct
+          # endpoints, which themselves routed over tailscale — a loop that broke the Cilium
+          # overlay midgard<->niflheimr (the elected primary) and half of midgard's DNS.
+          # Pod traffic between nodes goes over Cilium's VXLAN; services stay on 10.96.0.0/12.
+          - TS_ROUTES=192.168.178.11/32,192.168.178.0/23,192.168.179.0/24,10.96.0.0/12
 
   - hostname: jotunheimr
     controlPlane: true
@@ -108,7 +113,7 @@ nodes:
           - TS_AUTH_ONCE=true
           - TS_ACCEPT_DNS=false
           - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
-          - TS_ROUTES=192.168.178.13/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/24,10.244.1.0/24,10.244.2.0/24,10.244.3.0/24,10.96.0.0/12
+          - TS_ROUTES=192.168.178.13/32,192.168.178.0/23,192.168.179.0/24,10.96.0.0/12
 
   - hostname: niflheimr
     controlPlane: true
@@ -140,7 +145,7 @@ nodes:
           - TS_AUTH_ONCE=true
           - TS_ACCEPT_DNS=false
           - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
-          - TS_ROUTES=192.168.178.12/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/24,10.244.1.0/24,10.244.2.0/24,10.244.3.0/24,10.96.0.0/12
+          - TS_ROUTES=192.168.178.12/32,192.168.178.0/23,192.168.179.0/24,10.96.0.0/12
 
   - hostname: muspelheimr
     controlPlane: false
@@ -172,7 +177,7 @@ nodes:
           - TS_AUTH_ONCE=true
           - TS_ACCEPT_DNS=false
           - TS_EXTRA_ARGS=--login-server=https://headscale.kirillorlov.pro
-          - TS_ROUTES=192.168.178.14/32,192.168.178.0/23,192.168.179.0/24,10.244.0.0/24,10.244.1.0/24,10.244.2.0/24,10.244.3.0/24,10.96.0.0/12
+          - TS_ROUTES=192.168.178.14/32,192.168.178.0/23,192.168.179.0/24,10.96.0.0/12
 
   # Hetzner edge worker (terraform/hetzner.tf, image from
   # packer/talos-hcloud.pkr.hcl). Runs traefik-external only — the
