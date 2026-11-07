@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homepage
+  labels:
+    # GitImage builds this site in Kata with BuildKit privileged inside the VM
+    # (privilegedInSandbox), which the cluster's default baseline level rejects.
+    pod-security.kubernetes.io/enforce: privileged

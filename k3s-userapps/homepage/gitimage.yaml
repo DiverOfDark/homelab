@@ -1,0 +1,11 @@
+# kirillorlov.pro is built in-cluster from github.com/DiverOfDark/about by GitImage:
+# every commit on master is built (Kata, BuildKit) into Ceph RGW and rolled out by digest.
+apiVersion: gitimage.dev/v1alpha1
+kind: GitImage
+metadata:
+  name: about
+  namespace: homepage
+spec:
+  url: https://github.com/DiverOfDark/about.git
+  ref: master
+  interval: 2m
