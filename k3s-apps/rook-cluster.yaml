@@ -125,7 +125,7 @@ spec:
           cephImage:
             repository: quay.io/ceph/ceph
             # renovate: datasource=docker depName=quay.io/ceph/ceph
-            tag: v20.2.5
+            tag: v21.2.0
             imagePullPolicy: Always
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
