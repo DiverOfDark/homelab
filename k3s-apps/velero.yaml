@@ -363,7 +363,7 @@ spec:
   source:
     repoURL: https://helm.otwld.com/
     chart: velero-ui
-    targetRevision: 0.16.0
+    targetRevision: 1.1.0
     helm:
       valuesObject:
         configuration:
@@ -371,6 +371,13 @@ spec:
             grafanaUrl: https://grafana.kirillorlov.pro/
             secretPassPhrase:
               existingSecret: velero-credentials
+              # app >=0.11 injects AUTH_SECRET_PASSPHRASE (>=32 bytes) from this key
+              key: SECURITY_TOKEN_KEY
+          # Federated (Zitadel) users get no permissions without a policy file.
+          policies:
+            enabled: true
+            value: |
+              u,me@kirillorlov.pro,manage,all
         ingress:
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
@@ -390,6 +397,10 @@ spec:
         readinessProbe:
           enabled: false
         env:
+          # app >=0.11: basic auth is on by default with no admin/admin fallback
+          # and fails startup without credentials; we only use Zitadel SSO.
+          - name: BASIC_AUTH_ENABLED
+            value: "false"
           - name: OAUTH_AUTH_ENABLED
             value: "true"
           - name: OAUTH_NAME
