@@ -17,7 +17,7 @@ spec:
     # standard Gateway API CRDs are already installed cluster-wide.
     chart: stunner
     repoURL: https://l7mp.io/stunner
-    targetRevision: 1.2.1
+    targetRevision: 2.0.0
   syncPolicy:
     automated:
       prune: true
