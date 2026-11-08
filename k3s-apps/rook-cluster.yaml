@@ -152,11 +152,15 @@ spec:
                 csi:
                   keyType: aes
             dataDirHostPath: /var/lib/rook-ceph
-            # Serve reads from the OSD replica on the same node when one
-            # exists (CRUSH host buckets match kubernetes.io/hostname).
+            # readAffinity MUST stay off. It makes CSI mount CephFS with
+            # read_from_replica=localize, and the kernel CephFS client (6.18)
+            # then tags WRITES with localize_reads too. Ceph >= 21 OSDs reject
+            # those ("rebalance or localized reads with rwordered not allowed")
+            # with EINVAL, so every CephFS write silently failed after the v21
+            # upgrade (2026-11-08) and OpenBao's raft broke. krbd is unaffected.
             csi:
               readAffinity:
-                enabled: true
+                enabled: false
             # All Ceph daemons (mon/mgr/mds/osd/rgw) run on hostNetwork so that
             # libceph in the kernel reaches mons via stable node IPs
             # (192.168.178.x) rather than service ClusterIPs. Required because
