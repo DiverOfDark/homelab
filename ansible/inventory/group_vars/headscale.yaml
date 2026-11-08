@@ -1,5 +1,5 @@
 # renovate: datasource=github-releases depName=juanfont/headscale
-headscale_version: "0.26.1"
+headscale_version: "0.29.7"
 
 headscale_server_url: https://headscale.kirillorlov.pro
 headscale_base_domain: ts.kirillorlov.pro
@@ -45,7 +45,10 @@ headscale_infra_user: infra
 # ('@' suffix if it has no domain part), e.g. "kirill@". Only registered
 # users may be referenced — unknown users prevent headscale from starting.
 headscale_ssh_src_users: ["infra@", "diverofdark@"]
-# Devices tailscale SSH may target (user@ = all nodes owned by that user)
-# and the unix logins allowed.
-headscale_ssh_dst_users: ["infra@"]
+# Devices tailscale SSH may target, and the unix logins allowed.
+# autogroup:member = every user-owned node (incl. infra@'s). headscale >=0.28
+# follows Tailscale's model and refuses to START if a `user@` dst has any
+# source other than that same user (here diverofdark@ -> infra@ nodes), so
+# cross-user access must go through autogroup:member (or tags).
+headscale_ssh_dst_users: ["autogroup:member"]
 headscale_ssh_logins: ["root", "diverofdark"]

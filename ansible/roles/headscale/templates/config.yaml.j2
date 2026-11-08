@@ -53,7 +53,15 @@ derp:
   auto_update_enabled: false
 
 disable_check_updates: true
-ephemeral_node_inactivity_timeout: 30m
+node:
+  # Default key expiry for ALL untagged nodes, any registration method
+  # (headscale >=0.29 removed oidc.expiry). Infra nodes are untagged
+  # preauth-key registrations under the infra user, so anything but 0 would
+  # make Talos nodes / servers expire. Human OIDC devices therefore no longer
+  # get a forced 180d re-login.
+  expiry: 0
+  ephemeral:
+    inactivity_timeout: 30m
 
 dns:
   magic_dns: true
@@ -78,7 +86,6 @@ oidc:
   client_id: {{ headscale_oidc_client_id }}
   client_secret: {{ headscale_oidc_client_secret }}
   scope: ["openid", "profile", "email"]
-  expiry: 4320h # 180d between forced human re-logins (re-auth needs Zitadel up)
 
 {% if headscale_ssh_src_users | length > 0 %}
 # Authorizes tailscale SSH (and re-states the allow-all ACL) — only installed
