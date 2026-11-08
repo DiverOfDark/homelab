@@ -26,6 +26,14 @@ spec:
         repoURL: https://github.com/DiverOfDark/homelab.git
         targetRevision: HEAD
       ignoreDifferences:
+        # GitImage pins gitimage.dev/revision.<container> in pod templates on every new commit
+        # (server-side apply, field manager gitimage-controller); that is a rollout, not drift.
+        - group: apps
+          kind: Deployment
+          managedFieldsManagers: [gitimage-controller]
+        - group: apps
+          kind: StatefulSet
+          managedFieldsManagers: [gitimage-controller]
         - group: '*'
           jqPathExpressions:
             - .metadata.annotations."gethomepage.dev/widget.accountid"

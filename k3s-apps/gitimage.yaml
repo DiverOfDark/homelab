@@ -37,6 +37,12 @@ spec:
         network:
           # Build egress may reach the internet but not pods (10.244/16) or services (10.96/12).
           clusterCIDRs: [10.244.0.0/16, 10.96.0.0/12]
+        build:
+          # Builds pull base images (FROM node:..., rust:...) through Harbor's Docker Hub
+          # proxy cache, not Docker Hub directly (rate limits on the home IP).
+          buildkitdConfig: |
+            [registry."docker.io"]
+              mirrors = ["harbor.kirillorlov.pro/docker-hub"]
         podMonitor:
           enabled: true
         extraObjects:
