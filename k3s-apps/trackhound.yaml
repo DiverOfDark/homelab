@@ -90,6 +90,23 @@ spec:
                     key: trackhound
                     property: track17_security_key
 
+          # trackhound is built in-cluster from github.com/DiverOfDark/trackhound.
+          # Phase A: GitImage builds every commit on master (Kata, BuildKit) into Ceph RGW.
+          # The Deployment still runs the ghcr image until it is switched to this build.
+          - apiVersion: gitimage.dev/v1alpha1
+            kind: GitImage
+            metadata:
+              name: trackhound
+            spec:
+              url: https://github.com/DiverOfDark/trackhound.git
+              ref: master
+              interval: 2m
+              build:
+                # Rust release builds; Kata sizes the VM from the limits.
+                resources:
+                  requests: { cpu: "2", memory: 2Gi }
+                  limits: { cpu: "4", memory: 6Gi }
+
           - apiVersion: networking.k8s.io/v1
             kind: Ingress
             metadata:
@@ -130,9 +147,20 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: trackhound
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field manager
+  # gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
   syncPolicy:
     automated:
       prune: true
+    # GitImage builds run in this namespace in Kata with BuildKit privileged inside the VM
+    # (privilegedInSandbox), which the cluster's default baseline level rejects.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
