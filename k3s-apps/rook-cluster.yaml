@@ -125,7 +125,7 @@ spec:
           cephImage:
             repository: quay.io/ceph/ceph
             # renovate: datasource=docker depName=quay.io/ceph/ceph
-            tag: v20.2.5
+            tag: v21.2.0
             imagePullPolicy: Always
           operatorNamespace: rook-system
           revisionHistoryLimit: 1
@@ -174,6 +174,12 @@ spec:
             cephConfig:
               global:
                 osd_memory_target: "2147483648"
+                # Ceph v21 raises the autoscaler target 100 -> 200 PGs/OSD, which
+                # would ~double pg_num on the big pools -> heavy backfill on worn
+                # SSDs (osd.2/3) and more OSD RAM at a 2 GiB target. Keep the old
+                # target; leave mon_max_pg_per_osd at the new 500 default (osd.0
+                # already carries >250 PGs).
+                mon_target_pg_per_osd: "100"
               osd:
                 # BLUESTORE_SLOW_OP_ALERT defaults latch HEALTH_WARN for 24h
                 # after a SINGLE slow op. osd.0 (DRAM-less Kingston NV3) emits
