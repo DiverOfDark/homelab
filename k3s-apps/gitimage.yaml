@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.18
+    targetRevision: 0.1.19
     helm:
       releaseName: gitimage
       valuesObject:
