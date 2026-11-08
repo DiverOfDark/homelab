@@ -16,19 +16,16 @@ spec:
     targetRevision: master
     path: charts/trackhound
     helm:
-      # Image tag is set via --set so Argo's build-environment substitution
-      # kicks in (interpolation does NOT work inside valuesObject). CI
-      # publishes ghcr.io/diverofdark/trackhound:sha-<7-char-sha> for every
-      # commit, so this resolves to the exact image built from the commit
-      # Argo is currently syncing.
-      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
-      parameters:
-        - name: image.tag
-          value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
         image:
           repository: ghcr.io/diverofdark/trackhound
-          pullPolicy: Always
+          pullPolicy: IfNotPresent
+
+        # GitImage (defined below) builds the image from this repo's tracked
+        # branch; its webhook swaps the container image for the built digest and
+        # rolls the Deployment on each new build.
+        podAnnotations:
+          gitimage.dev/image.trackhound: trackhound
 
         persistence:
           enabled: true
