@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.16
+    targetRevision: 0.1.18
     helm:
       releaseName: gitimage
       valuesObject:
@@ -38,6 +38,16 @@ spec:
           # Build egress may reach the internet but not pods (10.244/16) or services (10.96/12).
           clusterCIDRs: [10.244.0.0/16, 10.96.0.0/12]
         build:
+          # Talos' Kata extension shares filesystem volumes into the VM over virtiofs without
+          # xattr support ("failed to create hash ...: operation not supported"). BuildKit's
+          # state goes on a raw block ceph-block PVC per build instead (virtio-blk in the VM),
+          # formatted ext4 by an init container and mounted by BuildKit.
+          stateVolume:
+            block:
+              storageClassName: ceph-block
+              size: 20Gi
+              fsType: ext4
+              formatImage: harbor.kirillorlov.pro/docker-hub/library/debian:bookworm-slim
           # Builds pull base images (FROM node:..., rust:...) through Harbor's Docker Hub
           # proxy cache, not Docker Hub directly (rate limits on the home IP).
           buildkitdConfig: |
