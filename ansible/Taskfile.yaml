@@ -68,7 +68,9 @@ tasks:
   preauth-key:
     desc: "Generate a headscale preauth key on bifrost (usage: task ansible:preauth-key -- --reusable --expiration 24h)"
     cmds:
-      - ssh -p {{ .BIFROST_PORT }} root@{{ .BIFROST_IP }} headscale preauthkeys create --user infra {{ .CLI_ARGS | default "--expiration 1h" }}
+      # headscale >=0.28 takes a numeric user ID for --user, not the name
+      - |
+        ssh -p {{ .BIFROST_PORT }} root@{{ .BIFROST_IP }} 'headscale preauthkeys create --user $(headscale users list --name infra -o json-line | grep -o "\"id\":[0-9]*" | cut -d: -f2) {{ .CLI_ARGS | default "--expiration 1h" }}'
     preconditions:
       - sh: '! grep -q REPLACE_WITH_BIFROST_IP inventory/hosts.yaml'
         msg: "inventory/hosts.yaml still has the placeholder - set bifrost's IP from `tofu output bifrost_ipv4` first"

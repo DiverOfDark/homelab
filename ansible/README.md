@@ -38,7 +38,8 @@ once (after the first `deploy` has created the `infra` user):
 
 ```sh
 bao kv put secret/headscale authkey=$(ssh -p 22320 root@headscale.kirillorlov.pro \
-  headscale preauthkeys create --user infra --reusable --expiration 87600h)
+  'headscale preauthkeys create --reusable --expiration 87600h \
+     --user $(headscale users list --name infra -o json-line | grep -o "\"id\":[0-9]*" | cut -d: -f2)')
 ```
 
 The same value goes into `talos/talenv.sops.yaml` as `TAILSCALE_AUTHKEY` for
