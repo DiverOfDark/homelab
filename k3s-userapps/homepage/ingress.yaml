@@ -9,7 +9,7 @@ metadata:
     gethomepage.dev/name: Public Homepage
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=homepage"
   name: homepage
-  namespace: nextcloud
+  namespace: homepage
   labels:
     kirillorlov.pro/expose: external
 spec:
