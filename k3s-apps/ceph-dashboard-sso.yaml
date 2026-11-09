@@ -160,6 +160,9 @@ spec:
             - --redirect-url=https://ceph.kirillorlov.pro/oauth2/callback
             - --email-domain=*
             - --reverse-proxy=true
+            # only traefik (pod network) may set X-Forwarded-*; :8445 is
+            # also reachable directly from the LAN
+            - --trusted-proxy-ip=10.244.0.0/16
             - --skip-provider-button=true
             # logout goes /oauth2/sign_out?rd=<zitadel end_session_endpoint>
             - --whitelist-domain=auth.kirillorlov.pro
