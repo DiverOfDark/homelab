@@ -142,6 +142,16 @@ spec:
             createPrometheusRules: true
           cephClusterSpec:
             removeOSDsIfOutAndSafeToRemove: true
+            mgr:
+              count: 2
+              allowMultiplePerNode: false
+              modules:
+                # Rook orchestrator backend: read-only Hosts/Services/Devices
+                # views in the dashboard (Rook sets `ceph orch set backend
+                # rook`). Don't manage daemons through it - the CephCluster
+                # spec in git is the source of truth.
+                - name: rook
+                  enabled: true
             # CVE-2025-30156: Ceph >= 20.2.4 + one-off rotation of the core daemon
             # keys to AES256K (Rook's quick resolution guide). Bump keyGeneration
             # to rotate again. CSI keys stay `aes` (chart default) until every
