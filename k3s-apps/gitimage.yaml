@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    # GitImage: git URL -> image built in-cluster (Kata) -> pods by digest.
+    # GitImage: git URL -> image built in-cluster (gVisor) -> pods by digest.
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
@@ -18,13 +18,15 @@ spec:
       valuesObject:
         buildPolicy:
           isolation:
-            # Each build runs in its own Kata VM. privilegedInSandbox: rootful BuildKit,
-            # privileged inside the guest only — the Talos kata extension sets
-            # privileged_without_host_devices = true for the kata handler, so no host devices
-            # are passed into the VM. midgard (no Kata) is tainted edge, so builds never land there.
+            # Each build runs in gVisor (Talos siderolabs/gvisor extension, runsc handler):
+            # rootless BuildKit, seccomp/AppArmor unconfined only inside the sandbox.
+            # Was Kata until 2026-11-09: Kata sizes the VM as 2Gi + limits but the pod's host
+            # cgroup is only limits + overhead, so builds writing big layers ran
+            # cloud-hypervisor out of memory (EIO in BuildKit, or the VM OOM-killed). gVisor
+            # memory is charged to the pod cgroup directly, and a crier build took ~3 min
+            # under runsc vs ~9.5 min for a comparable Kata build.
             mode: runtimeClass
-            runtimeClassName: kata
-            privilegedInSandbox: true
+            runtimeClassName: gvisor
         # No registry: images live in Ceph RGW and nodes pull them from gitimage-node on
         # localhost:25050 (containerd allows plain HTTP to localhost without node config).
         storage:
@@ -38,16 +40,6 @@ spec:
           # Build egress may reach the internet but not pods (10.244/16) or services (10.96/12).
           clusterCIDRs: [10.244.0.0/16, 10.96.0.0/12]
         build:
-          # Talos' Kata extension shares filesystem volumes into the VM over virtiofs without
-          # xattr support ("failed to create hash ...: operation not supported"). BuildKit's
-          # state goes on a raw block ceph-block PVC per build instead (virtio-blk in the VM),
-          # formatted ext4 by an init container and mounted by BuildKit.
-          stateVolume:
-            block:
-              storageClassName: ceph-block
-              size: 20Gi
-              fsType: ext4
-              formatImage: harbor.kirillorlov.pro/docker-hub/library/debian:bookworm-slim
           # Builds pull base images (FROM node:..., rust:...) through Harbor's Docker Hub
           # proxy cache, not Docker Hub directly (rate limits on the home IP).
           buildkitdConfig: |
@@ -56,6 +48,16 @@ spec:
         podMonitor:
           enabled: true
         extraObjects:
+          # Synced with the controller so its startup isolation check finds it.
+          - apiVersion: node.k8s.io/v1
+            kind: RuntimeClass
+            metadata:
+              name: gvisor
+            handler: runsc
+            overhead:
+              podFixed:
+                memory: 128Mi
+                cpu: 100m
           - apiVersion: objectbucket.io/v1alpha1
             kind: ObjectBucketClaim
             metadata:
@@ -83,5 +85,5 @@ spec:
       - RespectIgnoreDifferences=true
     managedNamespaceMetadata:
       labels:
-        # gitimage-node uses hostNetwork; the isolation check runs a privileged-in-VM pod.
+        # gitimage-node uses hostNetwork; the isolation check runs BuildKit with unconfined seccomp.
         pod-security.kubernetes.io/enforce: privileged
