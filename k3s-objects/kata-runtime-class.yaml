@@ -5,5 +5,13 @@ metadata:
 handler: kata
 overhead:
     podFixed:
-        memory: "130Mi"
+        # Kata sizes the VM as default_memory (2048Mi in the Talos kata
+        # extension's configuration.toml) + the containers' memory limits, but
+        # the pod's host memory cgroup is only limits + this overhead. The guest
+        # RAM is host shmem, so a guest that fills its page cache (e.g. BuildKit
+        # writing a large layer to a block volume) pushes cloud-hypervisor over
+        # the cgroup limit: its io_uring writes fail (EIO in the guest) or the
+        # VM is OOM-killed. Cover default_memory plus ~512Mi for the
+        # hypervisor and virtiofsd.
+        memory: "2560Mi"
         cpu: "250m"
