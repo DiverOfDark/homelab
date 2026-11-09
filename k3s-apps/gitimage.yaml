@@ -18,7 +18,8 @@ spec:
       valuesObject:
         buildPolicy:
           isolation:
-            # Each build runs in gVisor (Talos siderolabs/gvisor extension, runsc handler):
+            # Each build runs in gVisor (Talos siderolabs/gvisor extension; RuntimeClass in
+            # k3s-objects/gvisor-runtime-class.yaml):
             # rootless BuildKit, seccomp/AppArmor unconfined only inside the sandbox.
             # Was Kata until 2026-11-09: Kata sizes the VM as 2Gi + limits but the pod's host
             # cgroup is only limits + overhead, so builds writing big layers ran
@@ -48,16 +49,6 @@ spec:
         podMonitor:
           enabled: true
         extraObjects:
-          # Synced with the controller so its startup isolation check finds it.
-          - apiVersion: node.k8s.io/v1
-            kind: RuntimeClass
-            metadata:
-              name: gvisor
-            handler: runsc
-            overhead:
-              podFixed:
-                memory: 128Mi
-                cpu: 100m
           - apiVersion: objectbucket.io/v1alpha1
             kind: ObjectBucketClaim
             metadata:

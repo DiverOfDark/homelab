@@ -1,0 +1,11 @@
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+# runsc (systrap platform), registered on every node by the Talos siderolabs/gvisor
+# extension. runsc-kvm is also available; it was only ~5% faster for GitImage builds.
+handler: runsc
+overhead:
+    podFixed:
+        memory: "128Mi"
+        cpu: "100m"
