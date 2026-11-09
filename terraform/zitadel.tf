@@ -272,26 +272,60 @@ resource "zitadel_application_oidc" "headlamp" {
   id_token_userinfo_assertion = true
 }
 
-resource "zitadel_application_saml" "ceph_dashboard" {
+# --- Ceph Dashboard (OAuth2 via oauth2-proxy) ---
+#
+# Ceph 21's mgr image (Rocky 10 / EPEL 10) no longer ships python3-saml, so
+# the old SAML2 app is gone. The dashboard's OAuth2 SSO trusts an access token
+# handed to it by oauth2-proxy (k3s-apps/ceph-dashboard-sso.yaml) and maps
+# Zitadel project roles onto dashboard roles, so the app lives in its own
+# project: project_role_check makes Zitadel refuse login to anyone without a
+# Ceph role, and the role key must match a dashboard system role name
+# (administrator, read-only, block-manager, ...).
+resource "zitadel_project" "ceph" {
+  name                   = "Ceph"
+  org_id                 = var.zitadel_org_id
+  project_role_assertion = true
+  project_role_check     = true
+}
+
+resource "zitadel_project_role" "ceph_administrator" {
   org_id       = var.zitadel_org_id
-  project_id   = zitadel_project.homelab.id
-  name         = "Ceph Dashboard"
-  metadata_xml = <<-EOT
-<?xml version="1.0"?>
-<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-                     entityID="https://ceph.kirillorlov.pro/auth/saml2/metadata">
-    <md:SPSSODescriptor AuthnRequestsSigned="false"
-                        WantAssertionsSigned="false"
-                        protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
-        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-                                     Location="https://ceph.kirillorlov.pro/auth/saml2"
-                                     index="1" />
-        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-                                Location="https://ceph.kirillorlov.pro/auth/saml2/logout" />
-    </md:SPSSODescriptor>
-</md:EntityDescriptor>
-EOT
+  project_id   = zitadel_project.ceph.id
+  role_key     = "administrator"
+  display_name = "Ceph administrator"
+}
+
+data "zitadel_human_users" "kirill" {
+  org_id       = var.zitadel_org_id
+  email        = "diverofdark@gmail.com"
+  email_method = "TEXT_QUERY_METHOD_EQUALS"
+}
+
+resource "zitadel_user_grant" "kirill_ceph_administrator" {
+  org_id     = var.zitadel_org_id
+  project_id = zitadel_project.ceph.id
+  user_id    = one(data.zitadel_human_users.kirill.user_ids)
+  role_keys  = [zitadel_project_role.ceph_administrator.role_key]
+}
+
+resource "zitadel_application_oidc" "ceph_dashboard" {
+  org_id                    = var.zitadel_org_id
+  project_id                = zitadel_project.ceph.id
+  name                      = "Ceph Dashboard"
+  redirect_uris             = ["https://ceph.kirillorlov.pro/oauth2/callback"]
+  post_logout_redirect_uris = ["https://ceph.kirillorlov.pro"]
+  response_types            = ["OIDC_RESPONSE_TYPE_CODE"]
+  # refresh tokens let oauth2-proxy renew the access token the dashboard reads
+  grant_types      = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"]
+  app_type         = "OIDC_APP_TYPE_WEB"
+  auth_method_type = "OIDC_AUTH_METHOD_TYPE_BASIC"
+  version          = "OIDC_VERSION_1_0"
+  # The dashboard decodes the access token itself (roles from
+  # urn:zitadel:iam:org:project:roles), so it must be a JWT carrying roles.
+  access_token_type           = "OIDC_TOKEN_TYPE_JWT"
+  access_token_role_assertion = true
+  id_token_role_assertion     = true
+  id_token_userinfo_assertion = true
 }
 
 # --- Instance-wide OIDC token lifetimes ---
@@ -353,6 +387,8 @@ locals {
     # HEADLAMP_OIDC_CLIENT_ID exported from flake.nix -> talos/talconfig.yaml),
     # so `tofu apply` must run before regenerating Talos configs.
     headlamp = zitadel_application_oidc.headlamp
+    # Consumed in-cluster by ESO (k3s-apps/ceph-dashboard-sso.yaml)
+    ceph_dashboard = zitadel_application_oidc.ceph_dashboard
   }
 }
 

@@ -1,0 +1,245 @@
+# Ceph Dashboard SSO via Zitadel (OAuth2), replacing SAML2 which Ceph 21's
+# Rocky 10 mgr image can no longer do (no python3-saml in EPEL 10).
+#
+# How the dashboard's OAuth2 mode works (src/pybind/mgr/dashboard/services/
+# auth/oauth2.py): it takes the access token from the `token` cookie or the
+# `X-Access-Token` header, base64-decodes the JWT WITHOUT verifying its
+# signature, auto-creates a user named after `sub` and maps roles via
+# `roles_path`. So the dashboard must be reachable ONLY through an
+# authenticating proxy, otherwise anyone can forge an admin token:
+#
+#   traefik ─https─> Service ceph-dashboard-sso (selects the ACTIVE mgr pod)
+#     ─> <active mgr node>:8445  oauth2-proxy (this DaemonSet, hostNetwork)
+#     ─> https://127.0.0.1:8443  ceph dashboard, bound to loopback
+#        (cephConfig mgr/dashboard/server_addr in rook-cluster.yaml)
+#
+# mgr pods are hostNetwork, so the mgr pod "IP" is its node IP and a Service
+# pointing at the active mgr pod on port 8445 lands on the oauth2-proxy
+# running in that node's host network namespace.
+#
+# Authorization lives in Zitadel (terraform/zitadel.tf): the "Ceph" project
+# has project_role_check, so only users granted a Ceph role can log in, and
+# the role key (`administrator`) is mapped by the dashboard via
+#   ceph dashboard sso enable oauth2 'keys("urn:zitadel:iam:org:project:roles")'
+# (one-time CLI; stored in the mgr KV store, not in ceph config).
+#
+# Break-glass (oauth2-proxy or Zitadel down):
+#   kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph dashboard sso disable
+#   kubectl -n rook-ceph port-forward <active mgr pod> 8443   # pod netns == host netns
+#   -> https://localhost:8443, local user `admin` (secret rook-ceph-dashboard-password)
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: ceph-dashboard-sso
+  namespace: rook-ceph
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: ceph-dashboard-sso
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    template:
+      type: Opaque
+      data:
+        cookie_secret: "{{ .cookie_secret }}"
+        alpha.yaml: |
+          server:
+            bindAddress: "http://127.0.0.1:8446"
+            secureBindAddress: "https://0.0.0.0:8445"
+            tls:
+              cert:
+                fromFile: /tls/tls.crt
+              key:
+                fromFile: /tls/tls.key
+          upstreamConfig:
+            upstreams:
+              - id: ceph-dashboard
+                path: /
+                uri: https://127.0.0.1:8443
+                insecureSkipTLSVerify: true
+                passHostHeader: true
+                proxyWebSockets: true
+                timeout: 120s
+          injectRequestHeaders:
+            # What the dashboard reads. Client-supplied values are stripped
+            # (preserveRequestValue defaults to false).
+            - name: X-Access-Token
+              values:
+                - claimSource:
+                    claim: access_token
+          providers:
+            - id: zitadel
+              name: Zitadel
+              provider: oidc
+              clientID: "{{ .client_id }}"
+              clientSecret: "{{ .client_secret }}"
+              scope: "openid email profile offline_access"
+              codeChallengeMethod: S256
+              oidcConfig:
+                issuerURL: https://auth.kirillorlov.pro
+                emailClaim: email
+                audienceClaims: ["aud"]
+                insecureSkipNonce: false
+  data:
+    # seeded once: bao kv put secret/ceph-dashboard-sso cookie_secret=$(openssl rand -hex 16)
+    - secretKey: cookie_secret
+      remoteRef:
+        key: ceph-dashboard-sso
+        property: cookie_secret
+    # Zitadel OIDC app (terraform/zitadel.tf, zitadel_credentials loop)
+    - secretKey: client_id
+      remoteRef:
+        key: zitadel/ceph_dashboard-credentials
+        property: client_id
+    - secretKey: client_secret
+      remoteRef:
+        key: zitadel/ceph_dashboard-credentials
+        property: client_secret
+---
+# TLS between traefik and oauth2-proxy (the hop crosses the LAN to the mgr's
+# node). Self-signed; traefik already skips verification for this backend
+# via the ceph-dashboard-transport ServersTransport.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ceph-dashboard-sso-internal
+  namespace: rook-ceph
+spec:
+  secretName: ceph-dashboard-sso-internal-tls
+  duration: 8760h
+  renewBefore: 720h
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  commonName: ceph-dashboard-sso.rook-ceph.svc
+  dnsNames:
+    - ceph-dashboard-sso.rook-ceph.svc
+    - ceph-dashboard-sso.rook-ceph.svc.cluster.local
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ceph-dashboard-sso
+  namespace: rook-ceph
+  labels:
+    app.kubernetes.io/name: ceph-dashboard-sso
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ceph-dashboard-sso
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ceph-dashboard-sso
+    spec:
+      # Must share the host network namespace with the mgr to reach the
+      # loopback-bound dashboard.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      priorityClassName: system-cluster-critical
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  # never open :8445 on the public Hetzner edge
+                  - key: kirillorlov.pro/edge
+                    operator: DoesNotExist
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.6
+          args:
+            - --alpha-config=/etc/oauth2-proxy/alpha.yaml
+            - --redirect-url=https://ceph.kirillorlov.pro/oauth2/callback
+            - --email-domain=*
+            - --reverse-proxy=true
+            - --skip-provider-button=true
+            # logout goes /oauth2/sign_out?rd=<zitadel end_session_endpoint>
+            - --whitelist-domain=auth.kirillorlov.pro
+            - --cookie-name=_ceph_oauth2
+            - --cookie-secure=true
+            - --cookie-samesite=lax
+            - --cookie-expire=168h
+            # renews the access token the dashboard reads (Zitadel: 12h)
+            - --cookie-refresh=1h
+            - --silence-ping-logging=true
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ceph-dashboard-sso
+                  key: cookie_secret
+          ports:
+            - name: https
+              containerPort: 8445
+              hostPort: 8445
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8445
+              scheme: HTTPS
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8445
+              scheme: HTTPS
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: config
+              mountPath: /etc/oauth2-proxy
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: ceph-dashboard-sso
+            items:
+              - key: alpha.yaml
+                path: alpha.yaml
+        - name: tls
+          secret:
+            secretName: ceph-dashboard-sso-internal-tls
+---
+# Points at the ACTIVE mgr pod (label maintained by rook's watch-active
+# sidecar) but on oauth2-proxy's port: same host network namespace.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ceph-dashboard-sso
+  namespace: rook-ceph
+spec:
+  selector:
+    app: rook-ceph-mgr
+    mgr_role: active
+    rook_cluster: rook-ceph
+  ports:
+    - name: https
+      port: 8445
+      targetPort: 8445
+      protocol: TCP

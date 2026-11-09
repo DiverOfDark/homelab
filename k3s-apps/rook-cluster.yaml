@@ -87,8 +87,10 @@ spec:
     - match: Host(`ceph.kirillorlov.pro`)
       kind: Rule
       services:
-        - name: rook-ceph-mgr-dashboard
-          port: 8443
+        # oauth2-proxy (Zitadel) in front of the loopback-bound dashboard;
+        # see k3s-apps/ceph-dashboard-sso.yaml
+        - name: ceph-dashboard-sso
+          port: 8445
           scheme: https
           serversTransport: ceph-dashboard-transport
   tls:
@@ -195,6 +197,12 @@ spec:
               mon:
                 mon_data_avail_warn: "5"
                 mon_data_avail_crit: "1"
+              mgr:
+                # Dashboard OAuth2 SSO trusts unsigned tokens, so it must only
+                # be reachable via oauth2-proxy on the same host network
+                # (k3s-apps/ceph-dashboard-sso.yaml). mgr pods are
+                # hostNetwork: without this it listens on <node-ip>:8443.
+                mgr/dashboard/server_addr: "127.0.0.1"
             dashboard:
               enabled: true
               prometheusEndpoint: http://vmsingle-main.victoriametrics.svc.cluster.local:8429/
