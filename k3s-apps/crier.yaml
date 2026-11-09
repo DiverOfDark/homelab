@@ -1,0 +1,104 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crier
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Telegram bot posting new HN / Lobsters top stories. Chart and code live
+    # together in the source repo; GitImage builds the image from it.
+    repoURL: https://github.com/DiverOfDark/crier.git
+    targetRevision: master
+    path: charts/crier
+    helm:
+      valuesObject:
+        # GitImage (defined below) builds the image from the repo's master
+        # branch; its webhook swaps in the built digest and rolls the
+        # Deployment on each new build.
+        podAnnotations:
+          gitimage.dev/image.crier: crier
+
+        persistence:
+          enabled: true
+          size: 256Mi
+          storageClass: ceph-block
+
+        config:
+          pollIntervalSeconds: 600
+          hnTop: 10
+          lobstersTop: 10
+          initialPosts: 3
+          openaiModel: gpt-5-mini
+          openaiReasoningEffort: low
+
+        secrets:
+          existingSecret: crier
+
+        additionalObjects:
+          # OpenBao: secret/crier holds telegram_bot_token and telegram_chat_id;
+          # the OpenAI key is shared with trackhound.
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: crier
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: crier
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: TELEGRAM_BOT_TOKEN
+                  remoteRef:
+                    key: crier
+                    property: telegram_bot_token
+                - secretKey: TELEGRAM_CHAT_ID
+                  remoteRef:
+                    key: crier
+                    property: telegram_chat_id
+                - secretKey: OPENAI_API_KEY
+                  remoteRef:
+                    key: trackhound
+                    property: openai_api_key
+
+          - apiVersion: gitimage.dev/v1alpha1
+            kind: GitImage
+            metadata:
+              name: crier
+            spec:
+              url: https://github.com/DiverOfDark/crier.git
+              ref: master
+              interval: 2m
+              build:
+                # Rust release build; Kata sizes the VM from the limits.
+                resources:
+                  requests: { cpu: "2", memory: 2Gi }
+                  limits: { cpu: "4", memory: 6Gi }
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crier
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field
+  # manager gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
+  syncPolicy:
+    automated:
+      prune: true
+    # GitImage builds run in this namespace in Kata with BuildKit privileged
+    # inside the VM, which the cluster's default baseline level rejects.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
