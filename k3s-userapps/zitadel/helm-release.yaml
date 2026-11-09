@@ -35,7 +35,7 @@ spec:
           kubectl:
             image:
               # renovate: datasource=docker depName=alpine/k8s
-              tag: "1.37.1"
+              tag: "1.37.2"
         cleanupJob:
           enabled: false
         zitadel:
