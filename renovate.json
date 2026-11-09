@@ -57,6 +57,17 @@
       "allowedVersions": "/^[0-9]+\\.[0-9]+\\.0$/"
     },
     {
+      "description": "headscale (ansible/inventory/group_vars/headscale.yaml): GitHub tags are vX.Y.Z but the var holds the bare version used in the .deb URL, so strip the v. headscale only supports upgrading one minor at a time (and each minor has breaking config/policy changes), so propose every minor as its own PR.",
+      "matchDatasources": [
+        "github-releases"
+      ],
+      "matchPackageNames": [
+        "juanfont/headscale"
+      ],
+      "extractVersion": "^v(?<version>.+)$",
+      "separateMultipleMinor": true
+    },
+    {
       "description": "Emby: odd minor versions (4.9, 4.11, ...) are beta builds; stay on stable even minors.",
       "matchDatasources": [
         "docker"
@@ -136,7 +147,7 @@
         "/(^|/).*\\.y[a]?ml$/"
       ],
       "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s+(?:version|tag):\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s+(?:[\\w-]+_)?(?:version|tag):\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
       ]
     }
   ],
