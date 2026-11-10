@@ -56,7 +56,7 @@ spec:
                 - {name: tools, mountPath: /tools}
           containers:
             - name: cleanup
-              image: alpine/k8s:1.37.1
+              image: alpine/k8s:1.37.2
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
