@@ -141,11 +141,6 @@ spec:
                     gethomepage.dev/widget.url: https://grafana.kirillorlov.pro/
                     hugin.dev/widget.username-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_USER
                     hugin.dev/widget.password-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_PASSWORD
-                    # Blank on purpose: overwrites what the removed annotation applier wrote into
-                    # the live object. Delete these blank annotations once this has synced.
-                    gethomepage.dev/widget.username: ""
-                    gethomepage.dev/widget.password: ""
-                    kirillorlov.pro/annotationsFromSecretState: ""
                 spec:
                   ingressClassName: traefik
                   rules:
