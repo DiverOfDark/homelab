@@ -1,0 +1,142 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hugin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Rust replacement for the gethomepage dashboard (k3s-userapps/statuspage).
+    # Runs side by side at hugin.kirillorlov.pro until the cutover; it reads
+    # the same gethomepage.dev/* Ingress annotations.
+    # The chart lives next to the code that builds the image, so both move
+    # together; the image tag below pins what actually runs.
+    repoURL: https://github.com/DiverOfDark/hugin.git
+    targetRevision: master
+    path: charts/hugin
+    helm:
+      valuesObject:
+        image:
+          repository: ghcr.io/diverofdark/hugin
+          tag: sha-b4c8675
+          pullPolicy: IfNotPresent
+
+        # Same placement as the current status page: on the edge, so it stays
+        # reachable precisely when the homelab is broken. The image comes from
+        # ghcr, not from the in-cluster registry, for the same reason.
+        nodeSelector:
+          kirillorlov.pro/edge: "true"
+        tolerations:
+          - key: "edge"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+
+        resources:
+          requests:
+            cpu: 10m
+            memory: 24Mi
+          limits:
+            memory: 64Mi
+
+        podMonitor:
+          enabled: true
+
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+          hosts:
+            - host: hugin.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - hugin.kirillorlov.pro
+              secretName: hugin-tls
+
+        # Secrets the dashboard may `get`, by name. Everything else stays
+        # unreadable: there is no list/watch on Secrets anywhere.
+        # Keep in sync with the hugin.dev/widget.*-from-secret annotations.
+        secretAccess:
+          - namespace: argocd
+            names: [argocd-readonly-token]
+          - namespace: media
+            names: [plex-secret]
+          - namespace: nextcloud
+            names: [nextcloud-secret]
+          - namespace: paperless
+            names: [paperless-secret]
+          - namespace: prometheus
+            names: [grafana-admin-credentials]
+
+        # Mirrors k3s-userapps/statuspage/config.yaml.
+        config:
+          title: Kirill Orlov HomeLab
+          columns: 5
+          showStats: true
+          discovery:
+            ingress: true
+            # The Ceph dashboard is annotated on its IngressRoute.
+            traefikIngressRoutes: true
+          header:
+            cluster:
+              show: true
+              label: cluster
+            nodes:
+              show: true
+            weather:
+              label: Berlin
+              latitude: 52.50
+              longitude: 13.33
+              timezone: Europe/Berlin
+              units: metric
+              cacheMinutes: 10
+              maximumFractionDigits: 1
+            search:
+              provider: google
+              target: _blank
+          bookmarks:
+            - group: Developer
+              items:
+                - name: Github
+                  abbr: GH
+                  href: https://github.com/
+          services:
+            - group: Infra
+              name: FritzBox
+              href: http://192.168.178.1/
+              icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/avm-fritzbox.svg
+              widget:
+                type: fritzbox
+                params:
+                  url: http://192.168.178.1/
+            - group: Infra
+              name: Pihole
+              href: http://192.168.178.2/
+              icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/pi-hole.svg
+              description: DNS Adblocker
+              widget:
+                type: pihole
+                params:
+                  url: http://192.168.178.2
+                  version: "6"
+            - group: Infra
+              name: Garage
+              href: http://yggdrasil.ts.kirillorlov.pro:3902/
+              icon: https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/garage.svg
+              description: Backup storage
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hugin
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

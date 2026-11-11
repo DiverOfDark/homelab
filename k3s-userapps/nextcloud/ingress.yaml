@@ -12,6 +12,7 @@ metadata:
     gethomepage.dev/widget.type: nextcloud
     gethomepage.dev/widget.url: http://nextcloud.nextcloud.svc.cluster.local
     gethomepage.dev/widget.key: "$WIDGET_KEY$"
+    hugin.dev/widget.key-from-secret: nextcloud-secret/WIDGET_KEY
     kirillorlov.pro/annotationsFromSecretName: nextcloud-secret
   name: nextcloud
   namespace: nextcloud
