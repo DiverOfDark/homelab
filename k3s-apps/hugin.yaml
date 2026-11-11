@@ -20,7 +20,7 @@ spec:
       valuesObject:
         image:
           repository: ghcr.io/diverofdark/hugin
-          tag: sha-435338e
+          tag: sha-5b96dc5
           pullPolicy: IfNotPresent
 
         # Same placement as the current status page: on the edge, so it stays
