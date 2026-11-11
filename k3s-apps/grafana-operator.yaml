@@ -16,10 +16,6 @@ spec:
         - .data."admin-user"
         - .data."admin-password"
       kind: Secret
-    - group: '*'
-      jqPathExpressions:
-        - .metadata.annotations."gethomepage.dev/widget.password"
-      kind: Ingress
   source:
     repoURL: ghcr.io/grafana/helm-charts
     targetRevision: 5.25.0
@@ -143,11 +139,13 @@ spec:
                     gethomepage.dev/pod-selector: "app=grafana"
                     gethomepage.dev/widget.type: grafana
                     gethomepage.dev/widget.url: https://grafana.kirillorlov.pro/
-                    gethomepage.dev/widget.username: "$GF_SECURITY_ADMIN_USER$"
-                    gethomepage.dev/widget.password: "$GF_SECURITY_ADMIN_PASSWORD$"
                     hugin.dev/widget.username-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_USER
                     hugin.dev/widget.password-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_PASSWORD
-                    kirillorlov.pro/annotationsFromSecretName: grafana-admin-credentials
+                    # Blank on purpose: overwrites what the removed annotation applier wrote into
+                    # the live object. Delete these blank annotations once this has synced.
+                    gethomepage.dev/widget.username: ""
+                    gethomepage.dev/widget.password: ""
+                    kirillorlov.pro/annotationsFromSecretState: ""
                 spec:
                   ingressClassName: traefik
                   rules:

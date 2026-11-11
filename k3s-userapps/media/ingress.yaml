@@ -43,10 +43,12 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=radarr"
     gethomepage.dev/widget.type: radarr
     gethomepage.dev/widget.url: http://radarr.media.svc.cluster.local
-    gethomepage.dev/widget.key: "$RADARR_API_KEY$"
     hugin.dev/widget.key-from-secret: plex-secret/RADARR_API_KEY
+    # Blank on purpose: overwrites what the removed annotation applier wrote into
+    # the live object. Delete these blank annotations once this has synced.
+    gethomepage.dev/widget.key: ""
+    kirillorlov.pro/annotationsFromSecretState: ""
     gethomepage.dev/widget.enableQueue: "false" # optional, defaults to false
-    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: radarr
   namespace: media
 spec:
@@ -79,10 +81,12 @@ metadata:
     gethomepage.dev/widget.type: sonarr
     gethomepage.dev/widget.url: http://sonarr.media.svc.cluster.local
     gethomepage.dev/widget.enableQueue: "false" # optional, defaults to false
-    gethomepage.dev/widget.key: "$SONARR_API_KEY$"
     hugin.dev/widget.key-from-secret: plex-secret/SONARR_API_KEY
+    # Blank on purpose: overwrites what the removed annotation applier wrote into
+    # the live object. Delete these blank annotations once this has synced.
+    gethomepage.dev/widget.key: ""
+    kirillorlov.pro/annotationsFromSecretState: ""
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
-    kirillorlov.pro/annotationsFromSecretName: plex-secret
   name: sonarr
   namespace: media
 spec:
@@ -115,9 +119,11 @@ metadata:
     gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jellyseerr"
     gethomepage.dev/widget.type: jellyseerr
     gethomepage.dev/widget.url: http://jellyseerr.media.svc.cluster.local
-    gethomepage.dev/widget.key: "$JELLYSEERR_TOKEN$"
     hugin.dev/widget.key-from-secret: plex-secret/JELLYSEERR_TOKEN
-    kirillorlov.pro/annotationsFromSecretName: plex-secret
+    # Blank on purpose: overwrites what the removed annotation applier wrote into
+    # the live object. Delete these blank annotations once this has synced.
+    gethomepage.dev/widget.key: ""
+    kirillorlov.pro/annotationsFromSecretState: ""
   name: jellyseerr
   namespace: media
 spec:
