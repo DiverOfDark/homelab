@@ -110,6 +110,7 @@ spec:
                   gethomepage.dev/widget.type: argocd
                   gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
                   gethomepage.dev/widget.key: "$token$"
+                  hugin.dev/widget.key-from-secret: argocd-readonly-token/token
                   kirillorlov.pro/annotationsFromSecretName: argocd-readonly-token
 
 

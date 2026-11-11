@@ -145,6 +145,8 @@ spec:
                     gethomepage.dev/widget.url: https://grafana.kirillorlov.pro/
                     gethomepage.dev/widget.username: "$GF_SECURITY_ADMIN_USER$"
                     gethomepage.dev/widget.password: "$GF_SECURITY_ADMIN_PASSWORD$"
+                    hugin.dev/widget.username-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_USER
+                    hugin.dev/widget.password-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_PASSWORD
                     kirillorlov.pro/annotationsFromSecretName: grafana-admin-credentials
                 spec:
                   ingressClassName: traefik
