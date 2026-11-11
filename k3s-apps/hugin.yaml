@@ -11,7 +11,9 @@ spec:
     # The status page at status.kirillorlov.pro. Rust replacement for
     # gethomepage; it reads the same gethomepage.dev/* Ingress annotations.
     # The chart lives next to the code that builds the image, so both move
-    # together; the image tag below pins what actually runs.
+    # together. The GitImage below builds every commit on master in-cluster
+    # and its webhook swaps the container image for the built digest; the
+    # ghcr tag is only what the pod template names before that swap.
     repoURL: https://github.com/DiverOfDark/hugin.git
     targetRevision: master
     path: charts/hugin
@@ -32,6 +34,28 @@ spec:
             operator: "Equal"
             value: "true"
             effect: "NoSchedule"
+
+        # GitImage (defined below) builds the image from the hugin repo's master;
+        # its webhook swaps the container image for the built digest and rolls
+        # the Deployment on each new build. pullPolicy stays IfNotPresent so a
+        # restart on midgard does not need the registry at home.
+        podAnnotations:
+          gitimage.dev/image.hugin: hugin
+
+        additionalObjects:
+          - apiVersion: gitimage.dev/v1alpha1
+            kind: GitImage
+            metadata:
+              name: hugin
+            spec:
+              url: https://github.com/DiverOfDark/hugin.git
+              ref: master
+              interval: 2m
+              build:
+                # Rust release build; Kata sizes the VM from the limits.
+                resources:
+                  requests: { cpu: "2", memory: 2Gi }
+                  limits: { cpu: "4", memory: 6Gi }
 
         resources:
           requests:
@@ -144,9 +168,21 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: hugin
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field manager
+  # gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
   syncPolicy:
     automated:
       prune: true
+    # GitImage builds run in this namespace in Kata with BuildKit privileged inside the VM
+    # (privilegedInSandbox), which the cluster's default baseline level rejects.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
