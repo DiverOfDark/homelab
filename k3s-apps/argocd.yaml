@@ -75,11 +75,6 @@ metadata:
       - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  ignoreDifferences:
-    - group: '*'
-      jqPathExpressions:
-        - .metadata.annotations."gethomepage.dev/widget.key"
-      kind: Ingress
   sources:
     - chart: argo-helm/argo-cd
       repoURL: ghcr.io/argoproj
@@ -109,9 +104,11 @@ spec:
                   gethomepage.dev/pod-selector: "app.kubernetes.io/instance=argocd"
                   gethomepage.dev/widget.type: argocd
                   gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
-                  gethomepage.dev/widget.key: "$token$"
                   hugin.dev/widget.key-from-secret: argocd-readonly-token/token
-                  kirillorlov.pro/annotationsFromSecretName: argocd-readonly-token
+                  # Blank on purpose: overwrites what the removed annotation applier wrote into
+                  # the live object. Delete these blank annotations once this has synced.
+                  gethomepage.dev/widget.key: ""
+                  kirillorlov.pro/annotationsFromSecretState: ""
 
 
               autoscaling:

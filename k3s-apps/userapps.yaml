@@ -34,12 +34,6 @@ spec:
         - group: apps
           kind: StatefulSet
           managedFieldsManagers: [gitimage-controller]
-        - group: '*'
-          jqPathExpressions:
-            - .metadata.annotations."gethomepage.dev/widget.accountid"
-            - .metadata.annotations."gethomepage.dev/widget.key"
-            - .metadata.annotations."gethomepage.dev/widget.tunnelid"
-          kind: Ingress
         - group: apiextensions.k8s.io
           kind: CustomResourceDefinition
           jqPathExpressions:

@@ -8,9 +8,8 @@ metadata:
 spec:
   project: default
   source:
-    # Rust replacement for the gethomepage dashboard (k3s-userapps/statuspage).
-    # Runs side by side at hugin.kirillorlov.pro until the cutover; it reads
-    # the same gethomepage.dev/* Ingress annotations.
+    # The status page at status.kirillorlov.pro. Rust replacement for
+    # gethomepage; it reads the same gethomepage.dev/* Ingress annotations.
     # The chart lives next to the code that builds the image, so both move
     # together; the image tag below pins what actually runs.
     repoURL: https://github.com/DiverOfDark/hugin.git
@@ -23,9 +22,9 @@ spec:
           tag: sha-5b96dc5
           pullPolicy: IfNotPresent
 
-        # Same placement as the current status page: on the edge, so it stays
-        # reachable precisely when the homelab is broken. The image comes from
-        # ghcr, not from the in-cluster registry, for the same reason.
+        # The status page belongs on the edge: it must stay up (and reachable at
+        # status.kirillorlov.pro) precisely when the homelab is broken. The image
+        # comes from ghcr, not from the in-cluster registry, for the same reason.
         nodeSelector:
           kirillorlov.pro/edge: "true"
         tolerations:
@@ -47,17 +46,29 @@ spec:
         ingress:
           enabled: true
           className: traefik
+          labels:
+            # Kyverno generates a hugin-external twin on the traefik-external
+            # class (see k3s-objects/external-ingress-policy.yaml), which is
+            # where status.kirillorlov.pro is served from.
+            kirillorlov.pro/expose: external
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/href: "https://status.kirillorlov.pro"
+            gethomepage.dev/group: Infra
+            gethomepage.dev/name: Status Page
+            gethomepage.dev/icon: homepage.png
+            gethomepage.dev/description: this page
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=hugin"
           hosts:
-            - host: hugin.kirillorlov.pro
+            - host: status.kirillorlov.pro
               paths:
                 - path: /
                   pathType: Prefix
           tls:
             - hosts:
-                - hugin.kirillorlov.pro
-              secretName: hugin-tls
+                - status.kirillorlov.pro
+              secretName: status-tls
 
         # Secrets the dashboard may `get`, by name. Everything else stays
         # unreadable: there is no list/watch on Secrets anywhere.
@@ -74,7 +85,6 @@ spec:
           - namespace: prometheus
             names: [grafana-admin-credentials]
 
-        # Mirrors k3s-userapps/statuspage/config.yaml.
         config:
           title: Kirill Orlov HomeLab
           columns: 5
