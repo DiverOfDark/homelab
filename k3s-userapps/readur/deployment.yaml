@@ -96,7 +96,10 @@ spec:
             requests:
               cpu: 25m
               memory: 64Mi
+            # OCR runs in-process (tesseract, 3 languages, up to 4 jobs at
+            # once). At 1 CPU / 768Mi the 429-document paperless backlog
+            # moved at about one document a minute with memory at 713Mi.
             limits:
-              cpu: 1000m
-              memory: 768Mi
+              cpu: 4000m
+              memory: 2Gi
 
