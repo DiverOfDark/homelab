@@ -172,7 +172,7 @@ resource "zitadel_application_oidc" "readur" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Readur"
-  redirect_uris               = ["https://readur.kirillorlov.pro/auth/callback"]
+  redirect_uris               = ["https://readur.kirillorlov.pro/api/auth/oidc/callback", "https://readur.kirillorlov.pro/auth/callback"]
   post_logout_redirect_uris   = ["https://readur.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]

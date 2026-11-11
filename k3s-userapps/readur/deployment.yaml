@@ -66,7 +66,7 @@ spec:
             - name: OIDC_ISSUER_URL
               value: "https://auth.kirillorlov.pro"
             - name: OIDC_REDIRECT_URI
-              value: "https://readur.kirillorlov.pro/auth/callback"
+              value: "https://readur.kirillorlov.pro/api/auth/oidc/callback"
             - name: OIDC_AUTO_REGISTER
               value: "true"
           volumeMounts:
