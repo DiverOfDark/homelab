@@ -96,10 +96,19 @@ data:
             status, body = api("POST", "/api/labels",
                                json.dumps({"name": name, "description": "mail sender"}).encode())
             if status not in (200, 201):
-                print("label %r not created: %s %s" % (name, status, str(body)[:200]))
-                return None
+                raise RuntimeError("label %r not created: %s %s" % (name, status, str(body)[:200]))
             labels[name] = body["id"]
         return labels[name]
+
+
+    def add_label(doc_id, lid):
+        # Additive on purpose: PUT /api/labels/documents/<id> replaces every
+        # label on the document, which would wipe the labels of a document
+        # that already exists (migrated from paperless, or sent by someone
+        # else before). This endpoint answers 200 if already assigned.
+        status, body = api("POST", "/api/labels/documents/%s/labels/%s" % (doc_id, lid))
+        if status not in (200, 201):
+            raise RuntimeError("label not assigned: %s %s" % (status, str(body)[:200]))
 
 
     def upload(filename, data):
@@ -159,10 +168,9 @@ data:
                     doc_id, outcome = upload(title + ".pdf", payload)
                     lid = label_id(labels, sender)
                     if lid:
-                        api("PUT", "/api/labels/documents/" + doc_id,
-                            json.dumps({"label_ids": [lid]}).encode())
+                        add_label(doc_id, lid)
                     print("uid %s: %s %r from %r -> %s" % (uid.decode(), outcome, title, sender, doc_id))
-                except Exception as exc:  # keep going; the mail stays unlabelled and is retried
+                except Exception as exc:  # upload or label failed: the mail stays untagged and is retried
                     print("uid %s: %r failed: %s" % (uid.decode(), fname, exc))
                     ok = False
             if ok:
