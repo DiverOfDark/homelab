@@ -183,8 +183,9 @@ metadata:
   name: readur-mail-intake
   namespace: readur
 spec:
-  # paperless checks mail every 10 minutes; keep the same rhythm.
-  schedule: "*/10 * * * *"
+  # Hourly is enough: nothing here is urgent, and a mail that arrives just
+  # after a run is still picked up by the next one.
+  schedule: "23 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
