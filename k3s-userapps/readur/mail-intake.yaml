@@ -1,0 +1,248 @@
+# Mail intake for Readur.
+#
+# Readur has no IMAP source (WebDAV, local folder and S3 only; upstream
+# request readur/readur#53 is open), so this job replaces the paperless-ngx
+# mail rule "AllPdf": Gmail INBOX, PDF attachments, mails up to 90 days old,
+# title from the subject, correspondent from the sender's name.
+#
+# Why the API and not the watch folder: files dropped in /app/watch are
+# assigned to the local `admin` user and lose subject and sender. An API
+# upload lands under the owner of the API key, the subject becomes the
+# file name and the sender becomes a label.
+#
+# How a mail is marked done: the job adds the Gmail label `Readur` and
+# searches for `-label:Readur`. paperless marks its own with `Papers`, so
+# the two can read the same inbox side by side without hiding mail from
+# each other. Messages are fetched with BODY.PEEK, so nothing is marked
+# read. Re-uploading is harmless: Readur answers 409 for content it already
+# holds for that user.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: readur-mail-intake
+  namespace: readur
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: readur-mail-intake
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    # Readur personal access token (Settings -> API keys). Documents are
+    # owned by whoever created it; revoking it there cuts the job off.
+    - secretKey: api_key
+      remoteRef:
+        key: readur-mail-intake
+        property: api_key
+    # Gmail address and an app password for it.
+    - secretKey: imap_user
+      remoteRef:
+        key: readur-mail-intake
+        property: imap_user
+    - secretKey: imap_password
+      remoteRef:
+        key: readur-mail-intake
+        property: imap_password
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: readur-mail-intake
+  namespace: readur
+data:
+  intake.py: |
+    import email, email.header, email.utils, imaplib, json, os, re, sys, uuid
+    import urllib.error, urllib.request
+
+    BASE = os.environ["READUR_URL"].rstrip("/")
+    KEY = os.environ["READUR_API_KEY"]
+    DONE_LABEL = os.environ.get("DONE_LABEL", "Readur")
+    QUERY = os.environ.get("GMAIL_QUERY", "in:inbox has:attachment filename:pdf newer_than:90d")
+    MAX_BYTES = int(os.environ.get("MAX_FILE_SIZE_MB", "50")) * 1024 * 1024
+
+
+    def api(method, path, data=None, ctype="application/json"):
+        headers = {"Authorization": "Bearer " + KEY}
+        if data is not None:
+            headers["Content-Type"] = ctype
+        req = urllib.request.Request(BASE + path, data=data, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=300) as r:
+                body = r.read().decode()
+                return r.status, json.loads(body) if body.strip() else None
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode(errors="replace")
+
+
+    def decode(value):
+        if not value:
+            return ""
+        return str(email.header.make_header(email.header.decode_header(value)))
+
+
+    def clean(text, limit):
+        return re.sub(r"\s+", " ", re.sub(r'[\x00-\x1f/\\"]+', " ", text)).strip()[:limit]
+
+
+    def label_id(labels, name):
+        # Readur rejects commas in label names.
+        name = re.sub(r"\s*,\s*", " ", name).strip()[:50]
+        if not name:
+            return None
+        if name not in labels:
+            status, body = api("POST", "/api/labels",
+                               json.dumps({"name": name, "description": "mail sender"}).encode())
+            if status not in (200, 201):
+                print("label %r not created: %s %s" % (name, status, str(body)[:200]))
+                return None
+            labels[name] = body["id"]
+        return labels[name]
+
+
+    def upload(filename, data):
+        boundary = uuid.uuid4().hex
+        body = (("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n"
+                 "Content-Type: application/pdf\r\n\r\n") % (boundary, filename)).encode("utf-8")
+        body += data + ("\r\n--%s--\r\n" % boundary).encode()
+        status, resp = api("POST", "/api/documents", body, "multipart/form-data; boundary=" + boundary)
+        if status == 200 and isinstance(resp, dict):
+            return resp["id"], "uploaded"
+        found = re.search(r"[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}", str(resp))
+        if status == 409 and found:
+            return found.group(0), "already present"
+        raise RuntimeError("upload failed: %s %s" % (status, str(resp)[:300]))
+
+
+    def main():
+        status, labels = api("GET", "/api/labels")
+        if status != 200:
+            sys.exit("Readur API not usable: %s %s" % (status, str(labels)[:200]))
+        labels = {l["name"]: l["id"] for l in labels}
+
+        imap = imaplib.IMAP4_SSL(os.environ.get("IMAP_HOST", "imap.gmail.com"), 993)
+        imap.login(os.environ["IMAP_USER"], os.environ["IMAP_PASSWORD"])
+        imap.select("INBOX")
+        query = '"%s -label:%s"' % (QUERY.replace('"', ""), DONE_LABEL)
+        typ, data = imap.uid("SEARCH", "X-GM-RAW", query)
+        uids = data[0].split() if typ == "OK" and data and data[0] else []
+        print("%d message(s) to process" % len(uids))
+
+        failed = 0
+        for uid in uids:
+            typ, msg_data = imap.uid("FETCH", uid, "(BODY.PEEK[])")
+            if typ != "OK" or not msg_data or not isinstance(msg_data[0], tuple):
+                print("uid %s: fetch failed" % uid.decode())
+                failed += 1
+                continue
+            msg = email.message_from_bytes(msg_data[0][1])
+            subject = clean(decode(msg.get("Subject")), 180)
+            # Split before decoding: a decoded display name may contain a comma.
+            name, addr = email.utils.parseaddr(str(msg.get("From") or ""))
+            sender = decode(name) or addr
+            ok = True
+            count = 0
+            for part in msg.walk():
+                fname = decode(part.get_filename())
+                if part.get_content_disposition() != "attachment" or not fname.lower().endswith(".pdf"):
+                    continue
+                payload = part.get_payload(decode=True) or b""
+                if not payload or len(payload) > MAX_BYTES:
+                    print("uid %s: skipped %r (%d bytes)" % (uid.decode(), fname, len(payload)))
+                    ok = False
+                    continue
+                count += 1
+                title = subject or clean(fname[:-4], 180) or "mail attachment"
+                try:
+                    doc_id, outcome = upload(title + ".pdf", payload)
+                    lid = label_id(labels, sender)
+                    if lid:
+                        api("PUT", "/api/labels/documents/" + doc_id,
+                            json.dumps({"label_ids": [lid]}).encode())
+                    print("uid %s: %s %r from %r -> %s" % (uid.decode(), outcome, title, sender, doc_id))
+                except Exception as exc:  # keep going; the mail stays unlabelled and is retried
+                    print("uid %s: %r failed: %s" % (uid.decode(), fname, exc))
+                    ok = False
+            if ok:
+                # Also label mails whose only "pdf" hit was inline, so they are not re-read forever.
+                imap.uid("STORE", uid, "+X-GM-LABELS", "(%s)" % DONE_LABEL)
+            else:
+                failed += 1
+        imap.logout()
+        if failed:
+            sys.exit("%d message(s) not fully imported; they will be retried" % failed)
+
+
+    main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: readur-mail-intake
+  namespace: readur
+spec:
+  # paperless checks mail every 10 minutes; keep the same rhythm.
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: readur-mail-intake
+          containers:
+            - name: intake
+              # The Readur image already ships python3; reusing it avoids
+              # pulling and tracking a second image for a 150-line script.
+              image: 'ghcr.io/readur/readur:3.1.2'
+              imagePullPolicy: IfNotPresent
+              command: ["python3", "-I", "/script/intake.py"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: READUR_URL
+                  value: http://readur.readur.svc.cluster.local
+                - name: READUR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: readur-mail-intake
+                      key: api_key
+                - name: IMAP_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: readur-mail-intake
+                      key: imap_user
+                - name: IMAP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: readur-mail-intake
+                      key: imap_password
+              volumeMounts:
+                - name: script
+                  mountPath: /script
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
