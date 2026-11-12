@@ -153,6 +153,8 @@ spec:
           title: Kirill Orlov HomeLab
           columns: 5
           showStats: true
+          # Show each service's own favicon; the icon annotation is the fallback.
+          favicons: prefer
           discovery:
             ingress: true
             # The Ceph dashboard is annotated on its IngressRoute.
