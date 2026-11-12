@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.19
+    targetRevision: 0.1.22
     helm:
       releaseName: gitimage
       valuesObject:
@@ -48,7 +48,61 @@ spec:
               mirrors = ["harbor.kirillorlov.pro/docker-hub"]
         podMonitor:
           enabled: true
+        # Status UI: every GitImage, live build logs, workloads and gated pods. Sign-in is
+        # end-to-end OIDC like Headlamp: the UI forwards the user's Zitadel id_token to the
+        # kube-apiserver, which authorizes it via k3s-objects/oidc-admin-rbac.yaml. It reuses
+        # the Headlamp Zitadel client because the API server accepts only that client_id as
+        # audience (talos/talconfig.yaml); terraform/zitadel.tf carries the extra redirect URI.
+        ui:
+          enabled: true
+          baseURL: https://gitimage.kirillorlov.pro
+          auth:
+            mode: oidc
+            oidc:
+              issuer: https://auth.kirillorlov.pro
+              existingSecret: gitimage-ui-oidc   # ExternalSecret below
+          ingress:
+            enabled: true
+            className: traefik
+            host: gitimage.kirillorlov.pro
+            # Internal-only (no kirillorlov.pro/expose label), same posture as Headlamp.
+            annotations:
+              cert-manager.io/cluster-issuer: acme-issuer
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/href: "https://gitimage.kirillorlov.pro"
+              gethomepage.dev/group: Cluster Management
+              gethomepage.dev/name: GitImage
+              gethomepage.dev/description: In-cluster image builds
+              gethomepage.dev/pod-selector: "app.kubernetes.io/component=controller"
+            tls:
+              - secretName: gitimage-ui-tls
+                hosts:
+                  - gitimage.kirillorlov.pro
         extraObjects:
+          # The Headlamp Zitadel client (secret/zitadel/headlamp-credentials in OpenBao), under
+          # the key names the chart reads. No target template: extraObjects go through helm tpl.
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: gitimage-ui-oidc
+              namespace: gitimage-system
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: "1h"
+              target:
+                name: gitimage-ui-oidc
+                creationPolicy: Owner
+              data:
+                - secretKey: clientID
+                  remoteRef:
+                    key: zitadel/headlamp-credentials
+                    property: client_id
+                - secretKey: clientSecret
+                  remoteRef:
+                    key: zitadel/headlamp-credentials
+                    property: client_secret
           - apiVersion: objectbucket.io/v1alpha1
             kind: ObjectBucketClaim
             metadata:
