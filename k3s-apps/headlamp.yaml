@@ -125,13 +125,13 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
 
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://headlamp.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: Headlamp
-              gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/headlamp.png"
-              gethomepage.dev/description: Kubernetes web UI
-              gethomepage.dev/pod-selector: "app.kubernetes.io/name=headlamp"
+              hugin.dev/enabled: "true"
+              hugin.dev/href: "https://headlamp.kirillorlov.pro"
+              hugin.dev/group: Cluster Management
+              hugin.dev/name: Headlamp
+              hugin.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/headlamp.png"
+              hugin.dev/description: Kubernetes web UI
+              hugin.dev/pod-selector: "app.kubernetes.io/name=headlamp"
             hosts:
               - host: headlamp.kirillorlov.pro
                 paths:

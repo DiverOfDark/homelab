@@ -68,12 +68,12 @@ spec:
             # Internal-only (no kirillorlov.pro/expose label), same posture as Headlamp.
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://gitimage.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: GitImage
-              gethomepage.dev/description: In-cluster image builds
-              gethomepage.dev/pod-selector: "app.kubernetes.io/component=controller"
+              hugin.dev/enabled: "true"
+              hugin.dev/href: "https://gitimage.kirillorlov.pro"
+              hugin.dev/group: Cluster Management
+              hugin.dev/name: GitImage
+              hugin.dev/description: In-cluster image builds
+              hugin.dev/pod-selector: "app.kubernetes.io/component=controller"
             tls:
               - secretName: gitimage-ui-tls
                 hosts:

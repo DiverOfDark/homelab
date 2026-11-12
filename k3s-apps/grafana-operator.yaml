@@ -131,14 +131,14 @@ spec:
                 metadata:
                   annotations:
                     cert-manager.io/cluster-issuer: "acme-issuer"
-                    gethomepage.dev/enabled: "true"
-                    gethomepage.dev/href: "https://grafana.kirillorlov.pro"
-                    gethomepage.dev/group: Cluster Management
-                    gethomepage.dev/name: Grafana
-                    gethomepage.dev/icon: grafana.png
-                    gethomepage.dev/pod-selector: "app=grafana"
-                    gethomepage.dev/widget.type: grafana
-                    gethomepage.dev/widget.url: https://grafana.kirillorlov.pro/
+                    hugin.dev/enabled: "true"
+                    hugin.dev/href: "https://grafana.kirillorlov.pro"
+                    hugin.dev/group: Cluster Management
+                    hugin.dev/name: Grafana
+                    hugin.dev/icon: grafana.png
+                    hugin.dev/pod-selector: "app=grafana"
+                    hugin.dev/widget.type: grafana
+                    hugin.dev/widget.url: https://grafana.kirillorlov.pro/
                     hugin.dev/widget.username-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_USER
                     hugin.dev/widget.password-from-secret: grafana-admin-credentials/GF_SECURITY_ADMIN_PASSWORD
                 spec:

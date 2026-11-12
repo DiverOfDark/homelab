@@ -3,18 +3,18 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://paperless.kirillorlov.pro"
-    gethomepage.dev/group: Apps
-    gethomepage.dev/name: Paperless
-    gethomepage.dev/icon: paperless.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=paperless"
-    gethomepage.dev/widget.type: paperlessngx
-    gethomepage.dev/widget.url: http://paperless.paperless.svc.cluster.local
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://paperless.kirillorlov.pro"
+    hugin.dev/group: Apps
+    hugin.dev/name: Paperless
+    hugin.dev/icon: paperless.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=paperless"
+    hugin.dev/widget.type: paperlessngx
+    hugin.dev/widget.url: http://paperless.paperless.svc.cluster.local
     hugin.dev/widget.key-from-secret: paperless-secret/PAPERLESS_API_KEY
     # Blank on purpose: overwrites what the removed annotation applier wrote into
     # the live object. Delete these blank annotations once this has synced.
-    gethomepage.dev/widget.key: ""
+    hugin.dev/widget.key: ""
     kirillorlov.pro/annotationsFromSecretState: ""
   name: paperless
   namespace: paperless

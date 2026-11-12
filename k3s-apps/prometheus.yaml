@@ -74,15 +74,15 @@ spec:
                 - alertmanager.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://alertmanager.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: Alertmanager
-              gethomepage.dev/icon: alertmanager.png
-              gethomepage.dev/pod-selector: "app.kubernetes.io/name=alertmanager"
-              gethomepage.dev/widget.type: "alertmanager"
-              gethomepage.dev/widget.url: "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093"
-              gethomepage.dev/widget.hint: "Show alert counts from /api/v2/alerts: firing (active, not silenced or inhibited), silenced and inhibited, plus the number of active silences. Use the active/silenced/inhibited query filters to keep responses small."
+              hugin.dev/enabled: "true"
+              hugin.dev/href: "https://alertmanager.kirillorlov.pro"
+              hugin.dev/group: Cluster Management
+              hugin.dev/name: Alertmanager
+              hugin.dev/icon: alertmanager.png
+              hugin.dev/pod-selector: "app.kubernetes.io/name=alertmanager"
+              hugin.dev/widget.type: "alertmanager"
+              hugin.dev/widget.url: "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093"
+              hugin.dev/widget.hint: "Show alert counts from /api/v2/alerts: firing (active, not silenced or inhibited), silenced and inhibited, plus the number of active silences. Use the active/silenced/inhibited query filters to keep responses small."
           templateFiles:
             telegram.tmpl: |-
               {{ define "telegram.message" }}
@@ -202,16 +202,16 @@ spec:
           #      - grafana.kirillorlov.pro
           #  annotations:
           #    cert-manager.io/cluster-issuer: "acme-issuer"
-          #    gethomepage.dev/enabled: "true"
-          #    gethomepage.dev/href: "https://grafana.kirillorlov.pro"
-          #    gethomepage.dev/group: Cluster Management
-          #    gethomepage.dev/name: Grafana
-          #    gethomepage.dev/icon: grafana.png
-          #    gethomepage.dev/pod-selector: "app.kubernetes.io/name=grafana"
-          #    gethomepage.dev/widget.type: grafana
-          #    gethomepage.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
-          #    gethomepage.dev/widget.username: diverofdark
-          #    gethomepage.dev/widget.password: "$admin-password$"
+          #    hugin.dev/enabled: "true"
+          #    hugin.dev/href: "https://grafana.kirillorlov.pro"
+          #    hugin.dev/group: Cluster Management
+          #    hugin.dev/name: Grafana
+          #    hugin.dev/icon: grafana.png
+          #    hugin.dev/pod-selector: "app.kubernetes.io/name=grafana"
+          #    hugin.dev/widget.type: grafana
+          #    hugin.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
+          #    hugin.dev/widget.username: diverofdark
+          #    hugin.dev/widget.password: "$admin-password$"
           #    kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
         
           persistence:
@@ -265,14 +265,14 @@ spec:
                 - prometheus.kirillorlov.pro
             annotations:
               cert-manager.io/cluster-issuer: "acme-issuer"
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://prometheus.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: Prometheus
-              gethomepage.dev/icon: prometheus.png
-              gethomepage.dev/pod-selector: "app.kubernetes.io/name=prometheus"
-              gethomepage.dev/widget.type: prometheus
-              gethomepage.dev/widget.url: http://prometheus-operated.prometheus.svc.cluster.local:9090 
+              hugin.dev/enabled: "true"
+              hugin.dev/href: "https://prometheus.kirillorlov.pro"
+              hugin.dev/group: Cluster Management
+              hugin.dev/name: Prometheus
+              hugin.dev/icon: prometheus.png
+              hugin.dev/pod-selector: "app.kubernetes.io/name=prometheus"
+              hugin.dev/widget.type: prometheus
+              hugin.dev/widget.url: http://prometheus-operated.prometheus.svc.cluster.local:9090 
 
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 92.17.0

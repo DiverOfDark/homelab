@@ -78,12 +78,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://bonsai.kirillorlov.pro"
-    gethomepage.dev/group: Apps
-    gethomepage.dev/name: Bonsai
-    gethomepage.dev/icon: "https://raw.githubusercontent.com/impworks/bonsai/master/src/Bonsai/wwwroot/assets/img/logo.svg"
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=bonsai"
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://bonsai.kirillorlov.pro"
+    hugin.dev/group: Apps
+    hugin.dev/name: Bonsai
+    hugin.dev/icon: "https://raw.githubusercontent.com/impworks/bonsai/master/src/Bonsai/wwwroot/assets/img/logo.svg"
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=bonsai"
   name: bonsai
   namespace: bonsai
   labels:

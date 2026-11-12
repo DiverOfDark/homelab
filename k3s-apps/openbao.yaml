@@ -28,15 +28,15 @@ spec:
             enabled: true
             annotations:
               cert-manager.io/cluster-issuer: acme-issuer
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/href: "https://openbao.kirillorlov.pro"
-              gethomepage.dev/group: Cluster Management
-              gethomepage.dev/name: OpenBao
-              gethomepage.dev/icon: openbao.svg
-              gethomepage.dev/pod-selector: "app.kubernetes.io/name=openbao"
-              gethomepage.dev/widget.type: "openbao"
-              gethomepage.dev/widget.url: "http://openbao.openbao.svc.cluster.local:8200"
-              gethomepage.dev/widget.hint: "No token is available. Use the unauthenticated /v1/sys/health (it answers with non-200 codes for sealed or standby, which is not an error) and /v1/sys/seal-status: show Sealed yes/no, version, and unseal progress or key threshold."
+              hugin.dev/enabled: "true"
+              hugin.dev/href: "https://openbao.kirillorlov.pro"
+              hugin.dev/group: Cluster Management
+              hugin.dev/name: OpenBao
+              hugin.dev/icon: openbao.svg
+              hugin.dev/pod-selector: "app.kubernetes.io/name=openbao"
+              hugin.dev/widget.type: "openbao"
+              hugin.dev/widget.url: "http://openbao.openbao.svc.cluster.local:8200"
+              hugin.dev/widget.hint: "No token is available. Use the unauthenticated /v1/sys/health (it answers with non-200 codes for sealed or standby, which is not an error) and /v1/sys/seal-status: show Sealed yes/no, version, and unseal progress or key threshold."
             ingressClassName: traefik
             hosts:
               - host: openbao.kirillorlov.pro

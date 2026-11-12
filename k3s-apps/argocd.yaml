@@ -96,17 +96,17 @@ spec:
                 ingressClassName: traefik
                 annotations:
                   cert-manager.io/cluster-issuer: acme-issuer
-                  gethomepage.dev/enabled: "true"
-                  gethomepage.dev/href: "https://argo.kirillorlov.pro"
-                  gethomepage.dev/group: Cluster Management
-                  gethomepage.dev/name: ArgoCD
-                  gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/argo-cd.png"
-                  gethomepage.dev/pod-selector: "app.kubernetes.io/instance=argocd"
-                  gethomepage.dev/widget.type: argocd
-                  gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
+                  hugin.dev/enabled: "true"
+                  hugin.dev/href: "https://argo.kirillorlov.pro"
+                  hugin.dev/group: Cluster Management
+                  hugin.dev/name: ArgoCD
+                  hugin.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/argo-cd.png"
+                  hugin.dev/pod-selector: "app.kubernetes.io/instance=argocd"
+                  hugin.dev/widget.type: argocd
+                  hugin.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
                   hugin.dev/widget.key-from-secret: argocd-readonly-token/token
                   # For hugin's widget generator: the full application list is ~2 MB.
-                  gethomepage.dev/widget.hint: "The application list is megabytes. Add the query parameter fields=items.status.sync.status,items.status.health so only sync and health status come back."
+                  hugin.dev/widget.hint: "The application list is megabytes. Add the query parameter fields=items.status.sync.status,items.status.health so only sync and health status come back."
 
 
               autoscaling:
