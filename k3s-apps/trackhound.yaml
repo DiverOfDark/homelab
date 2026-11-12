@@ -116,6 +116,11 @@ spec:
                 gethomepage.dev/name: Trackhound
                 gethomepage.dev/icon: mdi-package-variant-closed
                 gethomepage.dev/description: "Gmail parcel tracker with 17TRACK sync"
+                # No hand-written widget: hugin's generator writes one for the
+                # image and stores it as a Widget resource in the hugin namespace.
+                gethomepage.dev/widget.type: auto
+                gethomepage.dev/widget.url: http://trackhound-trackhound.trackhound.svc.cluster.local:8080
+                gethomepage.dev/widget.hint: "parcels in transit and delivered recently"
             spec:
               rules:
                 - host: trackhound.kirillorlov.pro
