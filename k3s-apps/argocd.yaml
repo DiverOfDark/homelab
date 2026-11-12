@@ -105,6 +105,8 @@ spec:
                   gethomepage.dev/widget.type: argocd
                   gethomepage.dev/widget.url: http://argocd-server.argocd.svc.cluster.local
                   hugin.dev/widget.key-from-secret: argocd-readonly-token/token
+                  # For hugin's widget generator: the full application list is ~2 MB.
+                  gethomepage.dev/widget.hint: "The application list is megabytes. Add the query parameter fields=items.status.sync.status,items.status.health so only sync and health status come back."
 
 
               autoscaling:
