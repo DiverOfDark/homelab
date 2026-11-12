@@ -42,7 +42,47 @@ spec:
         podAnnotations:
           gitimage.dev/image.hugin: hugin
 
+        # Writes a Widget (Lua script) for every service annotated
+        # gethomepage.dev/widget.type: auto, using a language model, and
+        # validates it against the live service before storing it. Runs at
+        # home, not on the edge: the status page itself never needs it.
+        generator:
+          enabled: true
+          model: gpt-5-mini
+          reasoningEffort: low
+          apiKeySecret:
+            name: hugin-ai
+            key: OPENAI_API_KEY
+          podAnnotations:
+            gitimage.dev/image.hugin: hugin
+          resources:
+            requests:
+              cpu: 10m
+              memory: 24Mi
+            limits:
+              memory: 128Mi
+
         additionalObjects:
+          # The OpenAI key is shared with trackhound and crier.
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: hugin-ai
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: hugin-ai
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: OPENAI_API_KEY
+                  remoteRef:
+                    key: trackhound
+                    property: openai_api_key
+
           - apiVersion: gitimage.dev/v1alpha1
             kind: GitImage
             metadata:
