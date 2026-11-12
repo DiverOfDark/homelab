@@ -259,7 +259,12 @@ resource "zitadel_application_oidc" "headlamp" {
   org_id                      = var.zitadel_org_id
   project_id                  = zitadel_project.homelab.id
   name                        = "Headlamp"
-  redirect_uris               = ["https://headlamp.kirillorlov.pro/oidc-callback"]
+  # Shared with the GitImage status UI (k3s-apps/gitimage.yaml): the kube-apiserver accepts
+  # only this client_id as OIDC audience, and the UI forwards its id_token the same way.
+  redirect_uris = [
+    "https://headlamp.kirillorlov.pro/oidc-callback",
+    "https://gitimage.kirillorlov.pro/auth/callback",
+  ]
   post_logout_redirect_uris   = ["https://headlamp.kirillorlov.pro"]
   response_types              = ["OIDC_RESPONSE_TYPE_CODE"]
   grant_types                 = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
