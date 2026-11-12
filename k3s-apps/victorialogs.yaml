@@ -198,6 +198,9 @@ spec:
               gethomepage.dev/name: Victoria Logs
               gethomepage.dev/icon: victoriametrics.svg
               gethomepage.dev/pod-selector: "app.kubernetes.io/instance=victorialogs"
+              gethomepage.dev/widget.type: "victorialogs"
+              gethomepage.dev/widget.url: "http://victorialogs-victoria-logs-single-server.victorialogs.svc.cluster.local:9428"
+              gethomepage.dev/widget.hint: "Show the number of log entries in the last hour and last 24 hours with a LogsQL stats query (count), not by downloading logs."
             hosts:
               - name: vlogs.kirillorlov.pro
                 path:

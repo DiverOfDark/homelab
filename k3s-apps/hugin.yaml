@@ -189,6 +189,7 @@ spec:
                 type: fritzbox
                 params:
                   url: http://192.168.178.1/
+                  hint: "No credentials are available, so do not use login_sid.lua. Use the unauthenticated TR-064/UPnP SOAP services on port 49000 (igdupnp/control/WANCommonIFC1 GetAddonInfos and GetCommonLinkProperties, WANIPConn1 GetStatusInfo): show connection status, uptime, and current down and up rates. Never show session ids or challenges."
             - group: Infra
               name: Pihole
               href: http://192.168.178.2/

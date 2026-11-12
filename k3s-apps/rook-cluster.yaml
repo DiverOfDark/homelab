@@ -80,6 +80,9 @@ metadata:
     gethomepage.dev/name: Ceph
     gethomepage.dev/icon: ceph.png
     gethomepage.dev/pod-selector: "app.kubernetes.io/app-group=rook-ceph"
+    gethomepage.dev/widget.type: "ceph"
+    gethomepage.dev/widget.url: "http://prometheus-operated.prometheus.svc.cluster.local:9090"
+    gethomepage.dev/widget.hint: "widget.url is Prometheus, which scrapes the Ceph mgr exporter. Use instant queries on /api/v1/query: ceph_health_status (0 OK, 1 WARN, 2 ERR; show the word), used percent from ceph_cluster_total_used_bytes / ceph_cluster_total_bytes, OSDs up out of total from ceph_osd_up, and count of PGs not active+clean if available."
 spec:
   entryPoints:
     - websecure
