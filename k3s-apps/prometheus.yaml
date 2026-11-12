@@ -80,6 +80,9 @@ spec:
               gethomepage.dev/name: Alertmanager
               gethomepage.dev/icon: alertmanager.png
               gethomepage.dev/pod-selector: "app.kubernetes.io/name=alertmanager"
+              gethomepage.dev/widget.type: "alertmanager"
+              gethomepage.dev/widget.url: "http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093"
+              gethomepage.dev/widget.hint: "Show alert counts from /api/v2/alerts: firing (active, not silenced or inhibited), silenced and inhibited, plus the number of active silences. Use the active/silenced/inhibited query filters to keep responses small."
           templateFiles:
             telegram.tmpl: |-
               {{ define "telegram.message" }}

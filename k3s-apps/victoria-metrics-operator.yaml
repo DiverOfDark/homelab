@@ -61,6 +61,9 @@ spec:
                 gethomepage.dev/name: VictoriaMetrics
                 gethomepage.dev/icon: victoriametrics.svg
                 gethomepage.dev/pod-selector: "app.kubernetes.io/name=vmsingle"
+                gethomepage.dev/widget.type: "victoriametrics"
+                gethomepage.dev/widget.url: "http://vmsingle-main.victoriametrics.svc.cluster.local:8428"
+                gethomepage.dev/widget.hint: "Use PromQL instant queries on /api/v1/query against VictoriaMetrics' own vm_* metrics: active time series, samples ingested per second over 5m, and data size on disk."
             spec:
               ingressClassName: traefik
               rules:
