@@ -49,7 +49,7 @@ spec:
         generator:
           enabled: true
           model: gpt-5-mini
-          reasoningEffort: low
+          reasoningEffort: medium
           apiKeySecret:
             name: hugin-ai
             key: OPENAI_API_KEY
