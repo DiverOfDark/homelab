@@ -3,18 +3,18 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://cloud.kirillorlov.pro"
-    gethomepage.dev/group: Apps
-    gethomepage.dev/name: Nextcloud
-    gethomepage.dev/icon: nextcloud.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=nextcloud"
-    gethomepage.dev/widget.type: nextcloud
-    gethomepage.dev/widget.url: http://nextcloud.nextcloud.svc.cluster.local
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://cloud.kirillorlov.pro"
+    hugin.dev/group: Apps
+    hugin.dev/name: Nextcloud
+    hugin.dev/icon: nextcloud.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=nextcloud"
+    hugin.dev/widget.type: nextcloud
+    hugin.dev/widget.url: http://nextcloud.nextcloud.svc.cluster.local
     hugin.dev/widget.key-from-secret: nextcloud-secret/WIDGET_KEY
     # Blank on purpose: overwrites what the removed annotation applier wrote into
     # the live object. Delete these blank annotations once this has synced.
-    gethomepage.dev/widget.key: ""
+    hugin.dev/widget.key: ""
     kirillorlov.pro/annotationsFromSecretState: ""
   name: nextcloud
   namespace: nextcloud

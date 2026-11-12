@@ -22,15 +22,15 @@ metadata:
   namespace: traefik
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://traefik.kirillorlov.pro/dashboard/"
-    gethomepage.dev/group: Cluster Management
-    gethomepage.dev/name: Traefik
-    gethomepage.dev/description: Your friendly K8s loadbalancer
-    gethomepage.dev/icon: traefik.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
-    gethomepage.dev/widget.type: traefik
-    gethomepage.dev/widget.url: http://traefik-dashboard.traefik.svc.cluster.local:9000
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://traefik.kirillorlov.pro/dashboard/"
+    hugin.dev/group: Cluster Management
+    hugin.dev/name: Traefik
+    hugin.dev/description: Your friendly K8s loadbalancer
+    hugin.dev/icon: traefik.png
+    hugin.dev/pod-selector: "app.kubernetes.io/name=traefik"
+    hugin.dev/widget.type: traefik
+    hugin.dev/widget.url: http://traefik-dashboard.traefik.svc.cluster.local:9000
 spec:
   rules:
     - host: traefik.kirillorlov.pro

@@ -3,16 +3,16 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://jackett.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Jackett
-    gethomepage.dev/icon: jackett.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jackett"
-    gethomepage.dev/widget.type: "jackett"
-    gethomepage.dev/widget.url: "http://jackett.media.svc.cluster.local"
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://jackett.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: Jackett
+    hugin.dev/icon: jackett.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=jackett"
+    hugin.dev/widget.type: "jackett"
+    hugin.dev/widget.url: "http://jackett.media.svc.cluster.local"
     # For hugin's widget generator: Jackett runs without an API key here.
-    gethomepage.dev/widget.hint: "No API key is configured: send apikey=undefined. Jackett then redirects to its login, which sets session cookies and returns HTML. When the answer is not JSON, retry once with response.cookies joined as the Cookie header, and keep that cookie in state. Add configured=true to list only the configured indexers; the full list is 1.6 MB."
+    hugin.dev/widget.hint: "No API key is configured: send apikey=undefined. Jackett then redirects to its login, which sets session cookies and returns HTML. When the answer is not JSON, retry once with response.cookies joined as the Cookie header, and keep that cookie in state. Add configured=true to list only the configured indexers; the full list is 1.6 MB."
   name: jackett
   namespace: media
 spec:
@@ -37,16 +37,16 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://radarr.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Radarr
-    gethomepage.dev/icon: radarr.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=radarr"
-    gethomepage.dev/widget.type: radarr
-    gethomepage.dev/widget.url: http://radarr.media.svc.cluster.local
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://radarr.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: Radarr
+    hugin.dev/icon: radarr.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=radarr"
+    hugin.dev/widget.type: radarr
+    hugin.dev/widget.url: http://radarr.media.svc.cluster.local
     hugin.dev/widget.key-from-secret: plex-secret/RADARR_API_KEY
-    gethomepage.dev/widget.enableQueue: "false" # optional, defaults to false
+    hugin.dev/widget.enableQueue: "false" # optional, defaults to false
   name: radarr
   namespace: media
 spec:
@@ -71,16 +71,16 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://sonarr.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Sonarr
-    gethomepage.dev/icon: sonarr.png
-    gethomepage.dev/widget.type: sonarr
-    gethomepage.dev/widget.url: http://sonarr.media.svc.cluster.local
-    gethomepage.dev/widget.enableQueue: "false" # optional, defaults to false
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://sonarr.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: Sonarr
+    hugin.dev/icon: sonarr.png
+    hugin.dev/widget.type: sonarr
+    hugin.dev/widget.url: http://sonarr.media.svc.cluster.local
+    hugin.dev/widget.enableQueue: "false" # optional, defaults to false
     hugin.dev/widget.key-from-secret: plex-secret/SONARR_API_KEY
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=sonarr"
   name: sonarr
   namespace: media
 spec:
@@ -105,14 +105,14 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://jellyseerr.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Jellyseerr
-    gethomepage.dev/icon: jellyseerr.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=jellyseerr"
-    gethomepage.dev/widget.type: jellyseerr
-    gethomepage.dev/widget.url: http://jellyseerr.media.svc.cluster.local
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://jellyseerr.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: Jellyseerr
+    hugin.dev/icon: jellyseerr.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=jellyseerr"
+    hugin.dev/widget.type: jellyseerr
+    hugin.dev/widget.url: http://jellyseerr.media.svc.cluster.local
     hugin.dev/widget.key-from-secret: plex-secret/JELLYSEERR_TOKEN
   name: jellyseerr
   namespace: media
@@ -138,12 +138,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://emby.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: Emby
-    gethomepage.dev/icon: emby.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=emby"
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://emby.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: Emby
+    hugin.dev/icon: emby.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=emby"
   name: emby
   namespace: media
 spec:

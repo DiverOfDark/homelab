@@ -112,13 +112,13 @@ spec:
             cert-manager.io/cluster-issuer: acme-issuer
             # Kyverno generates the traefik-external twin (see login ingress)
             kirillorlov.pro/expose: external
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "Zitadel"
-            gethomepage.dev/description: "Identity Provider"
-            gethomepage.dev/group: "Infra"
-            gethomepage.dev/icon: "zitadel"
-            gethomepage.dev/href: "https://auth.kirillorlov.pro"
-            gethomepage.dev/pod-selector: "app.kubernetes.io/name=zitadel"
+            hugin.dev/enabled: "true"
+            hugin.dev/name: "Zitadel"
+            hugin.dev/description: "Identity Provider"
+            hugin.dev/group: "Infra"
+            hugin.dev/icon: "zitadel"
+            hugin.dev/href: "https://auth.kirillorlov.pro"
+            hugin.dev/pod-selector: "app.kubernetes.io/name=zitadel"
           hosts:
             - host: auth.kirillorlov.pro
               paths:

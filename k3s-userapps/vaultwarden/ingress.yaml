@@ -3,12 +3,12 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://vaultwarden.kirillorlov.pro"
-    gethomepage.dev/group: "Infra"
-    gethomepage.dev/name: vaultwarden
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=vaultwarden"
-    gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/vaultwarden.svg"
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://vaultwarden.kirillorlov.pro"
+    hugin.dev/group: "Infra"
+    hugin.dev/name: vaultwarden
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=vaultwarden"
+    hugin.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/vaultwarden.svg"
   name: vaultwarden
   namespace: vaultwarden
   labels:

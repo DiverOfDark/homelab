@@ -19,14 +19,14 @@ metadata:
   namespace: nextcloud
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://suwayomi.kirillorlov.pro"
-    gethomepage.dev/group: "Media"
-    gethomepage.dev/name: suwayomi-server
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=suwayomi-server"
-    gethomepage.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/suwayomi.svg"
-    gethomepage.dev/widget.type: "suwayomi"
-    gethomepage.dev/widget.url: "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://suwayomi.kirillorlov.pro"
+    hugin.dev/group: "Media"
+    hugin.dev/name: suwayomi-server
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=suwayomi-server"
+    hugin.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/svg/suwayomi.svg"
+    hugin.dev/widget.type: "suwayomi"
+    hugin.dev/widget.url: "http://suwayomi-server.nextcloud.svc.cluster.local:4568"
 spec:
   rules:
     - host: suwayomi.kirillorlov.pro

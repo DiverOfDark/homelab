@@ -93,10 +93,10 @@ spec:
           host: voice-assistant.kirillorlov.pro
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/href: "https://voice-assistant.kirillorlov.pro"
-            gethomepage.dev/group: Apps
-            gethomepage.dev/name: Voice Assistant
+            hugin.dev/enabled: "true"
+            hugin.dev/href: "https://voice-assistant.kirillorlov.pro"
+            hugin.dev/group: Apps
+            hugin.dev/name: Voice Assistant
           tls:
             enabled: true
         resources:

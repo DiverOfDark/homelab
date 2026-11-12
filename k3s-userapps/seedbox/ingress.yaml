@@ -3,14 +3,14 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: acme-issuer
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/href: "https://seedbox.kirillorlov.pro"
-    gethomepage.dev/group: Media
-    gethomepage.dev/name: ruTorrent
-    gethomepage.dev/icon: rutorrent.png
-    gethomepage.dev/pod-selector: "app.kubernetes.io/pod=caddy"
-    gethomepage.dev/widget.type: rutorrent
-    gethomepage.dev/widget.url: http://caddy.seedbox.svc.cluster.local/rutorrent/
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://seedbox.kirillorlov.pro"
+    hugin.dev/group: Media
+    hugin.dev/name: ruTorrent
+    hugin.dev/icon: rutorrent.png
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=caddy"
+    hugin.dev/widget.type: rutorrent
+    hugin.dev/widget.url: http://caddy.seedbox.svc.cluster.local/rutorrent/
   name: seedbox
   namespace: seedbox
 spec:

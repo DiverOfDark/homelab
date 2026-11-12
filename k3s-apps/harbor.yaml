@@ -104,13 +104,13 @@ spec:
               className: traefik
               annotations:
                 cert-manager.io/cluster-issuer: acme-issuer
-                gethomepage.dev/enabled: "true"
-                gethomepage.dev/href: "https://harbor.kirillorlov.pro"
-                gethomepage.dev/group: Infra
-                gethomepage.dev/name: Harbor
-                gethomepage.dev/icon: harbor.png
-                gethomepage.dev/description: "Container registry"
-                gethomepage.dev/pod-selector: "app.kubernetes.io/name=harbor,component=core"
+                hugin.dev/enabled: "true"
+                hugin.dev/href: "https://harbor.kirillorlov.pro"
+                hugin.dev/group: Infra
+                hugin.dev/name: Harbor
+                hugin.dev/icon: harbor.png
+                hugin.dev/description: "Container registry"
+                hugin.dev/pod-selector: "app.kubernetes.io/name=harbor,component=core"
 
           # Image layers on S3 (Ceph RGW), not CephFS. CephFS-backed image
           # layers were fragile: when the MDS hiccups (seen multiple times

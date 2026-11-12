@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   source:
-    # The status page at status.kirillorlov.pro. Rust replacement for
-    # gethomepage; it reads the same gethomepage.dev/* Ingress annotations.
+    # The status page at status.kirillorlov.pro. It lists every Ingress
+    # annotated with hugin.dev/*.
     # The chart lives next to the code that builds the image, so both move
     # together. The GitImage below builds every commit on master in-cluster
     # and its webhook swaps the container image for the built digest; the
@@ -43,7 +43,7 @@ spec:
           gitimage.dev/image.hugin: hugin
 
         # Writes a Widget (Lua script) for every service annotated
-        # gethomepage.dev/widget.type: auto, using a language model, and
+        # hugin.dev/widget.type: auto, using a language model, and
         # validates it against the live service before storing it. Runs at
         # home, not on the edge: the status page itself never needs it.
         generator:
@@ -117,13 +117,13 @@ spec:
             kirillorlov.pro/expose: external
           annotations:
             cert-manager.io/cluster-issuer: acme-issuer
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/href: "https://status.kirillorlov.pro"
-            gethomepage.dev/group: Infra
-            gethomepage.dev/name: Status Page
-            gethomepage.dev/icon: homepage.png
-            gethomepage.dev/description: this page
-            gethomepage.dev/pod-selector: "app.kubernetes.io/name=hugin"
+            hugin.dev/enabled: "true"
+            hugin.dev/href: "https://status.kirillorlov.pro"
+            hugin.dev/group: Infra
+            hugin.dev/name: Status Page
+            hugin.dev/icon: homepage.png
+            hugin.dev/description: this page
+            hugin.dev/pod-selector: "app.kubernetes.io/name=hugin"
           hosts:
             - host: status.kirillorlov.pro
               paths:

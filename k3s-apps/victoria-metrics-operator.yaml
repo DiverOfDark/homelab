@@ -55,15 +55,15 @@ spec:
               name: vmsingle-main
               annotations:
                 cert-manager.io/cluster-issuer: acme-issuer
-                gethomepage.dev/enabled: "true"
-                gethomepage.dev/href: "https://vmetrics.kirillorlov.pro"
-                gethomepage.dev/group: Infra
-                gethomepage.dev/name: VictoriaMetrics
-                gethomepage.dev/icon: victoriametrics.svg
-                gethomepage.dev/pod-selector: "app.kubernetes.io/name=vmsingle"
-                gethomepage.dev/widget.type: "victoriametrics"
-                gethomepage.dev/widget.url: "http://vmsingle-main.victoriametrics.svc.cluster.local:8428"
-                gethomepage.dev/widget.hint: "VictoriaMetrics does not store its own vm_* metrics, so do not query them. Use /api/v1/status/tsdb?topN=1 for data.totalSeries (label Series), and parse the plain-text /metrics (90 kB) for: sum of vm_data_size_bytes (label Disk), vm_free_disk_space_bytes (label Free), and vm_rows_inserted_total summed over types, kept in state to show the ingest rate per second since the last run (label Ingest, show - on the first run)."
+                hugin.dev/enabled: "true"
+                hugin.dev/href: "https://vmetrics.kirillorlov.pro"
+                hugin.dev/group: Infra
+                hugin.dev/name: VictoriaMetrics
+                hugin.dev/icon: victoriametrics.svg
+                hugin.dev/pod-selector: "app.kubernetes.io/name=vmsingle"
+                hugin.dev/widget.type: "victoriametrics"
+                hugin.dev/widget.url: "http://vmsingle-main.victoriametrics.svc.cluster.local:8428"
+                hugin.dev/widget.hint: "VictoriaMetrics does not store its own vm_* metrics, so do not query them. Use /api/v1/status/tsdb?topN=1 for data.totalSeries (label Series), and parse the plain-text /metrics (90 kB) for: sum of vm_data_size_bytes (label Disk), vm_free_disk_space_bytes (label Free), and vm_rows_inserted_total summed over types, kept in state to show the ingest rate per second since the last run (label Ingest, show - on the first run)."
             spec:
               ingressClassName: traefik
               rules:
