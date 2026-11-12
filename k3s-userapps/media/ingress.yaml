@@ -12,7 +12,7 @@ metadata:
     gethomepage.dev/widget.type: "jackett"
     gethomepage.dev/widget.url: "http://jackett.media.svc.cluster.local"
     # For hugin's widget generator: Jackett runs without an API key here.
-    gethomepage.dev/widget.hint: "No API key is configured: send apikey=undefined. Jackett then redirects to its login, which sets session cookies and returns HTML. When the answer is not JSON, retry once with response.cookies joined as the Cookie header, and keep that cookie in state."
+    gethomepage.dev/widget.hint: "No API key is configured: send apikey=undefined. Jackett then redirects to its login, which sets session cookies and returns HTML. When the answer is not JSON, retry once with response.cookies joined as the Cookie header, and keep that cookie in state. Add configured=true to list only the configured indexers; the full list is 1.6 MB."
   name: jackett
   namespace: media
 spec:
