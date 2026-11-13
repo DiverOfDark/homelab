@@ -20,6 +20,9 @@ spec:
             - name: export-secrets
               image: ghcr.io/openbao/openbao:2.7.2
               command: ["/bin/sh", "/scripts/export-secrets.sh"]
+              # image runs as uid 100 since 2.7.1; apk add jq needs root
+              securityContext:
+                runAsUser: 0
               env:
                 - name: BAO_ADDR
                   value: "http://openbao-active.openbao.svc.cluster.local:8200"

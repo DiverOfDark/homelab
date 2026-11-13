@@ -99,7 +99,7 @@ spec:
               verbosity: 0
               rotation:
                 enabled: false
-            snapshotPolicy: none
+            snapshotPolicy: volumeSnapshot
           cephfs:
             enabled: true
             name: rook-system.cephfs.csi.ceph.com
