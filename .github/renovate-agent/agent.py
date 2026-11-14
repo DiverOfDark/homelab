@@ -39,7 +39,7 @@ WORK = Path("renovate-agent-work")
 
 AUTO_MERGE_TYPES = ("patch", "minor", "digest")  # what the model may call safe
 BATCH = 8  # PRs per Claude run; each run has its own budget
-MAX_MERGES = 3  # per run
+MAX_MERGES = 10  # per run
 SETTLE_TIMEOUT = 20 * 60  # seconds for ArgoCD to sync a merge and the apps to get healthy
 SOAK = 5 * 60  # seconds the apps must then stay Synced and Healthy without a break
 POLL = 20

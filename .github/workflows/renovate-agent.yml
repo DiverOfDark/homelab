@@ -38,9 +38,9 @@ jobs:
     name: Triage
     runs-on: renovate-agent
     container: buildpack-deps:trixie
-    # Triage of up to 30 PRs, then up to 3 merges, each up to 20 min to settle plus a
-    # 5 min soak.
-    timeout-minutes: 150
+    # Triage of up to 30 PRs, then up to 10 merges, each up to 20 min to settle plus a
+    # 5 min soak (typically under 10 min).
+    timeout-minutes: 330
     # Write scopes are for the comment, the label, the merge and a revert push. The model
     # never sees this token: agent.py does all of that itself (see its docstring). In the
     # cluster the job pod is the read-only renovate-agent ServiceAccount, see
