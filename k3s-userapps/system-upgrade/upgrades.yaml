@@ -55,10 +55,14 @@ spec:
   # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
   # overloads the other nodes. For the next Talos upgrade, either shed load
   # first or upgrade asgard separately with policy.nodrain.
+  # v1.14.6 phase 1 of 2: every node except asgard, with drain. asgard follows
+  # alone with policy.nodrain (see the note above).
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: Exists
+        operator: NotIn
+        values:
+          - asgard
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
