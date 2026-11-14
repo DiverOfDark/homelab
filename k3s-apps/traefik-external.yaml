@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: traefik
       repoURL: https://traefik.github.io/charts
-      targetRevision: 42.2.0
+      targetRevision: 42.3.1
       helm:
         valuesObject:
           deployment:
@@ -57,7 +57,8 @@ spec:
           # preserves real client source IPs — no ProxyProtocol needed); the
           # Service is only for in-cluster reachability of the dashboard/metrics.
           service:
-            type: ClusterIP
+            spec:
+              type: ClusterIP
 
           # CRITICAL scoping: the internal Ingresses are class-less (served by
           # the default `traefik` class). Without pinning the providers to the
