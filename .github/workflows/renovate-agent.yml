@@ -4,7 +4,7 @@ name: Renovate agent
 # PR (diff, upstream release notes, how the repo uses the dependency, current cluster
 # state) and comments a verdict: "safe to auto-merge" or "needs a human". Nothing is
 # merged. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
-# runs in the `renovate-agent` nix shell from flake.nix.
+# runs in the nix dev shell from flake.nix, like Homelab CI/CD.
 on:
   schedule:
     - cron: "30 2 * * *"
@@ -28,6 +28,9 @@ concurrency:
   group: renovate-agent
   cancel-in-progress: false
 
+env:
+  NIX_CACHE_S3: "s3://nix-cache?endpoint=rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local&scheme=http&region=us-east-1"
+
 jobs:
   triage:
     name: Triage
@@ -50,6 +53,15 @@ jobs:
           persist-credentials: false
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.24.1
+      # AWS_* for the cache are in the job pod's environment (hook template in
+      # renovate-agent.yaml). Read-only use: the Homelab CI/CD validate job keeps the
+      # cache filled with master's dev shell.
+      - name: Configure Nix S3 cache
+        run: |
+          cat >> /etc/nix/nix.conf <<EOF
+          extra-substituters = $NIX_CACHE_S3
+          require-sigs = false
+          EOF
       - name: Triage and comment
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,4 +72,4 @@ jobs:
           FORCE: ${{ inputs.force }}
           DRY_RUN: ${{ inputs.dry_run }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py
+        run: nix develop --command python3 .github/renovate-agent/agent.py

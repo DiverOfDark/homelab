@@ -60,6 +60,9 @@ subjects:
 ---
 # Container-hook template for the `renovate-agent` scale set. Unlike hook-extension (the
 # Homelab CI/CD one) it sets no DOCKER_HOST: the agent has no business with shared-dind.
+# The nix cache credentials (to pull the dev shell from the S3 cache) come in as env from
+# the nix-cache Secret, because the ServiceAccount cannot read Secrets through the API the
+# way the Homelab CI/CD jobs do. agent.py strips them from the model's environment.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -80,6 +83,17 @@ data:
                       - asgard
       containers:
         - name: $job
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: nix-cache
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nix-cache
+                  key: AWS_SECRET_ACCESS_KEY
           resources:
             requests:
               cpu: "100m"

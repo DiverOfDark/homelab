@@ -2,7 +2,7 @@
 """Renovate triage agent: an LLM reads each ready Renovate PR and says whether it could be
 merged unattended; the verdict is posted as a PR comment and a label. Nothing is merged.
 
-    nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py
+    nix develop --command python3 .github/renovate-agent/agent.py
 
 The model reads untrusted text (upstream release notes), so it never gets the GitHub
 token: this script fetches the PR data and posts the comments itself, and starts Claude
@@ -154,8 +154,9 @@ def fetch_pr(pr: dict) -> None:
 
 
 def model_env() -> dict:
-    """The environment without credentials, except the one Claude itself needs."""
-    secret = re.compile(r"TOKEN|SECRET|PASSWORD|KEY", re.IGNORECASE)
+    """The environment without credentials, except the one Claude itself needs. TF_VAR_*
+    are the secrets the dev shell's hook loads from OpenBao when it can."""
+    secret = re.compile(r"TOKEN|SECRET|PASSWORD|KEY|^TF_VAR_", re.IGNORECASE)
     return {k: v for k, v in os.environ.items() if k == "CLAUDE_CODE_OAUTH_TOKEN" or not secret.search(k)}
 
 
