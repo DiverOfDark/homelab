@@ -3,8 +3,8 @@ name: Renovate agent
 # Phase 1 of the AI update job: triage only. Every night an LLM reads each ready Renovate
 # PR (diff, upstream release notes, how the repo uses the dependency, current cluster
 # state) and comments a verdict: "safe to auto-merge" or "needs a human". Nothing is
-# merged. Prompt, denylist and agent.py live in .github/renovate-agent/; both jobs run
-# in the `renovate-agent` nix shell from flake.nix.
+# merged. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
+# runs in the `renovate-agent` nix shell from flake.nix.
 on:
   schedule:
     - cron: "30 2 * * *"
@@ -18,7 +18,7 @@ on:
         type: boolean
         default: false
       dry_run:
-        description: "Do not comment or label; print the comments in the publish log instead"
+        description: "Do not comment or label; print the comments in the log instead"
         type: boolean
         default: false
 
@@ -29,25 +29,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Read-only on every axis: GitHub token (read scopes), cluster (renovate-agent
-  # ServiceAccount, see k3s-userapps/github-runner/renovate-agent.yaml) and the agent's
-  # tool allowlist (agent.py). The model reads untrusted release notes, so the job that
-  # runs it holds no write credential at all; publishing is a separate job.
   triage:
     name: Triage
     runs-on: renovate-agent
     container: buildpack-deps:trixie
     timeout-minutes: 45
+    # Write scopes are for the comment and label only. The model never sees this token:
+    # agent.py fetches the PR data and posts the result itself (see its docstring). In the
+    # cluster the job pod is the read-only renovate-agent ServiceAccount, see
+    # k3s-userapps/github-runner/renovate-agent.yaml.
     permissions:
       contents: read
-      pull-requests: read
       checks: read
       statuses: read
+      pull-requests: write
+      issues: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: DeterminateSystems/determinate-nix-action@v3.24.1
-      - name: Triage with Claude
+      - name: Triage and comment
         env:
           GH_TOKEN: ${{ github.token }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -55,34 +58,6 @@ jobs:
           RENOVATE_AGENT_BUDGET_USD: ${{ vars.RENOVATE_AGENT_BUDGET_USD }}
           ONLY_PR: ${{ inputs.pr }}
           FORCE: ${{ inputs.force }}
-        run: nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py triage out
-      - uses: actions/upload-artifact@v7.0.2
-        with:
-          name: verdicts
-          path: out/
-          retention-days: 14
-
-  publish:
-    name: Publish verdicts
-    needs: triage
-    runs-on: renovate-agent
-    container: buildpack-deps:trixie
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
-    steps:
-      - uses: actions/checkout@v7
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: DeterminateSystems/determinate-nix-action@v3.24.1
-      - uses: actions/download-artifact@v8.0.2
-        with:
-          name: verdicts
-          path: out
-      - name: Comment and label
-        env:
-          GH_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py publish out
+        run: nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py

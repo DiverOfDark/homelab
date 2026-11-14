@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """Renovate triage agent: an LLM reads each ready Renovate PR and says whether it could be
-merged unattended. Nothing is merged here.
+merged unattended; the verdict is posted as a PR comment and a label. Nothing is merged.
 
-    agent.py triage  <dir>   pick the PRs, run Claude over them, write <dir>/prs.json and
-                             <dir>/verdicts.json. Needs only read access.
-    agent.py publish <dir>   comment and label the PRs from those two files. Needs
-                             pull-requests/issues write, and is the only part that does.
+    nix develop .#renovate-agent --command python3 .github/renovate-agent/agent.py
 
-Run inside `nix develop .#renovate-agent` (python3, gh, kubectl, claude).
+The model reads untrusted text (upstream release notes), so it never gets the GitHub
+token: this script fetches the PR data and posts the comments itself, and starts Claude
+with every credential but its own removed from the environment.
 
 Environment:
     GITHUB_REPOSITORY          owner/repo (required)
-    GH_TOKEN                   token for gh
-    CLAUDE_CODE_OAUTH_TOKEN    Claude credential (triage only)
+    GH_TOKEN                   token for gh: read PRs, write comments and labels
+    CLAUDE_CODE_OAUTH_TOKEN    Claude credential
     ONLY_PR                    triage just this PR number
     FORCE=true                 re-triage PRs that already have a verdict
-    DRY_RUN=true               publish: print the comments instead of posting them
+    DRY_RUN=true               print the comments instead of posting them
     RENOVATE_AGENT_MODEL       default: sonnet
     RENOVATE_AGENT_BUDGET_USD  default: 5
     RUN_URL                    link to the workflow run, added to the comments
@@ -31,23 +30,25 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = os.environ.get("GITHUB_REPOSITORY", "")
+WORK = Path("renovate-agent-work")
 
 MAX_PRS = 10
 REQUIRED_CHECK = "Validate"
 MARKER = "<!-- renovate-agent:verdict"
 BOT = "github-actions"
+ZERO_WIDTH_SPACE = chr(0x200B)
 
-# The agent's whole reach: read the checkout, read PRs and GitHub releases, read cluster
-# state. No Edit/Write, no WebFetch, no arbitrary shell; in --print mode anything not
-# listed is denied.
+# The agent's whole reach: read the checkout and the PR files this script wrote, read
+# GitHub pages (release notes), read cluster state. No Edit/Write, no arbitrary shell, no
+# gh; in --print mode anything not listed is denied.
 ALLOWED_TOOLS = [
     "Read",
     "Grep",
     "Glob",
-    "Bash(gh pr view *)",
-    "Bash(gh pr diff *)",
-    "Bash(gh api *)",
     "Bash(kubectl get *)",
+    "WebFetch(domain:github.com)",
+    "WebFetch(domain:api.github.com)",
+    "WebFetch(domain:raw.githubusercontent.com)",
 ]
 
 
@@ -132,7 +133,6 @@ def select_prs() -> list[dict]:
             {
                 "number": pr["number"],
                 "title": pr["title"],
-                "branch": pr["headRefName"],
                 "opened": pr["createdAt"],
                 "files": files,
                 "denylisted": any(deny.search(path) for path in files),
@@ -141,7 +141,22 @@ def select_prs() -> list[dict]:
     return selected[:MAX_PRS]
 
 
+def fetch_pr(pr: dict) -> None:
+    """Write the PR description and diff to a file for the model to read."""
+    number = str(pr["number"])
+    body = json.loads(gh("pr", "view", number, "--repo", REPO, "--json", "body"))["body"]
+    diff = gh("pr", "diff", number, "--repo", REPO)
+    pr["file"] = str(WORK / f"pr-{number}.md")
+    Path(pr["file"]).write_text(f"# {pr['title']}\n\n{body}\n\n# Diff\n\n```diff\n{diff}\n```\n")
+
+
 # --- running the model -------------------------------------------------------------------
+
+
+def model_env() -> dict:
+    """The environment without credentials, except the one Claude itself needs."""
+    secret = re.compile(r"TOKEN|SECRET|PASSWORD|KEY", re.IGNORECASE)
+    return {k: v for k, v in os.environ.items() if k == "CLAUDE_CODE_OAUTH_TOKEN" or not secret.search(k)}
 
 
 def run_claude(prs: list[dict]) -> list[dict]:
@@ -167,7 +182,7 @@ def run_claude(prs: list[dict]) -> list[dict]:
     ]  # fmt: skip
     # The prompt goes in on stdin: after the variadic --allowedTools it would otherwise be
     # read as one more tool name.
-    done = subprocess.run(command, input=prompt, capture_output=True, text=True)
+    done = subprocess.run(command, input=prompt, capture_output=True, text=True, env=model_env())
     try:
         result = json.loads(done.stdout)
         verdicts = result["structured_output"]["verdicts"]
@@ -176,38 +191,21 @@ def run_claude(prs: list[dict]) -> list[dict]:
     if result.get("is_error"):
         sys.exit(f"claude reported an error: {result.get('result')}")
 
-    print(
-        f"claude: {result.get('num_turns')} turns, ${result.get('total_cost_usd', 0):.2f}, "
-        f"{len(result.get('permission_denials', []))} denied tool calls"
-    )
+    denied = [d.get("tool_name") for d in result.get("permission_denials", [])]
+    print(f"claude: {result.get('num_turns')} turns, ${result.get('total_cost_usd', 0):.2f}, denied tool calls: {denied}")
     return verdicts
-
-
-def triage(out: Path) -> None:
-    out.mkdir(parents=True, exist_ok=True)
-    prs = select_prs()
-    (out / "prs.json").write_text(json.dumps(prs, indent=2))
-    (out / "verdicts.json").write_text("[]")
-
-    summary(f"### PRs selected for triage: {len(prs)}")
-    if not prs:
-        return
-
-    verdicts = run_claude(prs)
-    (out / "verdicts.json").write_text(json.dumps(verdicts, indent=2))
-
-    summary("| PR | Verdict | Type | Summary |\n|---|---|---|---|")
-    for v in verdicts:
-        one_line = re.sub(r"[|\r\n]+", " ", v["summary"])
-        summary(f"| #{v['number']} | {v['verdict']} | {v['update_type']} | {one_line} |")
 
 
 # --- publishing --------------------------------------------------------------------------
 
 
 def clean(text: str, limit: int) -> str:
-    """Model output goes into a public comment: cap it, defuse @mentions and HTML comments."""
-    return text[:limit].replace("@", "@​").replace("<!--", "&lt;!--")
+    """Model output goes into a public comment: cap it, defuse @mentions and HTML comments,
+    and make sure it cannot carry one of our credentials out."""
+    for name in ("CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN"):
+        if os.environ.get(name):
+            text = text.replace(os.environ[name], "[redacted]")
+    return text[:limit].replace("@", "@" + ZERO_WIDTH_SPACE).replace("<!--", "&lt;!--")
 
 
 def comment_body(pr: dict, verdict: dict, safe: bool) -> str:
@@ -249,29 +247,39 @@ def set_label(number: int, safe: bool) -> None:
     subprocess.run(["gh", "api", "-X", "DELETE", f"repos/{REPO}/issues/{number}/labels/{remove}"], capture_output=True)
 
 
-def publish(out: Path) -> None:
+def publish(prs: list[dict], verdicts: list[dict]) -> None:
     """Does not trust the model: verdicts for PRs that were not selected are dropped, and
     a denylisted PR needs a human whatever the verdict says."""
-    prs = {pr["number"]: pr for pr in json.loads((out / "prs.json").read_text())}
-    for verdict in json.loads((out / "verdicts.json").read_text()):
-        pr = prs.get(verdict["number"])
+    by_number = {pr["number"]: pr for pr in prs}
+    summary("| PR | Verdict | Type | Summary |\n|---|---|---|---|")
+    for verdict in verdicts:
+        pr = by_number.get(verdict["number"])
         if pr is None:
             print(f"#{verdict['number']}: not a selected PR, ignored")
             continue
         safe = verdict["verdict"] == "safe" and not pr["denylisted"]
         body = comment_body(pr, verdict, safe)
+        one_line = re.sub(r"[|\r\n]+", " ", clean(verdict["summary"], 200))
+        summary(f"| #{pr['number']} | {'safe' if safe else 'needs-human'} | {verdict['update_type']} | {one_line} |")
         if flag("DRY_RUN"):
             print(f"===== #{pr['number']} =====\n{body}\n")
             continue
         post_comment(pr["number"], body)
         set_label(pr["number"], safe)
-        print(f"#{pr['number']}: {'safe' if safe else 'needs-human'}")
+
+
+def main() -> None:
+    if not REPO:
+        sys.exit("GITHUB_REPOSITORY is not set")
+    prs = select_prs()
+    summary(f"### PRs selected for triage: {len(prs)}")
+    if not prs:
+        return
+    WORK.mkdir(exist_ok=True)
+    for pr in prs:
+        fetch_pr(pr)
+    publish(prs, run_claude(prs))
 
 
 if __name__ == "__main__":
-    commands = {"triage": triage, "publish": publish}
-    if len(sys.argv) != 3 or sys.argv[1] not in commands:
-        sys.exit(__doc__)
-    if not REPO:
-        sys.exit("GITHUB_REPOSITORY is not set")
-    commands[sys.argv[1]](Path(sys.argv[2]))
+    main()
