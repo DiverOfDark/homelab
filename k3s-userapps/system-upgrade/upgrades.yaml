@@ -6,7 +6,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-    version: v1.14.5
+    version: v1.14.6
   policy:
     rebootMode: powercycle
     # Drain and wait for CSI volumes to detach before rebooting. Without this
@@ -55,15 +55,19 @@ spec:
   # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
   # overloads the other nodes. For the next Talos upgrade, either shed load
   # first or upgrade asgard separately with policy.nodrain.
+  # v1.14.6 phase 1 of 2: every node except asgard, with drain. asgard follows
+  # alone with policy.nodrain (see the note above).
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: Exists
+        operator: NotIn
+        values:
+          - asgard
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
       # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
-      tag: v1.14.5
+      tag: v1.14.6
 ---
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: KubernetesUpgrade
