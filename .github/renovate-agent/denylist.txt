@@ -1,0 +1,36 @@
+# Paths the Renovate agent may never call "safe": one extended regex per line, matched
+# against every file a PR touches. A hit forces the verdict to needs-human in publish.sh,
+# whatever the model said. These are the components whose breakage takes out the cluster,
+# the data, or the runner the agent itself runs on (so it could not revert).
+
+# OS, Kubernetes, infrastructure-as-code, CI
+^talos/
+^terraform/
+^ansible/
+^packer/
+^k3s-bootstrap/
+^\.github/
+^flake\.(nix|lock)$
+^renovate\.json$
+
+# Networking, DNS, ingress
+^k3s-apps/(cilium|coredns|metallb|traefik|traefik-external|stunner)\.yaml$
+^k3s-userapps/externaldns/
+
+# Storage and databases
+^k3s-apps/rook-
+^k3s-apps/csi-snapshot-controller\.yaml$
+^k3s-apps/cnpg-
+^k3s-apps/velero\.yaml$
+^k3s-apps/harbor
+^k3s-userapps/(csi-rclone|csi-addons|backups)/
+
+# GitOps, secrets, policy, certificates
+^k3s-apps/(argocd|metaapp|userapps|k3s-objects)\.yaml$
+^k3s-apps/(openbao|eso|kyverno|cert-mgr)\.yaml$
+^k3s-objects/
+^k3s-userapps/(openbao|openbao-backup|cert-approver|zitadel)/
+
+# The agent's own runner, node upgrades, VMs
+^k3s-userapps/(github-runner|system-upgrade|kubevirt|kubevirt-vms)/
+^k3s-apps/tuppr\.yaml$

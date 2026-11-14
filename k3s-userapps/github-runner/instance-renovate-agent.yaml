@@ -1,0 +1,80 @@
+# Runner scale set for the Renovate triage agent (.github/workflows/renovate-agent.yml,
+# `runs-on: renovate-agent`). Separate from github-runner-instance so its job pods get the
+# read-only `renovate-agent` ServiceAccount instead of the secret-reading `default` one;
+# see renovate-agent.yaml.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-renovate-agent
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.15.1
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+        githubConfigUrl: "https://github.com/diverofdark/homelab"
+
+        githubConfigSecret: github-secret
+
+        runnerScaleSetName: renovate-agent
+
+        containerMode:
+          type: "kubernetes-novolume"
+
+        # One run at a time (the workflow has a concurrency group anyway); no idle runner.
+        maxRunners: 1
+        minRunners: 0
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner"
+
+        template:
+          spec:
+            restartPolicy: Never
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values:
+                            - asgard
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
+                    value: /etc/hook-extension/template.yaml
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi
+                  limits:
+                    cpu: "1"
+                    memory: 2Gi
+                volumeMounts:
+                  - name: hook-extension
+                    mountPath: /etc/hook-extension
+                    readOnly: true
+            volumes:
+              - name: hook-extension
+                configMap:
+                  name: hook-extension-renovate-agent
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged

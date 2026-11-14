@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdicts"],
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["number", "verdict", "update_type", "summary", "details"],
+        "properties": {
+          "number": { "type": "integer" },
+          "verdict": { "enum": ["safe", "needs-human"] },
+          "update_type": { "enum": ["patch", "minor", "major", "digest", "other"] },
+          "summary": { "type": "string", "maxLength": 200 },
+          "details": { "type": "string", "maxLength": 2500 }
+        }
+      }
+    }
+  }
+}
