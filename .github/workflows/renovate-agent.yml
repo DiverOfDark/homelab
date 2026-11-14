@@ -41,12 +41,14 @@ jobs:
     # Triage of up to 30 PRs, then up to 10 merges, each up to 20 min to settle plus a
     # 5 min soak (typically under 10 min).
     timeout-minutes: 330
-    # Write scopes are for the comment, the label, the merge and a revert push. The model
-    # never sees this token: agent.py does all of that itself (see its docstring). In the
+    # Write scopes are for the comment, the label, a fix commit on the PR branch, starting
+    # CI on it (actions), the merge and a revert push. The model never sees this token:
+    # agent.py does all of that itself (see its docstring). In the
     # cluster the job pod is the read-only renovate-agent ServiceAccount, see
     # k3s-userapps/github-runner/renovate-agent.yaml.
     permissions:
       contents: write
+      actions: write
       checks: read
       statuses: read
       pull-requests: write

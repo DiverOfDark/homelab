@@ -1,20 +1,81 @@
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["verdicts"],
+  "required": [
+    "verdicts"
+  ],
   "properties": {
     "verdicts": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["number", "verdict", "update_type", "summary", "details"],
+        "required": [
+          "number",
+          "verdict",
+          "update_type",
+          "summary",
+          "details",
+          "fixes"
+        ],
         "properties": {
-          "number": { "type": "integer" },
-          "verdict": { "enum": ["safe", "needs-human"] },
-          "update_type": { "enum": ["patch", "minor", "major", "digest", "other"] },
-          "summary": { "type": "string", "maxLength": 200 },
-          "details": { "type": "string", "maxLength": 2500 }
+          "number": {
+            "type": "integer"
+          },
+          "verdict": {
+            "enum": [
+              "safe",
+              "needs-human"
+            ]
+          },
+          "update_type": {
+            "enum": [
+              "patch",
+              "minor",
+              "major",
+              "digest",
+              "other"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "details": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "fixes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "file",
+                "find",
+                "replace",
+                "reason"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "find": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "replace": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "reason": {
+                  "type": "string",
+                  "maxLength": 300
+                }
+              }
+            }
+          }
         }
       }
     }

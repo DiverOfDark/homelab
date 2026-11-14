@@ -5,9 +5,14 @@ merged one at a time, each watched in ArgoCD and reverted if its apps do not set
 
     nix develop --command python3 .github/renovate-agent/agent.py
 
+If an update needs an edit in this repo to work (a renamed chart value, say), the model
+proposes it as exact text replacements; this script checks them, commits them to the PR
+branch and starts CI on it.
+
 The model reads untrusted text (upstream release notes), so it never gets the GitHub
-token: this script fetches the PR data, posts the comments and does the merging itself,
-and starts Claude with every credential but its own removed from the environment.
+token and has no tool that writes: this script fetches the PR data, applies the fixes,
+posts the comments and does the merging itself, and starts Claude with every credential
+but its own removed from the environment.
 
 Environment:
     GITHUB_REPOSITORY          owner/repo (required)
@@ -27,6 +32,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,6 +44,10 @@ REPO = os.environ.get("GITHUB_REPOSITORY", "")
 WORK = Path("renovate-agent-work")
 
 AUTO_MERGE_TYPES = ("patch", "minor", "digest")  # what the model may call safe
+FIX_DIRS = ("k3s-apps/", "k3s-userapps/", "k3s-objects/")  # where the model's fixes may land
+MAX_FIXES = 10
+CI_WORKFLOW = "homelab.yml"
+CI_WAIT = 15 * 60  # seconds to wait for CI on fix commits before merging what is ready
 BATCH = 8  # PRs per Claude run; each run has its own budget
 MAX_MERGES = 10  # per run
 SETTLE_TIMEOUT = 20 * 60  # seconds for ArgoCD to sync a merge and the apps to get healthy
@@ -64,6 +74,21 @@ ALLOWED_TOOLS = [
 
 def gh(*args: str) -> str:
     return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
+
+
+def git(*args: str, cwd: str | Path = ".", push: bool = False) -> str:
+    """Run git. With push=True the GitHub token is passed, through the environment so it
+    cannot end up in an error message that quotes the command."""
+    env = dict(os.environ, GIT_AUTHOR_NAME="renovate-agent", GIT_COMMITTER_NAME="renovate-agent")
+    env["GIT_AUTHOR_EMAIL"] = env["GIT_COMMITTER_EMAIL"] = "41898282+github-actions[bot]@users.noreply.github.com"
+    if push:
+        token = base64.b64encode(f"x-access-token:{os.environ['GH_TOKEN']}".encode()).decode()
+        env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="http.extraheader", GIT_CONFIG_VALUE_0=f"AUTHORIZATION: basic {token}")
+    return subprocess.run(["git", *args], check=True, cwd=cwd, env=env, capture_output=True, text=True).stdout
+
+
+def repo_url() -> str:
+    return f"https://github.com/{REPO}.git"
 
 
 def flag(name: str) -> bool:
@@ -169,6 +194,7 @@ def select_prs() -> list[dict]:
             {
                 "number": pr["number"],
                 "title": pr["title"],
+                "branch": pr["headRefName"],
                 "opened": pr["createdAt"],
                 "ci": "passing" if is_green(pr) else "not passing (yet)",
                 "files": [f["path"] for f in pr["files"]],
@@ -178,13 +204,76 @@ def select_prs() -> list[dict]:
     return selected
 
 
+def helm_errors(root: Path, files: list[str]) -> list[str]:
+    """`helm template` every Helm chart that the Application manifests in `files` (as they
+    are under `root`) deploy, with the values the manifest sets. Returns the failures."""
+    errors = []
+    for file in files:
+        path = root / file
+        if not file.endswith((".yaml", ".yml")) or not path.is_file():
+            continue
+        try:
+            docs = list(yaml.safe_load_all(path.read_text()))
+        except yaml.YAMLError as error:
+            errors.append(f"{file}: not valid YAML: {one_line(error, 200)}")
+            continue
+        for doc in docs:
+            if not isinstance(doc, dict) or doc.get("kind") != "Application":
+                continue
+            spec = doc.get("spec", {})
+            for source in spec.get("sources") or [spec.get("source") or {}]:
+                helm = source.get("helm") or {}
+                if not source.get("chart") or helm.get("valueFiles"):
+                    continue  # not a chart, or its values live in another source
+                values = helm.get("valuesObject") or yaml.safe_load(helm.get("values") or "") or {}
+                repo = source["repoURL"]
+                if repo.startswith(("http://", "https://")):
+                    chart = [source["chart"], "--repo", repo]
+                else:  # an OCI registry, written with or without the oci:// scheme
+                    chart = [f"oci://{repo.removeprefix('oci://')}/{source['chart']}"]
+                with tempfile.NamedTemporaryFile("w", suffix=".yaml") as values_file:
+                    yaml.safe_dump(values, values_file)
+                    values_file.flush()
+                    done = subprocess.run(
+                        ["helm", "template", doc["metadata"]["name"], *chart,
+                         "--version", str(source["targetRevision"]),
+                         "--namespace", spec.get("destination", {}).get("namespace", "default"),
+                         "--values", values_file.name,
+                         # CRD-backed APIs the cluster has and charts test for; without a
+                         # cluster helm only knows the built-in ones.
+                         "--api-versions", "monitoring.coreos.com/v1",
+                         "--api-versions", "cert-manager.io/v1"],
+                        capture_output=True, text=True,
+                    )  # fmt: skip
+                if done.returncode != 0:
+                    errors.append(f"{file} ({source['chart']} {source['targetRevision']}): {done.stderr.strip()[-1500:]}")
+    return errors
+
+
+def render_check(tree: Path, files: list[str]) -> str:
+    """Whether the charts a PR changes still render with this repo's values: 'ok', or
+    the helm error. A chart that does not render on master either (it needs a live
+    cluster, say) tells nothing about the update and counts as ok."""
+    errors = helm_errors(tree, files)
+    if not errors or helm_errors(Path("."), files):
+        return "ok"
+    return "\n".join(errors)
+
+
 def fetch_pr(pr: dict) -> None:
-    """Write the PR description and diff to a file for the model to read."""
+    """Check the PR branch out for the model to read, write its description and diff to
+    a file, and try to render the charts it changes."""
     number = str(pr["number"])
+    tree = WORK / f"pr-{number}"
+    git("fetch", "--depth", "20", repo_url(), f"pull/{number}/head")
+    git("worktree", "add", "--force", "--detach", str(tree), "FETCH_HEAD")
     body = json.loads(gh("pr", "view", number, "--repo", REPO, "--json", "body"))["body"]
     diff = gh("pr", "diff", number, "--repo", REPO)
+    pr["checkout"] = str(tree)
     pr["file"] = str(WORK / f"pr-{number}.md")
     Path(pr["file"]).write_text(f"# {pr['title']}\n\n{body}\n\n# Diff\n\n```diff\n{diff}\n```\n")
+    pr["render"] = render_check(tree, pr["files"])
+    print(f"#{number} helm render: {one_line(pr['render'], 300)}", flush=True)
 
 
 # --- running the model -------------------------------------------------------------------
@@ -281,8 +370,62 @@ def clean(text: str, limit: int) -> str:
     return text[:limit].replace("@", "@" + ZERO_WIDTH_SPACE).replace("<!--", "&lt;!--")
 
 
-def comment_body(pr: dict, verdict: dict, safe: bool) -> str:
-    headline = "✅ safe to auto-merge" if safe else "⚠️ needs a human"
+class FixError(Exception):
+    pass
+
+
+def apply_fixes(pr: dict, fixes: list[dict], deny: re.Pattern) -> str:
+    """Apply the model's replacements to the PR branch, push them and start CI.
+
+    Returns the diff. The model's edits are deployed without review, so they are held to
+    plain rules: existing YAML files in the ArgoCD-deployed directories, never a
+    denylisted path, each `find` text present exactly once, the result still YAML, and
+    the changed charts must render with it.
+    """
+    number = pr["number"]
+    if len(fixes) > MAX_FIXES:
+        raise FixError(f"{len(fixes)} edits, more than the {MAX_FIXES} allowed")
+    tree = Path(pr["checkout"])
+    git("checkout", "--force", "--detach", "HEAD", cwd=tree)  # drop anything left from before
+
+    for fix in fixes:
+        path = fix["file"]
+        if (
+            os.path.normpath(path) != path
+            or not path.startswith(FIX_DIRS)
+            or not path.endswith((".yaml", ".yml"))
+            or deny.search(path)
+            or not (tree / path).is_file()
+            or (tree / path).is_symlink()
+        ):
+            raise FixError(f"`{path}` is not a file the agent may edit")
+        text = (tree / path).read_text()
+        if text.count(fix["find"]) != 1:
+            raise FixError(f"the text to replace occurs {text.count(fix['find'])} times in `{path}`, not once")
+        text = text.replace(fix["find"], fix["replace"])
+        try:
+            list(yaml.safe_load_all(text))
+        except yaml.YAMLError as error:
+            raise FixError(f"`{path}` would no longer be valid YAML: {one_line(error, 150)}") from None
+        (tree / path).write_text(text)
+
+    diff = git("diff", cwd=tree)
+    if not diff:
+        raise FixError("the edits change nothing")
+    render = render_check(tree, sorted({*pr["files"], *(fix["file"] for fix in fixes)}))
+    if render != "ok":
+        raise FixError(f"with the edits the chart still does not render: {one_line(render, 600)}")
+    if not flag("DRY_RUN"):
+        reasons = "\n".join(f"- {fix['file']}: {one_line(fix['reason'], 200)}" for fix in fixes)
+        git("commit", "--all", "--message", f"fix: adapt to {pr['title']}\n\n{reasons}", cwd=tree)
+        git("push", repo_url(), f"HEAD:refs/heads/{pr['branch']}", cwd=tree, push=True)
+        # A push with the workflow token starts no CI by itself; a manual dispatch does.
+        gh("workflow", "run", CI_WORKFLOW, "--repo", REPO, "--ref", pr["branch"])
+    return diff
+
+
+def comment_body(pr: dict, verdict: dict, safe: bool | None, note: str = "") -> str:
+    headline = "✅ safe to auto-merge" if safe else "⏳ waiting for checks" if safe is None else "⚠️ needs a human"
     parts = [
         f"{MARKER} key={title_key(pr['title'])} -->",
         f"### Renovate agent: {headline} ({verdict['update_type']})",
@@ -291,6 +434,8 @@ def comment_body(pr: dict, verdict: dict, safe: bool) -> str:
     ]
     if pr["never_auto_merge"] and verdict["verdict"] == "safe":
         parts.append(f"> The agent judged this update safe, but {pr['never_auto_merge']}, so it needs a human.")
+    if note:
+        parts.append(note)
     run = os.environ.get("RUN_URL")
     parts.append(
         "---\n<sub>Written by an LLM reading the diff and release notes; check before relying on it."
@@ -311,18 +456,26 @@ def post_verdict(number: int, body: str) -> None:
         gh("api", "-X", "POST", f"repos/{REPO}/issues/{number}/comments", "-f", f"body={body}")
 
 
-def set_label(number: int, safe: bool) -> None:
-    add, remove = ("agent:safe", "agent:needs-human") if safe else ("agent:needs-human", "agent:safe")
-    gh("api", "-X", "POST", f"repos/{REPO}/issues/{number}/labels", "-f", f"labels[]={add}")
-    # Fails with 404 when the PR never had the other label; that is fine.
-    subprocess.run(["gh", "api", "-X", "DELETE", f"repos/{REPO}/issues/{number}/labels/{remove}"], capture_output=True)
+def set_label(number: int, safe: bool | None) -> None:
+    """agent:safe, agent:needs-human, or neither (None) so the PR is triaged again."""
+    wanted = {True: "agent:safe", False: "agent:needs-human"}.get(safe)
+    if wanted:
+        gh("api", "-X", "POST", f"repos/{REPO}/issues/{number}/labels", "-f", f"labels[]={wanted}")
+    for label in {"agent:safe", "agent:needs-human"} - {wanted}:
+        # Fails with 404 when the PR does not have the label; that is fine.
+        subprocess.run(["gh", "api", "-X", "DELETE", f"repos/{REPO}/issues/{number}/labels/{label}"], capture_output=True)
 
 
-def publish(prs: list[dict], verdicts: list[dict]) -> None:
-    """Does not trust the model: verdicts for PRs that were not selected are dropped, and
-    a major update or a PR that must never be auto-merged needs a human whatever the
-    verdict says."""
+def publish(prs: list[dict], verdicts: list[dict]) -> list[int]:
+    """Post the verdicts and push the fixes of safe ones. Returns the PRs that got a fix.
+
+    Does not trust the model: verdicts for PRs that were not selected are dropped, a
+    major update or a PR that must never be auto-merged needs a human whatever the
+    verdict says, and fixes are checked in apply_fixes.
+    """
     by_number = {pr["number"]: pr for pr in prs}
+    deny = denylist()
+    fixed = []
     for verdict in verdicts:
         pr = by_number.get(verdict["number"])
         if pr is None:
@@ -332,14 +485,49 @@ def publish(prs: list[dict], verdicts: list[dict]) -> None:
         if verdict["update_type"] not in AUTO_MERGE_TYPES and not pr["never_auto_merge"]:
             pr["never_auto_merge"] = f"it is a {verdict['update_type']} update and only patch, minor and digest updates are auto-merged"
         safe = verdict["verdict"] == "safe" and not pr["never_auto_merge"]
-        body = comment_body(pr, verdict, safe)
-        one_line = re.sub(r"[|\r\n]+", " ", clean(verdict["summary"], 200))
-        summary(f"| #{pr['number']} | {'safe' if safe else 'needs-human'} | {verdict['update_type']} | {one_line} |")
+        note = ""
+        if safe and pr["render"] != "ok" and not verdict.get("fixes"):
+            safe = False
+            note = f"> The agent judged this update safe, but the chart does not render with this repo's values at the new version:\n>\n> `{clean(one_line(pr['render'], 600), 700)}`"
+        if safe and verdict.get("fixes"):
+            if pr["ci"] != "passing":
+                # A fix commit replaces the head the checks ran on, so it waits for them.
+                # No label: the PR is triaged again and fixed once its checks pass.
+                safe = None
+                note = "> This update needs an edit in the repo. The agent will push it once the PR's checks pass."
+            else:
+                try:
+                    diff = apply_fixes(pr, verdict["fixes"], deny)
+                    fixed.append(pr["number"])
+                    note = (
+                        "The agent pushed this fix to the PR; it is merged with the update once CI passes.\n\n"
+                        f"```diff\n{clean(diff, 6000)}\n```"
+                    )
+                except (FixError, subprocess.CalledProcessError) as error:
+                    safe = False
+                    problem = error if isinstance(error, FixError) else one_line(error.stderr or error, 300)
+                    note = f"> The update needs an edit in the repo, and the agent's fix could not be applied: {clean(str(problem), 400)}"
+        body = comment_body(pr, verdict, safe, note)
+        shown = {True: "safe", False: "needs-human", None: "waiting for checks"}[safe] + (" + fix" if pr["number"] in fixed else "")
+        short = re.sub(r"[|\r\n]+", " ", clean(verdict["summary"], 200))
+        summary(f"| #{pr['number']} | {shown} | {verdict['update_type']} | {short} |")
         if flag("DRY_RUN"):
             print(f"===== #{pr['number']} =====\n{body}\n")
             continue
         post_verdict(pr["number"], body)
         set_label(pr["number"], safe)
+    return fixed
+
+
+def wait_for_checks(numbers: list[int]) -> None:
+    """Give CI on freshly pushed fixes a chance to finish, so they can be merged in this run."""
+    deadline = time.monotonic() + CI_WAIT
+    while numbers and not flag("DRY_RUN") and time.monotonic() < deadline:
+        time.sleep(POLL * 3)
+        pending = [pr["number"] for pr in list_prs() if pr["number"] in numbers and not is_green(pr)]
+        if not pending:
+            return
+        print(f"  waiting for CI on {', '.join('#' + str(n) for n in pending)}", flush=True)
 
 
 # --- merging -----------------------------------------------------------------------------
@@ -485,20 +673,12 @@ def wait_settled(sha: str, parents: set[str], children: set[str]) -> str:
 
 def revert(sha: str) -> None:
     """Push a revert of `sha` straight to master."""
-    tree = str(WORK / "revert")
-    token = base64.b64encode(f"x-access-token:{os.environ['GH_TOKEN']}".encode()).decode()
-    url = f"https://github.com/{REPO}.git"
-
-    def git(*args: str, cwd: str = ".") -> None:
-        subprocess.run(["git", *args], check=True, cwd=cwd)
-
+    tree = WORK / "revert"
     WORK.mkdir(exist_ok=True)
-    git("fetch", "--depth", "20", url, "master")
-    git("worktree", "add", "--detach", tree, "FETCH_HEAD")
-    git("-c", "user.name=github-actions[bot]",
-        "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-        "revert", "--no-edit", sha, cwd=tree)  # fmt: skip
-    git("-c", f"http.extraheader=AUTHORIZATION: basic {token}", "push", url, "HEAD:master", cwd=tree)
+    git("fetch", "--depth", "20", repo_url(), "master")
+    git("worktree", "add", "--force", "--detach", str(tree), "FETCH_HEAD")
+    git("revert", "--no-edit", sha, cwd=tree)
+    git("push", repo_url(), "HEAD:master", cwd=tree, push=True)
 
 
 def merge_commit(number: int) -> str:
@@ -592,11 +772,13 @@ def main() -> None:
     if prs:
         summary("| PR | Verdict | Type | Summary |\n|---|---|---|---|")
     WORK.mkdir(exist_ok=True)
+    fixed = []
     for start in range(0, len(prs), BATCH):
         batch = prs[start : start + BATCH]
         for pr in batch:
             fetch_pr(pr)
-        publish(batch, run_claude(batch))
+        fixed += publish(batch, run_claude(batch))
+    wait_for_checks(fixed)
     merge_safe_prs()
 
 
