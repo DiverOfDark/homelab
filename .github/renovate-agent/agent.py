@@ -600,8 +600,8 @@ def apps_for(files: list[str], apps: dict[str, dict]) -> tuple[set[str], set[str
     return parents, children
 
 
-def preflight(watched: set[str], apps: dict[str, dict]) -> str:
-    """Why it is not a good moment to merge, or '' if it is."""
+def cluster_problem() -> str:
+    """Why nothing should be merged right now, or '' if the cluster is fine."""
     for node in kubectl("nodes")["items"]:
         ready = [c["status"] for c in node["status"]["conditions"] if c["type"] == "Ready"]
         if ready != ["True"]:
@@ -610,6 +610,11 @@ def preflight(watched: set[str], apps: dict[str, dict]) -> str:
         health = ceph.get("status", {}).get("ceph", {}).get("health")
         if health not in ("HEALTH_OK", "HEALTH_WARN"):
             return f"Ceph is {health}"
+    return ""
+
+
+def apps_problem(watched: set[str], apps: dict[str, dict]) -> str:
+    """Why this one PR cannot be watched after a merge, or '' if it can."""
     for name in sorted(watched):
         if name not in apps:
             return f"ArgoCD app {name} does not exist"
@@ -702,10 +707,16 @@ def merge_one(pr: dict) -> bool:
         summary(f"- #{number} not merged: {error}")
         return True
     watched = parents | children
-    problem = preflight(watched, argo_apps())
+    problem = cluster_problem()
     if problem:
-        summary(f"- #{number} not merged: {problem}")
+        summary(f"- #{number} not merged, and nothing after it: {problem}")
         return False
+    problem = apps_problem(watched, argo_apps())
+    if problem:
+        # Only this PR is affected: an app that was unhealthy before the merge cannot
+        # tell us whether the merge broke it. The other PRs still get their turn.
+        summary(f"- #{number} not merged: {problem}")
+        return True
     if flag("DRY_RUN"):
         summary(f"- #{number} would be merged, watching ArgoCD apps {', '.join(sorted(watched))}")
         return True
