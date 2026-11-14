@@ -45,8 +45,9 @@ spec:
     path: k3s-apps/kubescape
 
   ignoreDifferences:
-    - group: ''
-      kind: Secret
+    # no `group:` for the core group: ArgoCD drops an empty one from the live
+    # Application, which leaves meta-app permanently OutOfSync
+    - kind: Secret
       jqPathExpressions:
         - '.data'
     - group: admissionregistration.k8s.io
