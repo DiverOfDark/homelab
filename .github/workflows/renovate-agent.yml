@@ -1,9 +1,9 @@
 name: Renovate agent
 
-# Phase 1 of the AI update job: triage only. Every night an LLM reads each ready Renovate
-# PR (diff, upstream release notes, how the repo uses the dependency, current cluster
-# state) and comments a verdict: "safe to auto-merge" or "needs a human". Nothing is
-# merged. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
+# The AI update job. Every night an LLM reads each ready Renovate PR (diff, upstream
+# release notes, how the repo uses the dependency, current cluster state) and comments a
+# verdict: "safe to auto-merge" or "needs a human". PRs with a safe verdict are then merged
+# one at a time; each is watched in ArgoCD and reverted if its apps do not settle. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
 # runs in the nix dev shell from flake.nix, like Homelab CI/CD.
 on:
   schedule:
@@ -11,14 +11,14 @@ on:
   workflow_dispatch:
     inputs:
       pr:
-        description: "Triage only this PR number"
+        description: "Handle only this PR number"
         default: ""
       force:
         description: "Re-triage PRs that already have a verdict"
         type: boolean
         default: false
       dry_run:
-        description: "Do not comment or label; print the comments in the log instead"
+        description: "Change nothing: print the comments and the merge plan in the log instead"
         type: boolean
         default: false
 
@@ -36,13 +36,14 @@ jobs:
     name: Triage
     runs-on: renovate-agent
     container: buildpack-deps:trixie
-    timeout-minutes: 45
-    # Write scopes are for the comment and label only. The model never sees this token:
-    # agent.py fetches the PR data and posts the result itself (see its docstring). In the
+    # Up to 3 merges, each up to 20 min to settle plus a 5 min soak.
+    timeout-minutes: 120
+    # Write scopes are for the comment, the label, the merge and a revert push. The model
+    # never sees this token: agent.py does all of that itself (see its docstring). In the
     # cluster the job pod is the read-only renovate-agent ServiceAccount, see
     # k3s-userapps/github-runner/renovate-agent.yaml.
     permissions:
-      contents: read
+      contents: write
       checks: read
       statuses: read
       pull-requests: write
@@ -62,7 +63,7 @@ jobs:
           extra-substituters = $NIX_CACHE_S3
           require-sigs = false
           EOF
-      - name: Triage and comment
+      - name: Triage, comment, merge
         env:
           GH_TOKEN: ${{ github.token }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
