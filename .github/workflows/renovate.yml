@@ -4,7 +4,7 @@ on:
   schedule:
     # Every 4 hours. Renovate itself is cheap (hits GitHub + registries only,
     # not the cluster); the cost driver is how many Renovate PRs each scan
-    # produces, which is throttled by prHourlyLimit in renovate.json.
+    # produces, which is throttled by prHourlyLimit (10) in renovate.json.
     - cron: "0 */4 * * *"
   workflow_dispatch:
     inputs:
