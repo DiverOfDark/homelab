@@ -1,0 +1,103 @@
+# Identity for the Renovate triage agent (.github/workflows/renovate-agent.yml).
+#
+# The agent is an LLM that reads untrusted text (upstream release notes embedded in
+# Renovate PR bodies, on a public repo), so its job pod must NOT run as the namespace's
+# `default` ServiceAccount: that one is bound to `terraform-kubernetes` (all Secrets,
+# cluster-wide) for the Homelab CI/CD apply job. Job pods of the `renovate-agent` scale
+# set run as this ServiceAccount instead (see the hook template below): read-only, and no
+# Secrets, ConfigMaps or pod logs.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: renovate-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: renovate-agent-readonly
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - nodes
+      - namespaces
+      - events
+      - services
+      - persistentvolumeclaims
+      - persistentvolumes
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications", "applicationsets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["ceph.rook.io"]
+    resources: ["cephclusters"]
+    verbs: ["get", "list"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: renovate-agent-readonly
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: renovate-agent-readonly
+subjects:
+  - kind: ServiceAccount
+    name: renovate-agent
+    namespace: github-runner
+---
+# Container-hook template for the `renovate-agent` scale set. Unlike hook-extension (the
+# Homelab CI/CD one) it sets no DOCKER_HOST: the agent has no business with shared-dind.
+# The nix cache credentials (to pull the dev shell from the S3 cache) come in as env from
+# the nix-cache Secret, because the ServiceAccount cannot read Secrets through the API the
+# way the Homelab CI/CD jobs do. agent.py strips them from the model's environment.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hook-extension-renovate-agent
+  namespace: github-runner
+data:
+  template.yaml: |
+    spec:
+      serviceAccountName: renovate-agent
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - asgard
+      containers:
+        - name: $job
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: nix-cache
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nix-cache
+                  key: AWS_SECRET_ACCESS_KEY
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi

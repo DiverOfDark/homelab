@@ -1,0 +1,75 @@
+name: Renovate agent
+
+# Phase 1 of the AI update job: triage only. Every night an LLM reads each ready Renovate
+# PR (diff, upstream release notes, how the repo uses the dependency, current cluster
+# state) and comments a verdict: "safe to auto-merge" or "needs a human". Nothing is
+# merged. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
+# runs in the nix dev shell from flake.nix, like Homelab CI/CD.
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Triage only this PR number"
+        default: ""
+      force:
+        description: "Re-triage PRs that already have a verdict"
+        type: boolean
+        default: false
+      dry_run:
+        description: "Do not comment or label; print the comments in the log instead"
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: renovate-agent
+  cancel-in-progress: false
+
+env:
+  NIX_CACHE_S3: "s3://nix-cache?endpoint=rook-ceph-rgw-ceph-objectstore.rook-ceph.svc.cluster.local&scheme=http&region=us-east-1"
+
+jobs:
+  triage:
+    name: Triage
+    runs-on: renovate-agent
+    container: buildpack-deps:trixie
+    timeout-minutes: 45
+    # Write scopes are for the comment and label only. The model never sees this token:
+    # agent.py fetches the PR data and posts the result itself (see its docstring). In the
+    # cluster the job pod is the read-only renovate-agent ServiceAccount, see
+    # k3s-userapps/github-runner/renovate-agent.yaml.
+    permissions:
+      contents: read
+      checks: read
+      statuses: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: DeterminateSystems/determinate-nix-action@v3.24.1
+      # AWS_* for the cache are in the job pod's environment (hook template in
+      # renovate-agent.yaml). Read-only use: the Homelab CI/CD validate job keeps the
+      # cache filled with master's dev shell.
+      - name: Configure Nix S3 cache
+        run: |
+          cat >> /etc/nix/nix.conf <<EOF
+          extra-substituters = $NIX_CACHE_S3
+          require-sigs = false
+          EOF
+      - name: Triage and comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          RENOVATE_AGENT_MODEL: ${{ vars.RENOVATE_AGENT_MODEL }}
+          RENOVATE_AGENT_BUDGET_USD: ${{ vars.RENOVATE_AGENT_BUDGET_USD }}
+          ONLY_PR: ${{ inputs.pr }}
+          FORCE: ${{ inputs.force }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: nix develop --command python3 .github/renovate-agent/agent.py

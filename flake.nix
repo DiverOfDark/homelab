@@ -82,6 +82,11 @@
             # Task runner
             pkgs.go-task
 
+            # Renovate triage agent (.github/renovate-agent/agent.py); it also uses
+            # kubectl and python3 from above
+            pkgs.gh
+            pkgs.claude-code
+
             # Utilities
             pkgs.jq
             pkgs.yq
@@ -185,6 +190,7 @@
             echo "  Cloud:      hcloud, ansible"
             echo "  Container:  peelbox"
             echo "  Task:       go-task"
+            echo "  Agent:      claude, gh"
             echo "  Utils:      yq, dos2unix, pre-commit"
             echo ""
           '';
