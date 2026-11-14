@@ -53,7 +53,7 @@ jobs:
         with:
           persist-credentials: false
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: DeterminateSystems/determinate-nix-action@v3.24.1
+      - uses: DeterminateSystems/determinate-nix-action@v3.24.2
       # AWS_* for the cache are in the job pod's environment (hook template in
       # renovate-agent.yaml). Read-only use: the Homelab CI/CD validate job keeps the
       # cache filled with master's dev shell.
