@@ -324,6 +324,18 @@ def state(app: dict) -> str:
     return f"{status.get('sync', {}).get('status')}/{status.get('health', {}).get('status')}"
 
 
+def contains_commit(revision: str, sha: str, known: dict[str, bool]) -> bool:
+    """Whether `revision` is `sha` or a later commit on top of it. Master can move during
+    the watch (backup commits, other pushes) and the apps track HEAD."""
+    if revision not in known:
+        try:
+            status = gh("api", f"repos/{REPO}/compare/{sha}...{revision}", "--jq", ".status").strip()
+        except subprocess.CalledProcessError:
+            return False  # not a commit of this repo (a chart version), or GitHub is unreachable: ask again
+        known[revision] = status in ("identical", "ahead")
+    return known[revision]
+
+
 def apps_for(files: list[str], apps: dict[str, dict]) -> tuple[set[str], set[str]]:
     """The ArgoCD apps a change to these files rolls out.
 
@@ -378,14 +390,16 @@ def wait_settled(sha: str, parents: set[str], children: set[str]) -> str:
     deadline = time.monotonic() + SETTLE_TIMEOUT
     parents_synced_at = None  # ISO time: children must have been reconciled after this
     settled_since = None
-    while True:
-        time.sleep(POLL)
+    known_revisions = {sha: True}
+
+    def at_commit(app: dict) -> bool:
+        sync = app.get("status", {}).get("sync", {})
+        revisions = [r for r in [sync.get("revision"), *sync.get("revisions", [])] if r]
+        return any(contains_commit(r, sha, known_revisions) for r in revisions)
+
+    def not_settled() -> list[str]:
+        nonlocal parents_synced_at
         apps = argo_apps()
-
-        def at_commit(app: dict) -> bool:
-            sync = app.get("status", {}).get("sync", {})
-            return sha in [sync.get("revision"), *sync.get("revisions", [])]
-
         waiting = [
             f"{n} ({state(apps[n]) if at_commit(apps[n]) else 'not at the merged commit yet'})"
             for n in sorted(parents)
@@ -399,7 +413,16 @@ def wait_settled(sha: str, parents: set[str], children: set[str]) -> str:
                 for n in sorted(children)
                 if not (is_settled(apps[n]) and apps[n]["status"].get("reconciledAt", "") > parents_synced_at)
             ]
+        return waiting
 
+    while True:
+        time.sleep(POLL)
+        try:
+            waiting = not_settled()
+        except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError) as error:
+            # The update is already deployed: a failed look at the cluster must not skip
+            # the revert. Count it as not settled and keep trying until the deadline.
+            waiting = [f"could not read ArgoCD state ({type(error).__name__})"]
         if waiting:
             settled_since = None
             print(f"  waiting for {', '.join(waiting)}", flush=True)
@@ -430,6 +453,17 @@ def revert(sha: str) -> None:
     git("-c", f"http.extraheader=AUTHORIZATION: basic {token}", "push", url, "HEAD:master", cwd=tree)
 
 
+def merge_commit(number: int) -> str:
+    """The commit a just-merged PR landed as. Retried: without it the rollout cannot be
+    watched or reverted."""
+    for attempt in range(10):
+        try:
+            return json.loads(gh("pr", "view", str(number), "--repo", REPO, "--json", "mergeCommit"))["mergeCommit"]["oid"]
+        except (subprocess.CalledProcessError, TypeError, KeyError):
+            time.sleep(POLL)
+    sys.exit(f"#{number} was merged but its merge commit could not be read: check it and revert by hand if needed")
+
+
 def merge_one(pr: dict) -> bool:
     """Merge one PR and see it through. Returns False if no further PR should be merged."""
     number = pr["number"]
@@ -453,7 +487,8 @@ def merge_one(pr: dict) -> bool:
     except subprocess.CalledProcessError as error:
         summary(f"- #{number} not merged: {error.stderr.strip()}")
         return True
-    sha = json.loads(gh("pr", "view", str(number), "--repo", REPO, "--json", "mergeCommit"))["mergeCommit"]["oid"]
+    # Merged: from here on every path either confirms the rollout or reverts it.
+    sha = merge_commit(number)
     print(f"#{number} merged as {sha}, watching {', '.join(sorted(watched))}", flush=True)
 
     problem = wait_settled(sha, parents, children)
@@ -465,6 +500,7 @@ def merge_one(pr: dict) -> bool:
 
     summary(f"- #{number} merged ({sha[:8]}) and **reverted**: {problem}")
     revert(sha)
+    # The label is what stops this update from being merged again: set it before anything else.
     gh("api", "-X", "POST", f"repos/{REPO}/issues/{number}/labels", "-f", "labels[]=agent:reverted")
     comment(number, f"The Renovate agent merged this as {sha} and then **reverted it**: after "
                     f"{SETTLE_TIMEOUT // 60} minutes ArgoCD was still {problem}.\n\n"
@@ -472,10 +508,10 @@ def merge_one(pr: dict) -> bool:
     sys.exit(f"#{number} was reverted: {problem}")
 
 
-def merge_safe_prs() -> None:
-    """Merge the PRs that carry a safe verdict for their current title, one at a time."""
+def merge_candidates() -> list[dict]:
+    """Open PRs that carry a safe verdict for their current title and may be merged."""
     deny, reverted = denylist(), reverted_titles()
-    candidates = [
+    return [
         pr
         for pr in list_prs()
         if has_verdict(pr)
@@ -483,9 +519,19 @@ def merge_safe_prs() -> None:
         and not never_auto_merge(pr, deny, reverted)
         and pr["mergeable"] != "CONFLICTING"
     ]
-    summary(f"### Safe PRs to merge: {len(candidates)}")
-    for pr in candidates[:MAX_MERGES]:
-        if not merge_one(pr):
+
+
+def merge_safe_prs() -> None:
+    """Merge the safe PRs one at a time. The list is read again before every merge: a
+    merge takes up to half an hour, and removing agent:safe meanwhile must still work."""
+    summary(f"### Safe PRs to merge: {len(merge_candidates())}")
+    handled = set()
+    while len(handled) < MAX_MERGES:
+        candidates = [pr for pr in merge_candidates() if pr["number"] not in handled]
+        if not candidates:
+            break
+        handled.add(candidates[0]["number"])
+        if not merge_one(candidates[0]):
             break
 
 
