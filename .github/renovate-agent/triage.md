@@ -66,6 +66,10 @@ Otherwise give `needs-human`. Majors are always `needs-human`: still do the anal
 say exactly which breaking changes apply to this repo's configuration and which do not,
 so the person has little left to do. When you are unsure, `needs-human`.
 
+`ci` in the list below is the state of the PR's checks, including Renovate's minimum
+release age. A PR is only ever merged once they pass, so judge the update itself; if
+they are not passing, say so in `details`.
+
 A non-empty `never_auto_merge` in the list below gives a reason the PR is never
 auto-merged regardless of your verdict. Judge it on its merits anyway; your notes are for
 the person who will merge it.

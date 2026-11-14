@@ -17,7 +17,7 @@ Environment:
     FORCE=true                 re-triage PRs that already have a verdict
     DRY_RUN=true               print the comments and the merge plan, change nothing
     RENOVATE_AGENT_MODEL       default: sonnet
-    RENOVATE_AGENT_BUDGET_USD  default: 5
+    RENOVATE_AGENT_BUDGET_USD  per batch of 8 PRs, default: 5
     RUN_URL                    link to the workflow run, added to the comments
 """
 
@@ -37,7 +37,7 @@ HERE = Path(__file__).resolve().parent
 REPO = os.environ.get("GITHUB_REPOSITORY", "")
 WORK = Path("renovate-agent-work")
 
-MAX_PRS = 10
+BATCH = 8  # PRs per Claude run; each run has its own budget
 MAX_MERGES = 3  # per run
 SETTLE_TIMEOUT = 20 * 60  # seconds for ArgoCD to sync a merge and the apps to get healthy
 SOAK = 5 * 60  # seconds the apps must then stay Synced and Healthy without a break
@@ -106,7 +106,8 @@ def is_renovate(pr: dict) -> bool:
 
 
 def is_green(pr: dict) -> bool:
-    """CI passed, including Renovate's stability-days status (minimumReleaseAge)."""
+    """CI passed, including Renovate's stability-days status (minimumReleaseAge). Not
+    needed for a verdict, but nothing is merged without it."""
     checks = pr["statusCheckRollup"]
 
     def passed(check: dict) -> bool:
@@ -130,8 +131,15 @@ def list_prs() -> list[dict]:
     )
     prs = json.loads(gh("pr", "list", "--repo", REPO, "--state", "open", "--limit", "100", "--json", fields))
     only = os.environ.get("ONLY_PR", "")
-    ready = [pr for pr in prs if is_renovate(pr) and is_green(pr) and (not only or str(pr["number"]) == only)]
-    return sorted(ready, key=lambda pr: pr["number"])
+    mine = [pr for pr in prs if is_renovate(pr) and (not only or str(pr["number"]) == only)]
+    return sorted(mine, key=lambda pr: pr["number"])
+
+
+def needs_triage(pr: dict) -> bool:
+    """No agent:safe / agent:needs-human label yet, or the label is from an older version
+    of the PR. Removing the label from a PR therefore gets it triaged again."""
+    labels = {label["name"] for label in pr["labels"]}
+    return not labels & {"agent:safe", "agent:needs-human"} or not has_verdict(pr)
 
 
 def reverted_titles() -> set[str]:
@@ -154,18 +162,19 @@ def select_prs() -> list[dict]:
     deny, reverted = denylist(), reverted_titles()
     selected = []
     for pr in list_prs():
-        if has_verdict(pr) and not flag("FORCE"):
+        if not (needs_triage(pr) or flag("FORCE")):
             continue
         selected.append(
             {
                 "number": pr["number"],
                 "title": pr["title"],
                 "opened": pr["createdAt"],
+                "ci": "passing" if is_green(pr) else "not passing (yet)",
                 "files": [f["path"] for f in pr["files"]],
                 "never_auto_merge": never_auto_merge(pr, deny, reverted),
             }
         )
-    return selected[:MAX_PRS]
+    return selected
 
 
 def fetch_pr(pr: dict) -> None:
@@ -277,7 +286,6 @@ def publish(prs: list[dict], verdicts: list[dict]) -> None:
     """Does not trust the model: verdicts for PRs that were not selected are dropped, and
     a PR that must never be auto-merged needs a human whatever the verdict says."""
     by_number = {pr["number"]: pr for pr in prs}
-    summary("| PR | Verdict | Type | Summary |\n|---|---|---|---|")
     for verdict in verdicts:
         pr = by_number.get(verdict["number"])
         if pr is None:
@@ -509,12 +517,13 @@ def merge_one(pr: dict) -> bool:
 
 
 def merge_candidates() -> list[dict]:
-    """Open PRs that carry a safe verdict for their current title and may be merged."""
+    """Open PRs with green CI that carry a safe verdict for their current title."""
     deny, reverted = denylist(), reverted_titles()
     return [
         pr
         for pr in list_prs()
-        if has_verdict(pr)
+        if is_green(pr)
+        and has_verdict(pr)
         and "agent:safe" in [label["name"] for label in pr["labels"]]
         and not never_auto_merge(pr, deny, reverted)
         and pr["mergeable"] != "CONFLICTING"
@@ -541,10 +550,13 @@ def main() -> None:
     prs = select_prs()
     summary(f"### PRs selected for triage: {len(prs)}")
     if prs:
-        WORK.mkdir(exist_ok=True)
-        for pr in prs:
+        summary("| PR | Verdict | Type | Summary |\n|---|---|---|---|")
+    WORK.mkdir(exist_ok=True)
+    for start in range(0, len(prs), BATCH):
+        batch = prs[start : start + BATCH]
+        for pr in batch:
             fetch_pr(pr)
-        publish(prs, run_claude(prs))
+        publish(batch, run_claude(batch))
     merge_safe_prs()
 
 
