@@ -1,10 +1,12 @@
 name: Renovate agent
 
-# The AI update job. Every night an LLM reads each ready Renovate PR (diff, upstream
-# release notes, how the repo uses the dependency, current cluster state) and comments a
-# verdict: "safe to auto-merge" or "needs a human". PRs with a safe verdict are then merged
-# one at a time; each is watched in ArgoCD and reverted if its apps do not settle. Prompt, denylist and agent.py live in .github/renovate-agent/; the job
-# runs in the nix dev shell from flake.nix, like Homelab CI/CD.
+# The AI update job. Every night an LLM reads each open Renovate PR that has no
+# agent:safe / agent:needs-human label yet (diff, upstream release notes, how the repo
+# uses the dependency, current cluster state) and comments a verdict: "safe to auto-merge"
+# or "needs a human". PRs with a safe verdict and green CI are then merged one at a time;
+# each is watched in ArgoCD and reverted if its apps do not settle. Prompt, denylist and
+# agent.py live in .github/renovate-agent/; the job runs in the nix dev shell from
+# flake.nix, like Homelab CI/CD.
 on:
   schedule:
     - cron: "30 2 * * *"
@@ -36,8 +38,9 @@ jobs:
     name: Triage
     runs-on: renovate-agent
     container: buildpack-deps:trixie
-    # Up to 3 merges, each up to 20 min to settle plus a 5 min soak.
-    timeout-minutes: 120
+    # Triage of up to 30 PRs, then up to 3 merges, each up to 20 min to settle plus a
+    # 5 min soak.
+    timeout-minutes: 150
     # Write scopes are for the comment, the label, the merge and a revert push. The model
     # never sees this token: agent.py does all of that itself (see its docstring). In the
     # cluster the job pod is the read-only renovate-agent ServiceAccount, see

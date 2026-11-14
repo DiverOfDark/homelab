@@ -151,6 +151,8 @@
       ]
     }
   ],
+  "prConcurrentLimit": 30,
+  "prHourlyLimit": 10,
   "minimumReleaseAge": "7 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "automerge": false,
