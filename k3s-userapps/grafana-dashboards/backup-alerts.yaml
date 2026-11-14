@@ -1,0 +1,72 @@
+# Backup failsafe alerts.
+#
+# Added after the 2026-11 findings: the openbao-backup CronJob had not
+# succeeded for 40 days and every Velero backup had been PartiallyFailed for
+# over a month (RBD snapshots disabled, then the garage bucket quota full).
+# Nothing alerted; it was only noticed as Degraded apps in ArgoCD.
+# Velero metrics come from its ServiceMonitor (metrics.serviceMonitor in
+# k3s-apps/velero.yaml); the CronJob rule uses kube-state-metrics.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backup-failsafe-rules
+  namespace: prometheus
+  labels:
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    release: prometheus
+spec:
+  groups:
+    - name: backup-failsafe.rules
+      interval: 1m
+      rules:
+        # velero_backup_last_status is not usable: it reads 1 after a server
+        # restart even when every run since was PartiallyFailed.
+        - alert: VeleroBackupNotClean
+          expr: |
+            increase(velero_backup_partial_failure_total{schedule!=""}[24h]) > 0
+            or
+            increase(velero_backup_failure_total{schedule!=""}[24h]) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Velero schedule {{ $labels.schedule }} had a failed or partially failed backup in the last 24h"
+            description: >-
+              Find the cause with: velero backup logs <name> | grep level=error.
+              Upload cancellations only show their reason in the node-agent
+              logs (e.g. garage "Bucket size quota is reached").
+
+        - alert: VeleroNoSuccessfulBackup
+          expr: time() - velero_backup_last_successful_timestamp{schedule!=""} > 36 * 3600
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Velero schedule {{ $labels.schedule }} has no fully successful backup for over 36h"
+            description: >-
+              Schedules run daily. The timestamp is lost on a Velero restart
+              until the next clean run, so VeleroBackupNotClean covers that gap.
+
+        - alert: VeleroMetricsMissing
+          expr: absent(velero_backup_attempt_total)
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "No Velero metrics for 1h"
+            description: >-
+              The Velero server is down or its ServiceMonitor is gone, so the
+              backup alerts above cannot fire.
+
+        - alert: OpenbaoBackupStale
+          expr: |
+            time() - kube_cronjob_status_last_successful_time{namespace="openbao-backup", cronjob="openbao-backup"} > 36 * 3600
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "openbao-backup CronJob has not succeeded for over 36h"
+            description: >-
+              The nightly export of OpenBao secrets to git is failing. Run it
+              by hand to see the error: kubectl -n openbao-backup create job
+              manual-$(date +%s) --from=cronjob/openbao-backup.

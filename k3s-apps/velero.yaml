@@ -11,6 +11,11 @@ spec:
     targetRevision: 12.2.3
     helm:
       valuesObject:
+        # Scraped for the backup alerts in
+        # k3s-userapps/grafana-dashboards/backup-alerts.yaml.
+        metrics:
+          serviceMonitor:
+            enabled: true
         nodeAgent:
           extraArgs:
             - --resource-timeout=2h
@@ -298,6 +303,9 @@ spec:
                - yggdrasil
               excludedNamespaces:
                 - github-runner
+                # Data-mover pods/PVCs of a concurrent run vanish mid-backup
+                # and turn it PartiallyFailed; everything else here is in git.
+                - velero
               snapshotVolumes: true
               snapshotMoveData: true
               defaultVolumesToFsBackup: true
@@ -323,6 +331,9 @@ spec:
               ttl: "240h"
               excludedNamespaces:
                 - github-runner
+                # Data-mover pods/PVCs of a concurrent run vanish mid-backup
+                # and turn it PartiallyFailed; everything else here is in git.
+                - velero
               snapshotVolumes: true
               snapshotMoveData: true
               defaultVolumesToFsBackup: true
