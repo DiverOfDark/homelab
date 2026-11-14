@@ -33,6 +33,21 @@
         packages.peelbox = peelboxPkg;
         packages.packer = pkgs.packer;
 
+        # Minimal shell for the Renovate triage agent (.github/workflows/renovate-agent.yml).
+        # Not the default shell on purpose: that one compiles peelbox unless the S3 nix cache
+        # is reachable (the agent's ServiceAccount must not read the cache credentials) and
+        # its shellHook pulls secrets from OpenBao. Everything here except claude-code comes
+        # straight from cache.nixos.org.
+        devShells.renovate-agent = pkgs.mkShell {
+          name = "renovate-agent";
+          packages = [
+            pkgs.python3
+            pkgs.gh
+            pkgs.kubectl
+            pkgs.claude-code
+          ];
+        };
+
         devShells.default = pkgs.mkShell {
           name = "homelab";
           packages = [

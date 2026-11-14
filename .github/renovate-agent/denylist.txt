@@ -1,5 +1,5 @@
 # Paths the Renovate agent may never call "safe": one extended regex per line, matched
-# against every file a PR touches. A hit forces the verdict to needs-human in publish.sh,
+# against every file a PR touches. A hit forces the verdict to needs-human in agent.py,
 # whatever the model said. These are the components whose breakage takes out the cluster,
 # the data, or the runner the agent itself runs on (so it could not revert).
 
