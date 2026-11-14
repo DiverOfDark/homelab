@@ -37,6 +37,7 @@ HERE = Path(__file__).resolve().parent
 REPO = os.environ.get("GITHUB_REPOSITORY", "")
 WORK = Path("renovate-agent-work")
 
+AUTO_MERGE_TYPES = ("patch", "minor", "digest")  # what the model may call safe
 BATCH = 8  # PRs per Claude run; each run has its own budget
 MAX_MERGES = 3  # per run
 SETTLE_TIMEOUT = 20 * 60  # seconds for ArgoCD to sync a merge and the apps to get healthy
@@ -196,6 +197,29 @@ def model_env() -> dict:
     return {k: v for k, v in os.environ.items() if k == "CLAUDE_CODE_OAUTH_TOKEN" or not secret.search(k)}
 
 
+def one_line(text: str, limit: int = 300) -> str:
+    text = " ".join(str(text).split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def log_event(event: dict) -> None:
+    """Print what Claude is doing, as it happens: its notes, each tool call, failed calls."""
+    blocks = event.get("message", {}).get("content", [])
+    for block in blocks if isinstance(blocks, list) else []:
+        kind = block.get("type")
+        if kind == "text" and block["text"].strip():
+            print(f"  claude: {one_line(block['text'])}", flush=True)
+        elif kind == "thinking" and block["thinking"].strip():
+            print(f"  claude (thinking): {one_line(block['thinking'], 200)}", flush=True)
+        elif kind == "tool_use" and block["name"] == "StructuredOutput":
+            print("  claude > writing the verdicts", flush=True)
+        elif kind == "tool_use":
+            args = ", ".join(f"{key}={one_line(value, 150)}" for key, value in block["input"].items())
+            print(f"  claude > {block['name']}({args})", flush=True)
+        elif kind == "tool_result" and block.get("is_error"):
+            print(f"    failed: {one_line(block.get('content', ''), 200)}", flush=True)
+
+
 def run_claude(prs: list[dict]) -> list[dict]:
     prompt = (
         (HERE / "triage.md").read_text()
@@ -210,27 +234,39 @@ def run_claude(prs: list[dict]) -> list[dict]:
         "--max-budget-usd", os.environ.get("RENOVATE_AGENT_BUDGET_USD") or "5",
         "--allowedTools", *ALLOWED_TOOLS,
         "--json-schema", (HERE / "verdict.schema.json").read_text(),
-        "--output-format", "json",
+        # One JSON event per line while it works, so the job log shows progress; the last
+        # event is the result.
+        "--output-format", "stream-json",
+        "--verbose",
         # Ignore the repo's own Claude settings and any MCP servers, so nothing in the
         # checkout can widen the allowlist.
         "--setting-sources", "user",
         "--strict-mcp-config",
         "--no-session-persistence",
     ]  # fmt: skip
+    print(f"claude: triaging {', '.join('#' + str(pr['number']) for pr in prs)}", flush=True)
     # The prompt goes in on stdin: after the variadic --allowedTools it would otherwise be
-    # read as one more tool name.
-    done = subprocess.run(command, input=prompt, capture_output=True, text=True, env=model_env())
-    try:
-        result = json.loads(done.stdout)
-        verdicts = result["structured_output"]["verdicts"]
-    except (json.JSONDecodeError, KeyError, TypeError):
-        sys.exit(f"claude returned no verdicts (exit {done.returncode}):\n{done.stdout[-2000:]}\n{done.stderr[-2000:]}")
-    if result.get("is_error"):
-        sys.exit(f"claude reported an error: {result.get('result')}")
+    # read as one more tool name. stderr goes straight to the job log.
+    claude = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, env=model_env())
+    claude.stdin.write(prompt)
+    claude.stdin.close()
+    result = {}
+    for line in claude.stdout:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if event.get("type") == "result":
+            result = event
+        else:
+            log_event(event)
+    claude.wait()
 
+    if result.get("is_error") or not isinstance((result.get("structured_output") or {}).get("verdicts"), list):
+        sys.exit(f"claude returned no verdicts (exit {claude.returncode}): {result.get('subtype')} {result.get('result')}")
     denied = [d.get("tool_name") for d in result.get("permission_denials", [])]
     print(f"claude: {result.get('num_turns')} turns, ${result.get('total_cost_usd', 0):.2f}, denied tool calls: {denied}")
-    return verdicts
+    return result["structured_output"]["verdicts"]
 
 
 # --- publishing --------------------------------------------------------------------------
@@ -284,13 +320,17 @@ def set_label(number: int, safe: bool) -> None:
 
 def publish(prs: list[dict], verdicts: list[dict]) -> None:
     """Does not trust the model: verdicts for PRs that were not selected are dropped, and
-    a PR that must never be auto-merged needs a human whatever the verdict says."""
+    a major update or a PR that must never be auto-merged needs a human whatever the
+    verdict says."""
     by_number = {pr["number"]: pr for pr in prs}
     for verdict in verdicts:
         pr = by_number.get(verdict["number"])
         if pr is None:
             print(f"#{verdict['number']}: not a selected PR, ignored")
             continue
+        # The prompt says majors always need a human; the model has ignored that before.
+        if verdict["update_type"] not in AUTO_MERGE_TYPES and not pr["never_auto_merge"]:
+            pr["never_auto_merge"] = f"it is a {verdict['update_type']} update and only patch, minor and digest updates are auto-merged"
         safe = verdict["verdict"] == "safe" and not pr["never_auto_merge"]
         body = comment_body(pr, verdict, safe)
         one_line = re.sub(r"[|\r\n]+", " ", clean(verdict["summary"], 200))
