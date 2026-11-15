@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   # Next free address in the MetalLB pool (k3s-objects/metallb-pool.yaml);
-  # .20 is hermes-api, .21 is the voice-assistant STUNner.
+  # .20 is hermes-api; .21 is free again (was the voice-assistant STUNner).
   loadBalancerIP: 192.168.179.22
   selector:
     kubevirt.io/domain: freya
