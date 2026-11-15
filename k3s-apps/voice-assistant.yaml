@@ -39,6 +39,18 @@ spec:
               refreshInterval: "1h"
               remoteKey: voice-assistant/hermes
               property: api_key
+        # Femto's voice: made from the description below with OpenAI's
+        # POST /v1/audio/voices (cold, slow, deep; Russian). To change it, create
+        # a new voice and replace both values.
+        openai:
+          liveVoice: voice_6af9af724050819195da94d8241168cd
+          liveVoicePrompt: >-
+            An adult male voice, around fifty, deep baritone with a smooth, dark, resonant
+            timbre. Speaks slowly and deliberately in a flat, cold, emotionless monotone,
+            with crisp over-precise articulation, slightly drawn-out words and long menacing
+            pauses between phrases. Quiet, controlled, never raised. Sounds like a sinister
+            government agent in a suit: polite on the surface, condescending and faintly
+            contemptuous underneath. Speaks Russian natively with a neutral Moscow accent.
         # Femto StackChan: live Claude usage for the butler persona, from
         # trmnl-cyberpunk's /api/stackchan/usage.
         stackchan:
