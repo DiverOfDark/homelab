@@ -23,7 +23,10 @@ spec:
           persistentVolumeClaim:
             claimName: paperless
       containers:
-        - image: 'docker.io/library/redis:8'
+        # Pinned by digest: with a bare `redis:8` each node keeps whatever it
+        # pulled first, and an older Redis cannot load a dump written by a newer
+        # one ("Can't handle RDB format version 15", 2026-11-15).
+        - image: 'docker.io/library/redis:8@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53'
           name: redis
           ports:
             - containerPort: 6379
