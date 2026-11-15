@@ -11,7 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    # Femto voice backend (pipecat) — Helm chart lives in the stackchan repo.
+    # Femto voice backend (OpenAI speech-to-speech + Hermes) — Helm chart lives
+    # in the stackchan repo.
     repoURL: https://github.com/DiverOfDark/stackchan.git
     # `deploy` moves only after CI built and pushed that commit's image, so a
     # red build is never deployed (it would sit in ImagePullBackOff).
@@ -25,7 +26,8 @@ spec:
         - name: image.tag
           value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
-        # Local LLM — Hermes runs on a KubeVirt VM in this cluster.
+        # Hermes, the agent the voice model delegates to, runs on a KubeVirt VM
+        # in this cluster. The OpenAI key defaults to trackhound's in OpenBao.
         hermes:
           baseUrl: http://hermes-api.kubevirt-vms.svc.cluster.local:8642/v1
           model: hermes-agent
@@ -37,61 +39,10 @@ spec:
               refreshInterval: "1h"
               remoteKey: voice-assistant/hermes
               property: api_key
-        whisper:
-          model: deepdml/faster-whisper-large-v3-turbo-ct2
-          computeType: int8
-          ompThreads: 6
-        piper:
-          voice: ru_RU-ruslan-medium
-        # STT/TTS provider selection — ElevenLabs cloud (Scribe + custom voice)
-        # behind one API key. Pinned explicitly so a chart default flip can't
-        # silently switch us back to local whisper/piper.
-        stt:
-          provider: elevenlabs
-        tts:
-          provider: elevenlabs
-        elevenlabs:
-          voiceId: "r3k6KwS9XavocPYXN8sT"
-          ttsModel: "eleven_flash_v2_5"
-          sttModel: "scribe_v2"
-          stability: "0.45"
-          similarity: "0.85"
-          apiKey:
-            externalSecret:
-              enabled: true
-              store: openbao-store
-              storeKind: ClusterSecretStore
-              refreshInterval: "1h"
-              remoteKey: voice-assistant/elevenlabs
-              property: api_key
-        esp32Compat: true
-        # Femto talks through OpenAI's speech-to-speech model (gpt-live-1) and
-        # delegates tool work to Hermes. The key is trackhound's OpenAI key
-        # (chart default: OpenBao `trackhound` / `openai_api_key`). Set back to
-        # `pipeline` for the Scribe -> Hermes -> ElevenLabs chain.
-        voiceEngine: live
         # Femto StackChan: live Claude usage for the butler persona, from
         # trmnl-cyberpunk's /api/stackchan/usage.
         stackchan:
           usageUrl: https://trmnl.kirillorlov.pro
-        # WebRTC TURN relay — STUNner operator from k3s-apps/stunner.yaml.
-        # 192.168.179.21 is a free IP in the MetalLB pool.
-        stunner:
-          turnUri: turn:192.168.179.21:3478?transport=udp
-          loadBalancerIP: "192.168.179.21"
-          auth:
-            username: voiceassistant
-            externalSecret:
-              enabled: true
-              store: openbao-store
-              storeKind: ClusterSecretStore
-              refreshInterval: "1h"
-              remoteKey: voice-assistant/turn
-              usernameProperty: username
-              passwordProperty: password
-        persistence:
-          size: 8Gi
-          storageClassName: ceph-block
         ingress:
           enabled: true
           className: traefik
@@ -104,23 +55,7 @@ spec:
             hugin.dev/name: Voice Assistant
           tls:
             enabled: true
-        resources:
-          # No cpu limits — let Whisper / Piper burst freely on asgard's
-          # spare cores (CFS throttling hurts tail latency more than it helps
-          # noisy-neighbour isolation here). Memory limits stay.
-          bot:
-            requests:
-              cpu: "50m"
-              memory: 4Gi
-            limits:
-              memory: 10Gi
-          initContainer:
-            requests:
-              cpu: "500m"
-              memory: 2Gi
-            limits:
-              memory: 6Gi
-        # Pin to asgard — has the most CPU/memory headroom; matches the
+        # Pin to asgard — matches the
         # repo's nodeSelector pattern (k3s-userapps/github-runner/shared-dind.yaml).
         # asgard is untainted, so no tolerations needed.
         nodeSelector:
