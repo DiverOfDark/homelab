@@ -12,7 +12,10 @@ spec:
     # Drain and wait for CSI volumes to detach before rebooting. Without this
     # a reboot can pin an RBD volume to the dead node and the rescheduled pod
     # sits in Multi-Attach until the node returns (harbor-db-1, 2026-07-19).
-    waitForVolumeDetach: true
+    waitForVolumeDetach: false
+    # v1.14.6 phase 2 of 2: asgard alone, without drain (tuppr's own drain is
+    # what waitForVolumeDetach does, so it is off as well). Restore both after.
+    nodrain: true
   # Gates evaluated before EACH node upgrade (and re-checked between nodes).
   # A failing check makes tuppr wait and retry every minute — it does not fail
   # the batch. Added after 2026-07-22: tuppr crashed mid-flow on a starved
@@ -55,12 +58,11 @@ spec:
   # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
   # overloads the other nodes. For the next Talos upgrade, either shed load
   # first or upgrade asgard separately with policy.nodrain.
-  # v1.14.6 phase 1 of 2: every node except asgard, with drain. asgard follows
-  # alone with policy.nodrain (see the note above).
+  # v1.14.6 phase 2 of 2: asgard only.
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: NotIn
+        operator: In
         values:
           - asgard
   talosctl:
