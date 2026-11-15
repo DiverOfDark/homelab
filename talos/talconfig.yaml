@@ -344,7 +344,16 @@ patches:
       install:
         wipe: true
       files:
+        # snapshotter: Talos 1.14.6 ships stargz-snapshotter 0.19.1, whose CRI part
+        # really switches containerd to `stargz` (up to 1.14.5 it set the key in
+        # the wrong section and overlayfs stayed in use). Images unpacked under
+        # overlayfs cannot be unpacked again (discard_unpacked_layers), kubelet
+        # does not re-pull them, and no pod starts after the upgrade reboot
+        # (jotunheimr, 2026-11-15). Keep overlayfs; drop this pin only together
+        # with wiping each node's image store.
         - content: |
+            [plugins."io.containerd.cri.v1.images"]
+              snapshotter = "overlayfs"
             [plugins."io.containerd.cri.v1.runtime"]
               device_ownership_from_security_context = true
           path: /etc/cri/conf.d/20-customization.part
