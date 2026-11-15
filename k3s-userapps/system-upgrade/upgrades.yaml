@@ -12,10 +12,7 @@ spec:
     # Drain and wait for CSI volumes to detach before rebooting. Without this
     # a reboot can pin an RBD volume to the dead node and the rescheduled pod
     # sits in Multi-Attach until the node returns (harbor-db-1, 2026-07-19).
-    waitForVolumeDetach: false
-    # v1.14.6 phase 2 of 2: asgard alone, without drain (tuppr's own drain is
-    # what waitForVolumeDetach does, so it is off as well). Restore both after.
-    nodrain: true
+    waitForVolumeDetach: true
   # Gates evaluated before EACH node upgrade (and re-checked between nodes).
   # A failing check makes tuppr wait and retry every minute — it does not fail
   # the batch. Added after 2026-07-22: tuppr crashed mid-flow on a starved
@@ -56,15 +53,18 @@ spec:
       expr: has(status.readyInstances) && status.readyInstances == status.instances
       timeout: 30m
   # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
-  # overloads the other nodes. For the next Talos upgrade, either shed load
-  # first or upgrade asgard separately with policy.nodrain.
-  # v1.14.6 phase 2 of 2: asgard only.
+  # overloads the other nodes. v1.14.6 (2026-11-15) was done in two merges:
+  #   1. nodeSelector `NotIn [asgard]`, normal drain policy;
+  #   2. nodeSelector `In [asgard]`, `nodrain: true`, `waitForVolumeDetach: false`.
+  # Step 2 took asgard down for ~4.5 min. Its pods do not restart in place:
+  # the node shutdown ends them and the replacements are scheduled onto the
+  # other nodes while asgard is away, so afterwards cordon the others and
+  # delete the pods created during the reboot to move them back. Before step 2
+  # move the standby MDS daemons off asgard.
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: In
-        values:
-          - asgard
+        operator: Exists
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
