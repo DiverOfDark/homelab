@@ -65,6 +65,11 @@ spec:
               remoteKey: voice-assistant/elevenlabs
               property: api_key
         esp32Compat: true
+        # Femto talks through OpenAI's speech-to-speech model (gpt-live-1) and
+        # delegates tool work to Hermes. The key is trackhound's OpenAI key
+        # (chart default: OpenBao `trackhound` / `openai_api_key`). Set back to
+        # `pipeline` for the Scribe -> Hermes -> ElevenLabs chain.
+        voiceEngine: live
         # Femto StackChan: live Claude usage for the butler persona, from
         # trmnl-cyberpunk's /api/stackchan/usage.
         stackchan:
