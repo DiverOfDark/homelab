@@ -61,6 +61,9 @@ spec:
           interfaces:
             - name: default
               masquerade: {}
+              # Fixed so the guest's network survives restarts: without it
+              # every new launcher pod gives the NIC a new MAC.
+              macAddress: "e6:d1:3b:a2:34:a5"
         resources:
           requests:
             memory: 4Gi
