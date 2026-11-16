@@ -10,6 +10,9 @@ kind: Deployment
 metadata:
   name: forgejo
   namespace: forgejo
+  annotations:
+    # Restart when the Zitadel client secret first appears or rotates.
+    reloader.stakater.com/auto: "true"
 spec:
   # Single replica on an RWO volume with SQLite: never run two at once.
   strategy:
@@ -40,8 +43,10 @@ spec:
           emptyDir: {}
       initContainers:
         # Runs the image entrypoint (which renders app.ini from the env
-        # below), migrates the database, then makes sure the admin account
-        # exists with the password from the forgejo-admin Secret.
+        # below), migrates the database, makes sure the admin account exists
+        # with the password from the forgejo-admin Secret, then creates or
+        # updates the "zitadel" login source once tofu has published the
+        # OIDC client to OpenBao.
         - name: bootstrap
           image: 'codeberg.org/forgejo/forgejo:17.0.1-rootless'
           imagePullPolicy: IfNotPresent
@@ -55,6 +60,20 @@ spec:
               else
                 forgejo admin user create --admin --username "$ADMIN_USER" --password "$ADMIN_PASSWORD" \
                   --email "$ADMIN_USER@git.kirillorlov.pro" --must-change-password=false
+              fi
+              if [ -z "${OIDC_CLIENT_ID:-}" ]; then
+                echo "no Zitadel client yet: skipping the zitadel login source"
+                exit 0
+              fi
+              set -- --name zitadel --provider openidConnect \
+                --key "$OIDC_CLIENT_ID" --secret "$OIDC_CLIENT_SECRET" \
+                --auto-discover-url https://auth.kirillorlov.pro/.well-known/openid-configuration \
+                --scopes openid --scopes profile --scopes email --skip-local-2fa
+              id=$(forgejo admin auth list | awk '$2 == "zitadel" { print $1 }')
+              if [ -n "$id" ]; then
+                forgejo admin auth update-oauth --id "$id" "$@"
+              else
+                forgejo admin auth add-oauth "$@"
               fi
           envFrom: &config
             - configMapRef:
@@ -70,6 +89,18 @@ spec:
                 secretKeyRef:
                   name: forgejo-admin
                   key: password
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-zitadel
+                  key: client_id
+                  optional: true
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-zitadel
+                  key: client_secret
+                  optional: true
           securityContext: &containerSecurity
             allowPrivilegeEscalation: false
             capabilities:
@@ -142,6 +173,11 @@ data:
   # One local admin, no sign-ups, nothing visible without signing in:
   # private GitHub repositories land here too.
   GITEA__service__DISABLE_REGISTRATION: "true"
+  # Zitadel login never creates accounts. The first Zitadel sign-in shows
+  # "link to an existing account": sign in once as the local admin there,
+  # and from then on Zitadel logs straight into that account.
+  GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION: "false"
+  GITEA__oauth2_client__ACCOUNT_LINKING: login
   GITEA__service__REQUIRE_SIGNIN_VIEW: "true"
   GITEA__service__DEFAULT_ALLOW_CREATE_ORGANIZATION: "false"
   GITEA__repository__DEFAULT_PRIVATE: private
