@@ -1,10 +1,10 @@
-# Creates a Forgejo pull mirror for every repository of every GitHub owner
-# listed in the forgejo-github-tokens Secret (see secrets.yaml), and checks
-# that existing mirrors are current.
+# Creates a Forgejo pull mirror for every repository owned by
+# github.com/DiverOfDark (forks included; organizations such as appbahn are
+# not mirrored), and checks that existing mirrors are current.
 #
-# - New GitHub repository  -> new pull mirror under a Forgejo organization of
-#   the same name, so git.kirillorlov.pro/<owner>/<repo> matches
-#   github.com/<owner>/<repo>. Privacy is copied from GitHub.
+# - New GitHub repository  -> new pull mirror under the Forgejo organization
+#   DiverOfDark, so git.kirillorlov.pro/DiverOfDark/<repo> matches
+#   github.com/DiverOfDark/<repo>. Privacy is copied from GitHub.
 # - Repository deleted or renamed on GitHub -> the mirror is kept (that is
 #   what a backup is for) and listed in the job log.
 # - Mirror behind GitHub -> the job fails, which raises KubeJobFailed. A
@@ -14,7 +14,8 @@
 # Forgejo stores the token inside each mirror when it is created. After
 # replacing a token in OpenBao, existing mirrors keep the old one: update it
 # per repository in Forgejo (Settings -> Repository -> Mirror settings), or
-# delete the mirrors and let the next run recreate them.
+# delete the mirrors and let the next run recreate them. The token itself is
+# described in secrets.yaml.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -26,7 +27,7 @@ data:
 
     FORGEJO = os.environ["FORGEJO_URL"].rstrip("/")
     ADMIN = base64.b64encode(("%s:%s" % (os.environ["FORGEJO_USER"], os.environ["FORGEJO_PASSWORD"])).encode()).decode()
-    TOKENS_DIR = os.environ.get("TOKENS_DIR", "/tokens")
+    OWNER = os.environ["GITHUB_OWNER"]
     STALE_AFTER = datetime.timedelta(minutes=int(os.environ.get("STALE_AFTER_MINUTES", "180")))
 
 
@@ -81,14 +82,9 @@ data:
 
 
     def github_repos(owner, token):
-        status, info, _ = github("/users/" + owner, token)
-        if status != 200:
-            raise RuntimeError("GitHub owner %s: %s %s" % (owner, status, str(info)[:200]))
-        if info["type"] == "Organization":
-            repos = github_all("/orgs/%s/repos?type=all" % owner, token)
-        else:
-            # /users/<owner>/repos lists public repositories only.
-            repos = github_all("/user/repos?affiliation=owner", token)
+        # /users/<owner>/repos lists public repositories only; /user/repos
+        # with the owner's own token includes the private ones.
+        repos = github_all("/user/repos?affiliation=owner", token)
         return [r for r in repos if r["owner"]["login"].lower() == owner.lower()]
 
 
@@ -142,46 +138,39 @@ data:
 
 
     def main():
-        owners = sorted(f for f in os.listdir(TOKENS_DIR) if not f.startswith(".")) if os.path.isdir(TOKENS_DIR) else []
-        if not owners:
-            sys.exit("no GitHub tokens in %s: add them to OpenBao secret/forgejo/github-tokens" % TOKENS_DIR)
+        token = os.environ.get("GITHUB_TOKEN", "").strip()
+        if not token:
+            sys.exit("no GitHub token: put it in OpenBao secret/forgejo/github, property token")
+        owner = OWNER
+
+        repos = github_repos(owner, token)
+        ensure_org(owner)
+        have = {r["name"].lower(): r for r in forgejo_all("/orgs/%s/repos" % owner)}
+        print("%s: %d on GitHub, %d mirrored" % (owner, len(repos), len(have)))
 
         problems = []
-        for owner in owners:
-            with open(os.path.join(TOKENS_DIR, owner)) as f:
-                token = f.read().strip()
-            try:
-                repos = github_repos(owner, token)
-                ensure_org(owner)
-                have = {r["name"].lower(): r for r in forgejo_all("/orgs/%s/repos" % owner)}
-            except Exception as exc:
-                problems.append("%s: %s" % (owner, exc))
+        for repo in repos:
+            existing = have.pop(repo["name"].lower(), None)
+            if existing is None:
+                try:
+                    mirror(owner, repo, token)
+                    print("  mirrored %s/%s" % (owner, repo["name"]))
+                except Exception as exc:
+                    problems.append("%s/%s not mirrored: %s" % (owner, repo["name"], exc))
                 continue
-            print("%s: %d on GitHub, %d mirrored" % (owner, len(repos), len(have)))
-
-            for repo in repos:
-                existing = have.pop(repo["name"].lower(), None)
-                if existing is None:
-                    try:
-                        mirror(owner, repo, token)
-                        print("  mirrored %s/%s" % (owner, repo["name"]))
-                    except Exception as exc:
-                        problems.append("%s/%s not mirrored: %s" % (owner, repo["name"], exc))
-                    continue
-                if not existing.get("mirror"):
-                    print("  %s/%s exists here and is not a mirror; left alone" % (owner, repo["name"]))
-                    continue
-                behind = stale(owner, repo, token)
-                if behind:
-                    problems.append(behind)
-            for name in sorted(r["name"] for r in have.values()):
-                print("  %s/%s is no longer on GitHub; kept" % (owner, name))
+            if not existing.get("mirror"):
+                print("  %s/%s exists here and is not a mirror; left alone" % (owner, repo["name"]))
+                continue
+            behind = stale(owner, repo, token)
+            if behind:
+                problems.append(behind)
+        for name in sorted(r["name"] for r in have.values()):
+            print("  %s/%s is no longer on GitHub; kept" % (owner, name))
 
         for p in problems:
             print("PROBLEM: " + p)
         if problems:
             sys.exit("%d problem(s)" % len(problems))
-
 
     main()
 ---
@@ -214,12 +203,6 @@ spec:
             - name: script
               configMap:
                 name: forgejo-mirror-sync
-            - name: tokens
-              secret:
-                secretName: forgejo-github-tokens
-                # Lets the job start (and say what is missing) before the
-                # tokens exist in OpenBao.
-                optional: true
           containers:
             - name: sync
               image: 'python:3.14-alpine'
@@ -233,6 +216,16 @@ spec:
               env:
                 - name: FORGEJO_URL
                   value: http://forgejo.forgejo.svc.cluster.local
+                - name: GITHUB_OWNER
+                  value: DiverOfDark
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-github
+                      key: token
+                      # Lets the job start (and say what is missing) before
+                      # the token exists in OpenBao.
+                      optional: true
                 - name: FORGEJO_USER
                   valueFrom:
                     secretKeyRef:
@@ -246,9 +239,6 @@ spec:
               volumeMounts:
                 - name: script
                   mountPath: /script
-                  readOnly: true
-                - name: tokens
-                  mountPath: /tokens
                   readOnly: true
               resources:
                 requests:
