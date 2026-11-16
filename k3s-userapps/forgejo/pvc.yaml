@@ -1,0 +1,17 @@
+# Holds everything Forgejo writes: app.ini (with the generated SECRET_KEY and
+# INTERNAL_TOKEN), the SQLite database, git repositories and LFS objects.
+# Velero backs it up with the rest of the cluster (fs backup, daily).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-data
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: "ceph-block"
