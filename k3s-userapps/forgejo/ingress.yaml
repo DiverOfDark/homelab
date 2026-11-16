@@ -1,0 +1,33 @@
+# Internal only (LAN + tailnet via pihole/externaldns). No
+# kirillorlov.pro/expose=external label: this is a backup copy of private
+# repositories, not something to publish.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: acme-issuer
+    hugin.dev/enabled: "true"
+    hugin.dev/href: "https://git.kirillorlov.pro"
+    hugin.dev/group: Apps
+    hugin.dev/name: Forgejo
+    hugin.dev/icon: https://codeberg.org/forgejo/forgejo/raw/branch/forgejo/assets/logo.svg
+    hugin.dev/pod-selector: "app.kubernetes.io/pod=forgejo"
+    hugin.dev/description: "Read-only mirror of GitHub repositories"
+  name: forgejo
+  namespace: forgejo
+spec:
+  rules:
+  - host: git.kirillorlov.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: forgejo
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - git.kirillorlov.pro
+    secretName: forgejo-tls

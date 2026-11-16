@@ -1,0 +1,248 @@
+# Creates a Forgejo pull mirror for every repository owned by
+# github.com/DiverOfDark (forks included; organizations such as appbahn are
+# not mirrored), and checks that existing mirrors are current.
+#
+# - New GitHub repository  -> new pull mirror under the Forgejo organization
+#   DiverOfDark, so git.kirillorlov.pro/DiverOfDark/<repo> matches
+#   github.com/DiverOfDark/<repo>. Privacy is copied from GitHub.
+# - Repository deleted or renamed on GitHub -> the mirror is kept (that is
+#   what a backup is for) and listed in the job log.
+# - Mirror behind GitHub -> the job fails, which raises KubeJobFailed. A
+#   mirror counts as behind when its default branch differs from GitHub's
+#   and GitHub's last push is older than STALE_AFTER_MINUTES.
+#
+# Forgejo stores the token inside each mirror when it is created. After
+# replacing a token in OpenBao, existing mirrors keep the old one: update it
+# per repository in Forgejo (Settings -> Repository -> Mirror settings), or
+# delete the mirrors and let the next run recreate them. The token itself is
+# described in secrets.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-mirror-sync
+  namespace: forgejo
+data:
+  sync.py: |
+    import base64, datetime, json, os, sys, urllib.error, urllib.parse, urllib.request
+
+    FORGEJO = os.environ["FORGEJO_URL"].rstrip("/")
+    ADMIN = base64.b64encode(("%s:%s" % (os.environ["FORGEJO_USER"], os.environ["FORGEJO_PASSWORD"])).encode()).decode()
+    OWNER = os.environ["GITHUB_OWNER"]
+    STALE_AFTER = datetime.timedelta(minutes=int(os.environ.get("STALE_AFTER_MINUTES", "180")))
+
+
+    def call(method, url, headers, body=None, timeout=60):
+        data = json.dumps(body).encode() if body is not None else None
+        if data is not None:
+            headers = dict(headers, **{"Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                raw = r.read().decode()
+                if "json" in (r.headers.get("Content-Type") or ""):
+                    return r.status, (json.loads(raw) if raw.strip() else None), r.headers
+                return r.status, raw, r.headers
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode(errors="replace"), e.headers
+
+
+    def forgejo(method, path, body=None, timeout=60):
+        return call(method, FORGEJO + "/api/v1" + path, {"Authorization": "Basic " + ADMIN}, body, timeout)
+
+
+    def github(path, token, accept="application/vnd.github+json"):
+        return call("GET", "https://api.github.com" + path,
+                    {"Authorization": "Bearer " + token, "Accept": accept, "X-GitHub-Api-Version": "2022-11-28"})
+
+
+    def github_all(path, token):
+        items, page = [], 1
+        while True:
+            sep = "&" if "?" in path else "?"
+            status, body, _ = github("%s%sper_page=100&page=%d" % (path, sep, page), token)
+            if status != 200:
+                raise RuntimeError("GitHub %s: %s %s" % (path, status, str(body)[:200]))
+            items += body
+            if len(body) < 100:
+                return items
+            page += 1
+
+
+    def forgejo_all(path):
+        items, page = [], 1
+        while True:
+            sep = "&" if "?" in path else "?"
+            status, body, _ = forgejo("GET", "%s%slimit=50&page=%d" % (path, sep, page))
+            if status != 200:
+                raise RuntimeError("Forgejo %s: %s %s" % (path, status, str(body)[:200]))
+            items += body
+            if len(body) < 50:
+                return items
+            page += 1
+
+
+    def github_repos(owner, token):
+        # /users/<owner>/repos lists public repositories only; /user/repos
+        # with the owner's own token includes the private ones.
+        repos = github_all("/user/repos?affiliation=owner", token)
+        return [r for r in repos if r["owner"]["login"].lower() == owner.lower()]
+
+
+    def ensure_org(owner):
+        status, _, _ = forgejo("GET", "/orgs/" + owner)
+        if status == 200:
+            return
+        status, body, _ = forgejo("POST", "/orgs", {"username": owner, "visibility": "private",
+                                                     "description": "Mirror of github.com/" + owner})
+        if status != 201:
+            raise RuntimeError("Forgejo org %s not created: %s %s" % (owner, status, str(body)[:200]))
+        print("created organization %s" % owner)
+
+
+    def mirror(owner, repo, token):
+        body = {
+            "clone_addr": repo["clone_url"],
+            "auth_username": "oauth2",
+            "auth_password": token,
+            "repo_owner": owner,
+            "repo_name": repo["name"],
+            "description": (repo.get("description") or "")[:2048],
+            "private": repo["private"],
+            "mirror": True,
+            "service": "git",
+            "wiki": bool(repo.get("has_wiki")),
+            "lfs": True,
+        }
+        # Synchronous: returns once the first clone is done.
+        status, resp, _ = forgejo("POST", "/repos/migrate", body, timeout=900)
+        if status != 201:
+            raise RuntimeError("%s: %s %s" % (status, str(resp)[:300]))
+
+
+    def stale(owner, repo, token):
+        """Default-branch head differs from GitHub although GitHub has been quiet for a while."""
+        pushed = datetime.datetime.fromisoformat(repo["pushed_at"].replace("Z", "+00:00"))
+        if datetime.datetime.now(datetime.timezone.utc) - pushed < STALE_AFTER:
+            return None
+        branch = urllib.parse.quote(repo["default_branch"], safe="")
+        status, gh_sha, _ = call("GET", "https://api.github.com/repos/%s/%s/commits/%s" % (owner, repo["name"], branch),
+                                 {"Authorization": "Bearer " + token, "Accept": "application/vnd.github.sha"})
+        if status != 200:
+            return None  # empty repository, or no default branch yet
+        status, fj, _ = forgejo("GET", "/repos/%s/%s/branches/%s" % (owner, repo["name"], branch))
+        fj_sha = fj["commit"]["id"] if status == 200 else "missing"
+        if fj_sha != gh_sha.strip():
+            return "%s/%s: %s is %s on GitHub, %s here" % (owner, repo["name"], repo["default_branch"],
+                                                          gh_sha.strip()[:10], fj_sha[:10])
+        return None
+
+
+    def main():
+        token = os.environ.get("GITHUB_TOKEN", "").strip()
+        if not token:
+            sys.exit("no GitHub token: put it in OpenBao secret/forgejo/github, property token")
+        owner = OWNER
+
+        repos = github_repos(owner, token)
+        ensure_org(owner)
+        have = {r["name"].lower(): r for r in forgejo_all("/orgs/%s/repos" % owner)}
+        print("%s: %d on GitHub, %d mirrored" % (owner, len(repos), len(have)))
+
+        problems = []
+        for repo in repos:
+            existing = have.pop(repo["name"].lower(), None)
+            if existing is None:
+                try:
+                    mirror(owner, repo, token)
+                    print("  mirrored %s/%s" % (owner, repo["name"]))
+                except Exception as exc:
+                    problems.append("%s/%s not mirrored: %s" % (owner, repo["name"], exc))
+                continue
+            if not existing.get("mirror"):
+                print("  %s/%s exists here and is not a mirror; left alone" % (owner, repo["name"]))
+                continue
+            behind = stale(owner, repo, token)
+            if behind:
+                problems.append(behind)
+        for name in sorted(r["name"] for r in have.values()):
+            print("  %s/%s is no longer on GitHub; kept" % (owner, name))
+
+        for p in problems:
+            print("PROBLEM: " + p)
+        if problems:
+            sys.exit("%d problem(s)" % len(problems))
+
+    main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: forgejo-mirror-sync
+  namespace: forgejo
+spec:
+  schedule: "41 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      # The first run clones every repository.
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: forgejo-mirror-sync
+          containers:
+            - name: sync
+              image: 'python:3.14-alpine'
+              imagePullPolicy: IfNotPresent
+              command: ["python3", "-I", "/script/sync.py"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: FORGEJO_URL
+                  value: http://forgejo.forgejo.svc.cluster.local
+                - name: GITHUB_OWNER
+                  value: DiverOfDark
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-github
+                      key: token
+                      # Lets the job start (and say what is missing) before
+                      # the token exists in OpenBao.
+                      optional: true
+                - name: FORGEJO_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-admin
+                      key: username
+                - name: FORGEJO_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-admin
+                      key: password
+              volumeMounts:
+                - name: script
+                  mountPath: /script
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
