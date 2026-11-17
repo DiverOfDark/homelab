@@ -205,7 +205,7 @@ spec:
                 name: forgejo-mirror-sync
           containers:
             - name: sync
-              image: 'python:3.14-alpine'
+              image: 'python:3.15-alpine'
               imagePullPolicy: IfNotPresent
               command: ["python3", "-I", "/script/sync.py"]
               securityContext:
