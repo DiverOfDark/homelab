@@ -1,0 +1,132 @@
+# Restarts pods whose csi-rclone FUSE mount died with the nodeplugin.
+#
+# When csi-nodeplugin-rclone (re)starts — image bump, crash, eviction — its
+# rclone FUSE daemons die and the postStart hook unmounts what's left. Pods
+# already running on that node keep a dead mount ("Socket not connected")
+# until they are recreated, which forces kubelet to NodePublish again.
+#
+# Every 5 minutes: delete controller-owned pods that use a csi-rclone PV and
+# started before the nodeplugin's rclone container on their node.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: csi-rclone-remount
+  namespace: csi-rclone
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-rclone-remount
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-rclone-remount
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-rclone-remount
+subjects:
+  - kind: ServiceAccount
+    name: csi-rclone-remount
+    namespace: csi-rclone
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: csi-rclone-remount
+  namespace: csi-rclone
+data:
+  remount.sh: |
+    # Deletes pods whose csi-rclone FUSE mount died because the nodeplugin on
+    # their node (re)started after the pod did. DRY_RUN=1 only prints.
+    set -eu
+    TMP=$(mktemp -d)
+
+    # namespace/claim of every csi-rclone PVC
+    kubectl get pv -o jsonpath='{range .items[?(@.spec.csi.driver=="csi-rclone")]}{.spec.claimRef.namespace}/{.spec.claimRef.name}{"\n"}{end}' > "$TMP/claims"
+
+    # node|rclone container startedAt|ready, for each nodeplugin pod
+    kubectl -n csi-rclone get pod -l app=csi-nodeplugin-rclone -o jsonpath='{range .items[*]}{.spec.nodeName}|{.status.containerStatuses[?(@.name=="rclone")].state.running.startedAt}|{.status.containerStatuses[?(@.name=="rclone")].ready}{"\n"}{end}' > "$TMP/plugins"
+
+    # namespace|name|node|startTime|ownerKind|claim,claim,...
+    kubectl get pod -A --field-selector=status.phase=Running -o jsonpath='{range .items[*]}{.metadata.namespace}|{.metadata.name}|{.spec.nodeName}|{.status.startTime}|{.metadata.ownerReferences[0].kind}|{range .spec.volumes[*]}{.persistentVolumeClaim.claimName},{end}{"\n"}{end}' > "$TMP/pods"
+
+    # ISO-8601 UTC timestamps compare correctly as strings.
+    awk -F'|' -v claims="$TMP/claims" -v plugins="$TMP/plugins" '
+      BEGIN {
+        while ((getline l < claims) > 0) rclone[l] = 1
+        while ((getline l < plugins) > 0) {
+          split(l, p, "|")
+          if (p[2] != "" && p[3] == "true") started[p[1]] = p[2]
+        }
+      }
+      $5 != "" && ($3 in started) && $4 < started[$3] {
+        n = split($6, vols, ",")
+        for (i = 1; i <= n; i++)
+          if (vols[i] != "" && (($1 "/" vols[i]) in rclone)) {
+            print $1, $2, $3, $4, started[$3]; break
+          }
+      }
+    ' "$TMP/pods" > "$TMP/stale"
+
+    if [ ! -s "$TMP/stale" ]; then echo "No stale csi-rclone mounts"; exit 0; fi
+    while read -r ns pod node podstart pluginstart; do
+      echo "$ns/$pod on $node started $podstart, before nodeplugin $pluginstart: restarting"
+      [ "${DRY_RUN:-0}" = 1 ] || kubectl -n "$ns" delete pod "$pod" --wait=false
+    done < "$TMP/stale"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: csi-rclone-remount
+  namespace: csi-rclone
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 240
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          serviceAccountName: csi-rclone-remount
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: remount
+              image: alpine/kubectl:1.37.2
+              command: ["/bin/sh", "/scripts/remount.sh"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: csi-rclone-remount
