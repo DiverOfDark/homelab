@@ -1,0 +1,92 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gjallarhorn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Read-only dashboard over the Trivy Operator reports (see
+    # trivy-operator.yaml): which images to update first, CVEs, workload
+    # misconfig, RBAC risks, exposed secrets and compliance. Chart and code
+    # live together in the source repo; GitImage builds the image from it.
+    repoURL: https://github.com/DiverOfDark/gjallarhorn.git
+    targetRevision: master
+    path: charts/gjallarhorn
+    helm:
+      valuesObject:
+        # GitImage (defined below) builds the image from the repo's master
+        # branch; its webhook swaps in the built digest and rolls the
+        # Deployment on each new build.
+        podAnnotations:
+          gitimage.dev/image.gjallarhorn: gjallarhorn
+
+        # One read of every report peaks around 170 MiB on this cluster.
+        resources:
+          requests: { cpu: 20m, memory: 192Mi }
+          limits: { memory: 512Mi }
+
+        ingress:
+          enabled: true
+          className: traefik
+          # Internal-only (no kirillorlov.pro/expose label): the page lists
+          # which images here are vulnerable and has no login, so it must
+          # never reach the public Hetzner edge. LAN + tailnet only.
+          annotations:
+            cert-manager.io/cluster-issuer: acme-issuer
+            hugin.dev/enabled: "true"
+            hugin.dev/href: "https://security.kirillorlov.pro"
+            hugin.dev/group: Cluster Management
+            hugin.dev/name: Gjallarhorn
+            hugin.dev/icon: "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/refs/heads/main/png/trivy.png"
+            hugin.dev/description: Trivy findings
+            hugin.dev/pod-selector: "app.kubernetes.io/name=gjallarhorn"
+          hosts:
+            - host: security.kirillorlov.pro
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - security.kirillorlov.pro
+              secretName: security-tls
+
+        additionalObjects:
+          - apiVersion: gitimage.dev/v1alpha1
+            kind: GitImage
+            metadata:
+              name: gjallarhorn
+            spec:
+              url: https://github.com/DiverOfDark/gjallarhorn.git
+              ref: master
+              interval: 2m
+              build:
+                # Svelte build, then a Rust release build; the sandbox sizes
+                # the VM from the limits.
+                resources:
+                  requests: { cpu: "2", memory: 2Gi }
+                  limits: { cpu: "4", memory: 6Gi }
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gjallarhorn
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field
+  # manager gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
+  syncPolicy:
+    automated:
+      prune: true
+    # GitImage builds run in this namespace with BuildKit privileged inside
+    # the sandbox, which the cluster's default baseline level rejects.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
