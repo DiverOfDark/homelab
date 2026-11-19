@@ -48,7 +48,7 @@ spec:
         # updates the "zitadel" login source once tofu has published the
         # OIDC client to OpenBao.
         - name: bootstrap
-          image: 'codeberg.org/forgejo/forgejo:17.0.1-rootless'
+          image: 'codeberg.org/forgejo/forgejo:17.0.2-rootless'
           imagePullPolicy: IfNotPresent
           args:
             - sh
@@ -118,7 +118,7 @@ spec:
               memory: 512Mi
       containers:
         - name: forgejo
-          image: 'codeberg.org/forgejo/forgejo:17.0.1-rootless'
+          image: 'codeberg.org/forgejo/forgejo:17.0.2-rootless'
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
