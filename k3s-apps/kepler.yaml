@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kepler
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Kepler: per-pod CPU power estimates from Intel RAPL (read-only /proc + /sys,
+    # no eBPF since the v0.10 rewrite). Measures the CPU package only, not disks,
+    # NICs, fans or PSU losses. Dashboard: k3s-userapps/grafana-dashboards/kepler.yaml
+    repoURL: quay.io/sustainable_computing_io/charts
+    chart: kepler
+    targetRevision: 0.13.0
+    helm:
+      valuesObject:
+        daemonset:
+          # Chart default tolerates control-plane only. midgard (Hetzner VM)
+          # has no RAPL and keeps its edge=NoSchedule taint, so Kepler stays
+          # on the four home nodes (asgard i5-12400, 3x N100).
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+        config:
+          log:
+            level: info
+          exporter:
+            prometheus:
+              debugCollectors: []
+              # "process" emits one series per PID per zone (high churn into
+              # the 12-month VMSingle). Kept on for the dashboard's process
+              # panels; drop it here if VMSingle storage/cardinality grows.
+              metricsLevel:
+                - node
+                - process
+                - container
+                - pod
+                - vm
+        serviceMonitor:
+          enabled: true
+          # Matches Prometheus scrapeInterval and VMSingle dedup (60s). Every
+          # scrape triggers a power computation, so faster buys nothing.
+          interval: 60s
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kepler
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        # hostPID + hostPath /proc and /sys
+        pod-security.kubernetes.io/enforce: privileged
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
