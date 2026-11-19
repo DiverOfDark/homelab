@@ -5,7 +5,7 @@
 # already running on that node keep a dead mount ("Socket not connected")
 # until they are recreated, which forces kubelet to NodePublish again.
 #
-# Every 5 minutes: delete controller-owned pods that use a csi-rclone PV and
+# Every 30 minutes: delete controller-owned pods that use a csi-rclone PV and
 # started before the nodeplugin's rclone container on their node.
 ---
 apiVersion: v1
@@ -90,7 +90,7 @@ metadata:
   name: csi-rclone-remount
   namespace: csi-rclone
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "*/30 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
