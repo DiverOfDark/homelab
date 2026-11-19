@@ -1,0 +1,18 @@
+# "Trivy Operator - Vulnerabilities" (dotdc), reads the trivy_image_*
+# metrics from k3s-apps/trivy-operator.yaml.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: trivy-operator
+  namespace: kube-system
+spec:
+  allowCrossNamespaceImport: true
+  datasources:
+    - inputName: DS_PROMETHEUS
+      datasourceName: Prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  grafanaCom:
+    id: 16337
+    revision: 16

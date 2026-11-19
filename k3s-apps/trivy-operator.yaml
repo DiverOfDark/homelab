@@ -1,0 +1,124 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trivy-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Aqua's Trivy Operator: image CVEs, exposed secrets in images, workload
+    # misconfig, RBAC assessment and NSA/PSS compliance, stored as
+    # aquasecurity.github.io reports next to each workload. Replaces
+    # kubescape. Dashboard: k3s-userapps/grafana-dashboards/trivy-operator.yaml
+    #
+    # Supply chain: Trivy 0.69.4 binaries and 0.69.5/0.69.6 images were
+    # malicious (CVE-2026-33634, March 2026). Bump only to exact chart
+    # versions, and check the bundled trivy.image.tag in the chart's values.
+    repoURL: https://aquasecurity.github.io/helm-charts/
+    chart: trivy-operator
+    targetRevision: 0.38.1  # operator 0.36.1, trivy 0.76.1
+    helm:
+      valuesObject:
+        # github-runner and bonsai run short-lived pods, so they would only
+        # produce scan churn (same list kubescape excluded, minus
+        # kube-system: cilium/coredns are worth scanning).
+        excludeNamespaces: "trivy-system,kube-public,kube-node-lease,velero,github-runner,bonsai"
+
+        operator:
+          # One shared vulnerability DB in the trivy-server StatefulSet
+          # instead of a DB download in every scan job.
+          builtInTrivyServer: true
+          # Default is 10. Three keeps the first full sweep (~155 images) from
+          # saturating asgard or spilling onto the N100 nodes.
+          scanJobsConcurrentLimit: 3
+          # Reports are deleted and rescanned after this TTL. Chart default
+          # 24h rewrites every report in etcd daily; weekly matches the old
+          # kubescape schedule.
+          scannerReportTTL: "168h"
+          # SbomReports are large etcd objects and nothing consumes them.
+          sbomGenerationEnabled: false
+          # node-collector checks kubeadm paths (/etc/kubernetes,
+          # /var/lib/etcd, systemd units) that Talos doesn't have, so the
+          # CIS node results would be wrong. Talos is CIS-hardened upstream.
+          infraAssessmentScannerEnabled: false
+          exposedSecretScannerEnabled: true
+
+        trivyOperator:
+          # Prefer asgard (i5-12400, 64 GB) for scan jobs; spill over to the
+          # N100 nodes only when it's full. Image layers stream through the
+          # job's emptyDir, which sits on asgard's SATA SSD with the etcd WAL:
+          # if etcd fsync latency alerts show up during scans, lower
+          # scanJobsConcurrentLimit before anything else.
+          scanJobAffinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: ["asgard"]
+
+        trivy:
+          # trivy-server keeps the vulnerability + Java DBs (~1 GB) on a PVC
+          # so restarts don't re-download them.
+          storageClassEnabled: true
+          storageClassName: ceph-block
+          storageSize: 5Gi
+          # Fixed CVEs only: keeps reports actionable and well under the
+          # etcd object size limit.
+          ignoreUnfixed: true
+          severity: MEDIUM,HIGH,CRITICAL
+          # Scan jobs don't see the Talos containerd mirrors, so pull through
+          # the same Harbor proxy-cache projects (all public, anonymous pull)
+          # to avoid Docker Hub rate limits on the home IP. The operator
+          # rewrites by prefix on the normalized name, so Docker Hub is
+          # index.docker.io/library/<image>. Keep in sync with
+          # talos/talconfig.yaml registries.mirrors.
+          registry:
+            mirror:
+              "index.docker.io": harbor.kirillorlov.pro/docker-hub
+              "ghcr.io": harbor.kirillorlov.pro/ghcr
+              "quay.io": harbor.kirillorlov.pro/quay
+              "registry.k8s.io": harbor.kirillorlov.pro/registry-k8s
+              "public.ecr.aws": harbor.kirillorlov.pro/ecr-public
+              "reg.kyverno.io": harbor.kirillorlov.pro/kyverno
+          # Scan jobs: the 500M default limit OOMs on large ML images.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+
+        compliance:
+          # k8s-cis-1.23 depends on the node-collector disabled above.
+          specs:
+            - k8s-nsa-1.0
+            - k8s-pss-baseline-0.1
+            - k8s-pss-restricted-0.1
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+        serviceMonitor:
+          enabled: true
+          # Matches Prometheus scrapeInterval and VMSingle dedup.
+          interval: 60s
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trivy-system
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
