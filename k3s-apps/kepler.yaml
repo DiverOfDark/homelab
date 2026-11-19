@@ -32,11 +32,12 @@ spec:
           exporter:
             prometheus:
               debugCollectors: []
-              # "process" is dropped on purpose: one series per PID per zone
-              # churns constantly and would bloat the 12-month VMSingle. The
-              # dashboard's process panels stay empty because of this.
+              # "process" emits one series per PID per zone (high churn into
+              # the 12-month VMSingle). Kept on for the dashboard's process
+              # panels; drop it here if VMSingle storage/cardinality grows.
               metricsLevel:
                 - node
+                - process
                 - container
                 - pod
                 - vm
