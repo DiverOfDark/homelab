@@ -147,9 +147,9 @@ spec:
                 exec.enabled: true
                 accounts.readonly: apiKey
                 application.resourceTrackingMethod: "annotation+label"
-                # The chart's default list (argo-cd 10.18.0) plus the kubescape
-                # group at the end. Setting this key replaces the default, so
-                # compare with the chart's values.yaml when upgrading it.
+                # The chart's default list (argo-cd 10.18.0). Setting this key replaces
+                # the default, so compare with the chart's values.yaml when
+                # upgrading it.
                 resource.exclusions: |
                   ### Network resources created by the Kubernetes control plane and excluded to reduce the number of watched events and UI clutter
                   - apiGroups:
@@ -205,15 +205,6 @@ spec:
                     - BackgroundScanReport
                     - ClusterBackgroundScanReport
                     - UpdateRequest
-                  ### Kubescape's aggregated API (SBOMs, vulnerability manifests, generated network
-                  ### policies): thousands of objects served from SQLite. A cluster-wide list can
-                  ### take over 60 s, and one timeout leaves every application "Unknown".
-                  ### Kubescape is removed (replaced by trivy-operator); this entry stays until
-                  ### its APIService is gone, so the teardown can't stall the controller. Drop it after.
-                  - apiGroups:
-                    - spdx.softwarecomposition.kubescape.io
-                    kinds:
-                    - '*'
                 # Trivy Operator reports (k3s-apps/trivy-operator.yaml) are owned by the
                 # workload they scan, so they show up under it in every app tree. The
                 # health message carries the counts; any CRITICAL finding marks the report
