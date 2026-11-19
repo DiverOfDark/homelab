@@ -208,10 +208,36 @@ spec:
                   ### Kubescape's aggregated API (SBOMs, vulnerability manifests, generated network
                   ### policies): thousands of objects served from SQLite. A cluster-wide list can
                   ### take over 60 s, and one timeout leaves every application "Unknown".
+                  ### Kubescape is removed (replaced by trivy-operator); this entry stays until
+                  ### its APIService is gone, so the teardown can't stall the controller. Drop it after.
                   - apiGroups:
                     - spdx.softwarecomposition.kubescape.io
                     kinds:
                     - '*'
+                # Trivy Operator reports (k3s-apps/trivy-operator.yaml) are owned by the
+                # workload they scan, so they show up under it in every app tree. The
+                # health message carries the counts; any CRITICAL finding marks the report
+                # Degraded. Child health doesn't roll up into the application's health.
+                resource.customizations.health.aquasecurity.github.io_VulnerabilityReport: &trivyReportHealth |
+                  hs = {}
+                  local s = obj.report and obj.report.summary
+                  if s == nil then
+                    hs.status = "Progressing"
+                    hs.message = "Waiting for scan"
+                    return hs
+                  end
+                  local c = s.criticalCount or 0
+                  local h = s.highCount or 0
+                  local m = s.mediumCount or 0
+                  hs.message = "critical " .. c .. ", high " .. h .. ", medium " .. m
+                  if c > 0 then
+                    hs.status = "Degraded"
+                  else
+                    hs.status = "Healthy"
+                  end
+                  return hs
+                resource.customizations.health.aquasecurity.github.io_ConfigAuditReport: *trivyReportHealth
+                resource.customizations.health.aquasecurity.github.io_ExposedSecretReport: *trivyReportHealth
                 resource.customizations.ignoreDifferences.PersistentVolumeClaim: |
                   jqPathExpressions:
                     - '.spec.volumeName'
