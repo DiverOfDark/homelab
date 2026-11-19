@@ -1,5 +1,7 @@
 # Upstream Kepler power dashboard, pinned to the same tag as the chart in
-# k3s-apps/kepler.yaml. Bump both together.
+# k3s-apps/kepler.yaml. Bump both together. Not the chart path
+# (manifests/helm/kepler/dashboards/kepler-power.json): that is a git symlink,
+# and raw.githubusercontent serves the link target text, not the JSON.
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
@@ -10,4 +12,4 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: "grafana"
-  url: "https://raw.githubusercontent.com/sustainable-computing-io/kepler/v0.13.0/manifests/helm/kepler/dashboards/kepler-power.json"
+  url: "https://raw.githubusercontent.com/sustainable-computing-io/kepler/v0.13.0/compose/default/grafana/dashboards/latest/dashboard.json"
