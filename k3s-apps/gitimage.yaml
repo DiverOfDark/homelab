@@ -57,9 +57,14 @@ spec:
           activeDeadline: 2h
           # Builds pull base images (FROM node:..., rust:...) through Harbor's Docker Hub
           # proxy cache, not Docker Hub directly (rate limits on the home IP).
+          # max-parallelism = 1: one build step at a time, across all stages. Multi-stage
+          # builds (phos: frontend, Rust chef/backend, Android) otherwise run their stages side
+          # by side, multiplying peak CPU and memory inside the build VM.
           buildkitdConfig: |
             [registry."docker.io"]
               mirrors = ["harbor.kirillorlov.pro/docker-hub"]
+            [worker.oci]
+              max-parallelism = 1
         podMonitor:
           enabled: true
         # Status UI: every GitImage, live build logs, workloads and gated pods. Sign-in is
