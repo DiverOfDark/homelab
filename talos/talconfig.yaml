@@ -356,7 +356,26 @@ patches:
               snapshotter = "overlayfs"
             [plugins."io.containerd.cri.v1.runtime"]
               device_ownership_from_security_context = true
+
+            # runsc-build: gVisor for GitImage builds (RuntimeClass gvisor-build). Same as the
+            # extension's runsc handler, plus file-access-mounts=exclusive (runsc-build.toml).
+            # gVisor treats volumes as shared by default and then cannot memory-map the file
+            # it copies up when a process has the lower-layer original mapped, so BuildKit's
+            # overlay snapshotter on the state emptyDir fails with ENODEV - e.g. apt upgrading
+            # libssl while apt has libcrypto loaded. Build volumes are emptyDirs private to
+            # the pod, so exclusive is safe there; it also lets gVisor cache their pages.
+            [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runsc-build]
+              runtime_type = "io.containerd.runsc.v1"
+
+            [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runsc-build.options]
+              TypeUrl = "io.containerd.runsc.v1.options"
+              ConfigPath = "/var/etc/cri/runsc-build.toml"
           path: /etc/cri/conf.d/20-customization.part
+          op: create
+        - content: |
+            [runsc_config]
+              file-access-mounts = "exclusive"
+          path: /var/etc/cri/runsc-build.toml
           op: create
       features:
         rbac: true
