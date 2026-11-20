@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.41
+    targetRevision: 0.1.43
     helm:
       releaseName: gitimage
       valuesObject:
@@ -28,6 +28,10 @@ spec:
             # under runsc vs ~9.5 min for a comparable Kata build.
             mode: runtimeClass
             runtimeClassName: gvisor
+            # gVisor's overlay refuses a hard link to a lower layer's file (ENODEV), which
+            # broke the first phos build at apt-get upgrading libssl3t64 from the base image.
+            # native copies layers instead: slower, more disk, but every operation works.
+            snapshotter: native
         # No registry: images live in Ceph RGW and nodes pull them from gitimage-node on
         # localhost:25050 (containerd allows plain HTTP to localhost without node config).
         storage:
