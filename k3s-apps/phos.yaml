@@ -16,16 +16,15 @@ spec:
     targetRevision: master
     path: helm/phos
     helm:
-      # Image tag is set via --set so Argo's build-environment substitution
-      # kicks in (interpolation does NOT work inside valuesObject). CI
-      # publishes ghcr.io/diverofdark/phos:sha-<7-char-sha> for every
-      # commit, so this resolves to the exact image built from the commit
-      # Argo is currently syncing.
-      # https://argo-cd.readthedocs.io/en/stable/user-guide/build-environment/
-      parameters:
-        - name: image.tag
-          value: sha-$ARGOCD_APP_REVISION_SHORT
       valuesObject:
+        # GitImage (defined in extraObjects below) builds the image from this repo's
+        # master branch; its webhook swaps in the built digest and rolls the
+        # Deployment on each new build. There is deliberately no per-commit
+        # image.tag: a template that changed on every commit would make Argo roll
+        # (Recreate) before the build exists, which is how phos went down twice.
+        podAnnotations:
+          gitimage.dev/image.phos: phos
+
         # hugin's pod-selector annotation expects this exact label.
         podLabels:
           app.kubernetes.io/pod: phos
@@ -91,11 +90,11 @@ spec:
                     property: password
 
           # phos is built in-cluster from github.com/DiverOfDark/phos.
-          # Phase A: GitImage builds every commit on master (gVisor, BuildKit) into
-          # Ceph RGW. The Deployment still runs the ghcr image until it is switched
-          # to this build. The Android versionCode comes from GITIMAGE_COMMIT_TIME
-          # (see the Dockerfile's `version` stage); PHOS_VERSION is the branch, so
-          # the versionName is `master+<short sha>`, as from GitHub CI.
+          # GitImage builds every commit on master (Kata, BuildKit) into Ceph RGW,
+          # and the Deployment runs it by digest (podAnnotations above). The Android
+          # versionCode comes from GITIMAGE_COMMIT_TIME (see the Dockerfile's
+          # `version` stage); PHOS_VERSION is the branch, so the versionName is
+          # `master+<short sha>`, as from GitHub CI.
           - apiVersion: gitimage.dev/v1alpha1
             kind: GitImage
             metadata:
@@ -120,6 +119,12 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: phos
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field
+  # manager gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
   syncPolicy:
     automated:
       prune: true
