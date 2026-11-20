@@ -66,12 +66,68 @@ spec:
                 - phos.kirillorlov.pro
               secretName: phos-tls
 
+        extraObjects:
+          # OpenBao: secret/phos/android-keystore holds `password` for
+          # android/phos-release.keystore (copied from the GitHub secret
+          # KEYSTORE_PASSWORD on 2026-11-20). Without it the APK is unsigned and
+          # every installed app refuses the in-app update.
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: phos-android-keystore
+            spec:
+              secretStoreRef:
+                name: openbao-store
+                kind: ClusterSecretStore
+              refreshInterval: 1h
+              target:
+                name: phos-android-keystore
+                creationPolicy: Owner
+                deletionPolicy: Retain
+              data:
+                - secretKey: password
+                  remoteRef:
+                    key: phos/android-keystore
+                    property: password
+
+          # phos is built in-cluster from github.com/DiverOfDark/phos.
+          # Phase A: GitImage builds every commit on master (gVisor, BuildKit) into
+          # Ceph RGW. The Deployment still runs the ghcr image until it is switched
+          # to this build. The Android versionCode comes from GITIMAGE_COMMIT_TIME
+          # (see the Dockerfile's `version` stage); PHOS_VERSION is the branch, so
+          # the versionName is `master+<short sha>`, as from GitHub CI.
+          - apiVersion: gitimage.dev/v1alpha1
+            kind: GitImage
+            metadata:
+              name: phos
+            spec:
+              url: https://github.com/DiverOfDark/phos.git
+              ref: master
+              interval: 2m
+              build:
+                args:
+                  PHOS_VERSION: { value: master }
+                secrets:
+                  - id: keystore_password
+                    secretRef: { name: phos-android-keystore, key: password }
+                # Rust (with a from-source ffmpeg), Vue and a Gradle Android build in
+                # parallel stages. More than 4 CPUs requested, so only asgard fits;
+                # the cold build must finish inside the cluster's 1h activeDeadline.
+                resources:
+                  requests: { cpu: "6", memory: 8Gi }
+                  limits: { cpu: "10", memory: 20Gi }
+
   destination:
     server: https://kubernetes.default.svc
     namespace: phos
   syncPolicy:
     automated:
       prune: true
+    # GitImage builds run in this namespace in gVisor with rootless BuildKit and
+    # unconfined seccomp inside the sandbox, which the default baseline level rejects.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
