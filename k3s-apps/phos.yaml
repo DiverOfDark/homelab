@@ -128,8 +128,8 @@ spec:
   syncPolicy:
     automated:
       prune: true
-    # GitImage builds run in this namespace in gVisor with rootless BuildKit and
-    # unconfined seccomp inside the sandbox, which the default baseline level rejects.
+    # GitImage builds run in this namespace in a Kata VM with BuildKit privileged inside
+    # the guest (privilegedInSandbox), which the cluster's default baseline level rejects.
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
