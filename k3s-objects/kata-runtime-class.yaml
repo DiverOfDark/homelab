@@ -3,7 +3,11 @@ kind: RuntimeClass
 metadata:
   name: kata
 handler: kata
+# Kata sizes the guest as 2Gi + the pod's memory limit (measured: limit 4Gi -> MemTotal
+# 6082 MiB), but the pod's host cgroup is limit + overhead. With 130Mi the hypervisor was
+# OOM-killed once the guest's page cache grew (GitImage builds writing big layers). The
+# overhead covers the 2Gi guest base plus the hypervisor itself.
 overhead:
     podFixed:
-        memory: "130Mi"
+        memory: "2560Mi"
         cpu: "250m"
