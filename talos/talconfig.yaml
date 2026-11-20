@@ -292,7 +292,6 @@ schematic: &schematic
         - siderolabs/i915
         - siderolabs/util-linux-tools
         - siderolabs/ctr
-        - siderolabs/gvisor
         - siderolabs/kata-containers
         - siderolabs/stargz-snapshotter
         - siderolabs/nvme-cli
@@ -315,8 +314,8 @@ patches:
       enabled: false
       forwardKubeDNSToHost: false
   # User namespaces. Talos ships user.max_user_namespaces=0; this re-enables them for
-  # Kubernetes user namespaces (pods with hostUsers: false), gVisor and rootless BuildKit
-  # (GitImage userns/gvisor modes, gVisor e2e on the gitimage runners). Unprivileged
+  # Kubernetes user namespaces (pods with hostUsers: false) and rootless BuildKit
+  # (GitImage userns mode, the GitImage e2e runners). Unprivileged
   # containers still cannot create them: defaultRuntimeSeccompProfileEnabled below gives every
   # pod RuntimeDefault seccomp, which blocks CLONE_NEWUSER without CAP_SYS_ADMIN, and the
   # baseline PodSecurity default forbids Unconfined. Value from the Talos user-namespaces guide.
@@ -357,25 +356,7 @@ patches:
             [plugins."io.containerd.cri.v1.runtime"]
               device_ownership_from_security_context = true
 
-            # runsc-build: gVisor for GitImage builds (RuntimeClass gvisor-build). Same as the
-            # extension's runsc handler, plus file-access-mounts=exclusive (runsc-build.toml).
-            # gVisor treats volumes as shared by default and then cannot memory-map the file
-            # it copies up when a process has the lower-layer original mapped, so BuildKit's
-            # overlay snapshotter on the state emptyDir fails with ENODEV - e.g. apt upgrading
-            # libssl while apt has libcrypto loaded. Build volumes are emptyDirs private to
-            # the pod, so exclusive is safe there; it also lets gVisor cache their pages.
-            [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runsc-build]
-              runtime_type = "io.containerd.runsc.v1"
-
-            [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.runsc-build.options]
-              TypeUrl = "io.containerd.runsc.v1.options"
-              ConfigPath = "/var/etc/cri/runsc-build.toml"
           path: /etc/cri/conf.d/20-customization.part
-          op: create
-        - content: |
-            [runsc_config]
-              file-access-mounts = "exclusive"
-          path: /var/etc/cri/runsc-build.toml
           op: create
       features:
         rbac: true
