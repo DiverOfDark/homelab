@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.52
+    targetRevision: 0.1.62
     helm:
       releaseName: gitimage
       valuesObject:
@@ -45,14 +45,24 @@ spec:
         build:
           # Talos' Kata extension shares filesystem volumes into the VM over virtiofs without
           # xattr support ("failed to create hash ...: operation not supported"). BuildKit's
-          # state goes on a raw block ceph-block PVC per build instead (virtio-blk in the VM),
-          # formatted ext4 by an init container and mounted by BuildKit. phos needs ~15-25G.
+          # state goes on a raw block ceph-block PVC instead (virtio-blk in the VM), formatted
+          # ext4 by an init container and mounted by BuildKit. phos needs ~15-25G.
+          # persistent: one PVC per GitImage (<name>-buildkit), kept between its builds and
+          # formatted only once, so BuildKit's local cache and RUN --mount=type=cache survive
+          # instead of every build re-downloading its layers from RGW. BuildKit GC keeps each
+          # within 80% (32G); RBD is thin, so a small app's PVC uses only what it caches.
+          # Reset one: kubectl -n <ns> delete pvc <name>-buildkit.
           stateVolume:
-            block:
+            persistent:
               storageClassName: ceph-block
               size: 40Gi
+            block:
               fsType: ext4
               formatImage: harbor.kirillorlov.pro/docker-hub/library/debian:bookworm-slim
+            # Only a rebuildable cache: Velero skips them (k3s-apps/velero.yaml resource policy
+            # and resource-level exclusion), and a restored one would be replaced anyway.
+            labels:
+              velero.io/exclude-from-backup: "true"
           # Kata builds are slower than gVisor's were; a cold phos build must fit.
           activeDeadline: 2h
           # Builds pull base images (FROM node:..., rust:...) through Harbor's Docker Hub
