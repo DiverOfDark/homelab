@@ -12,10 +12,6 @@ metadata:
     hugin.dev/widget.type: paperlessngx
     hugin.dev/widget.url: http://paperless.paperless.svc.cluster.local
     hugin.dev/widget.key-from-secret: paperless-secret/PAPERLESS_API_KEY
-    # Blank on purpose: overwrites what the removed annotation applier wrote into
-    # the live object. Delete these blank annotations once this has synced.
-    hugin.dev/widget.key: ""
-    kirillorlov.pro/annotationsFromSecretState: ""
   name: paperless
   namespace: paperless
 spec:

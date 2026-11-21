@@ -212,7 +212,6 @@ spec:
           #    hugin.dev/widget.url: http://prometheus-grafana.prometheus.svc.cluster.local
           #    hugin.dev/widget.username: diverofdark
           #    hugin.dev/widget.password: "$admin-password$"
-          #    kirillorlov.pro/annotationsFromSecretName: prometheus-grafana
         
           persistence:
             enabled: true
