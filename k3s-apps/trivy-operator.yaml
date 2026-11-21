@@ -80,6 +80,11 @@ spec:
           # nonroot) or whose TMPDIR exists only at runtime fail to scan
           # (aquasecurity/trivy-operator#3103, fix in PR #3115).
           command: rootfs
+          # The operator copies the trivy binary (and its DB cache) into
+          # /var/trivyoperator of every scan pod, and rootfs scans "/": without
+          # this, each report lists trivy's own Go modules (containerd,
+          # go-jose, otel, stdlib) as the scanned image's.
+          skipDirs: /var/trivyoperator
           # trivy-server keeps the vulnerability + Java DBs (~1 GB) on a PVC
           # so restarts don't re-download them.
           storageClassEnabled: true
