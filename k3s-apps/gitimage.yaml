@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.50
+    targetRevision: 0.1.52
     helm:
       releaseName: gitimage
       valuesObject:
@@ -67,6 +67,16 @@ spec:
               max-parallelism = 1
         podMonitor:
           enabled: true
+        # Trivy Operator scans the pod template of Deployments/StatefulSets/DaemonSets, not
+        # the pods (aquasecurity/trivy-operator#1745), and only pods get the built image. The
+        # roller also writes the image into the template, so reports cover what runs. Argo
+        # keeps it: the apps ignore fields owned by gitimage-controller.
+        controller:
+          pinTemplateImage: true
+        # Trivy's filesystem mode runs the scanned image itself, in trivy-system
+        # (k3s-apps/trivy-operator.yaml); the cross-tenant guard would deny that pod.
+        webhook:
+          crossTenantNamespaces: [trivy-system]
         # Status UI: every GitImage, live build logs, workloads and gated pods. Sign-in is
         # end-to-end OIDC like Headlamp: the UI forwards the user's Zitadel id_token to the
         # kube-apiserver, which authorizes it via k3s-objects/oidc-admin-rbac.yaml. It reuses
