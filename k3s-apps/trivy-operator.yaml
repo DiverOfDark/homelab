@@ -46,11 +46,9 @@ spec:
           exposedSecretScannerEnabled: true
 
         trivyOperator:
-          # Prefer asgard (i5-12400, 64 GB) for scan jobs; spill over to the
-          # N100 nodes only when it's full. Image layers stream through the
-          # job's emptyDir, which sits on asgard's SATA SSD with the etcd WAL:
-          # if etcd fsync latency alerts show up during scans, lower
-          # scanJobsConcurrentLimit before anything else.
+          # Unused in filesystem mode (trivy.command below): the operator sets
+          # nodeName to the node running the workload, so scans spread with
+          # the workloads. Kept for switching back to image mode.
           scanJobAffinity:
             nodeAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -60,8 +58,25 @@ spec:
                       - key: kubernetes.io/hostname
                         operator: In
                         values: ["asgard"]
+          # Filesystem scans run trivy inside the scanned image and must read
+          # every file, so as root (still no capabilities, read-only root).
+          # trivy-system has the default baseline PSA level, which allows it.
+          scanJobPodTemplateContainerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsUser: 0
 
         trivy:
+          # Scan the image already in the node's containerd store instead of
+          # pulling it into the job: GitImage images live on localhost:25050,
+          # reachable only from the node, and nothing streams through the
+          # job's emptyDir. Known gap: images whose WORKDIR root can't enter
+          # (distroless nonroot) or whose TMPDIR exists only at runtime fail
+          # to scan (aquasecurity/trivy-operator#3103, fix in PR #3115).
+          command: filesystem
           # trivy-server keeps the vulnerability + Java DBs (~1 GB) on a PVC
           # so restarts don't re-download them.
           storageClassEnabled: true
@@ -71,7 +86,8 @@ spec:
           # etcd object size limit.
           ignoreUnfixed: true
           severity: MEDIUM,HIGH,CRITICAL
-          # Scan jobs don't see the Talos containerd mirrors, so pull through
+          # Image mode only (filesystem mode doesn't pull). Scan jobs don't
+          # see the Talos containerd mirrors, so pull through
           # the same Harbor proxy-cache projects (all public, anonymous pull)
           # to avoid Docker Hub rate limits on the home IP. The operator
           # rewrites by prefix on the normalized name, so Docker Hub is
