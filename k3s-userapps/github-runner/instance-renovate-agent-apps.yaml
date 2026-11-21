@@ -1,6 +1,7 @@
 # Runner scale set for the Renovate agent of the app repos (DiverOfDark/renovate-config:
 # .github/workflows/renovate-agent.yml, `runs-on: renovate-agent-apps`). Registered to that
-# repo, which runs the agent for all app repos (runners of a personal account are per repo).
+# repo, which runs the agent for all app repos, one run per repo (runners of a personal
+# account are per repo).
 # Job pods use the same read-only `renovate-agent` ServiceAccount and hook template as the
 # homelab agent, see renovate-agent.yaml.
 apiVersion: argoproj.io/v1alpha1
@@ -25,8 +26,9 @@ spec:
         containerMode:
           type: "kubernetes-novolume"
 
-        # One run at a time (the workflow has a concurrency group anyway); no idle runner.
-        maxRunners: 1
+        # Up to 4 repos at once (each repo's Renovate run starts one; the workflow allows one
+        # run per repo); no idle runner. The job pods are light: Claude CLI, gh, kubectl.
+        maxRunners: 4
         minRunners: 0
         controllerServiceAccount:
           name: "github-runner-controller-gha-rs-controller"
