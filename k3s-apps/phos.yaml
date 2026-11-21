@@ -106,6 +106,11 @@ spec:
               build:
                 args:
                   PHOS_VERSION: { value: master }
+                  # SHA-256 of the release signing certificate (android/phos-release.keystore,
+                  # alias phos). The build fails unless the APK is signed by exactly this
+                  # certificate: an unsigned APK - e.g. the keystore secret arriving empty -
+                  # would make every installed app refuse the update, silently.
+                  PHOS_SIGNING_CERT_SHA256: { value: 0dcc95bbf650f9e8828ee2a5f1759bf0a2acd42a09a99be8b51b3a0b9dd37059 }
                 secrets:
                   - id: keystore_password
                     secretRef: { name: phos-android-keystore, key: password }
