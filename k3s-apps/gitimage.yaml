@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.62
+    targetRevision: 0.1.64
     helm:
       releaseName: gitimage
       valuesObject:
@@ -30,6 +30,17 @@ spec:
             mode: runtimeClass
             runtimeClassName: kata
             privilegedInSandbox: true
+          egress:
+            # The Harbor mirror in buildkitdConfig is served by in-cluster Traefik:
+            # harbor.kirillorlov.pro is its LoadBalancer IP, which Cilium translates to Traefik
+            # pod IPs, and denyClusterCIDRs drops those. Without this rule every base image
+            # waited ~2 min on the mirror (load metadata), then came from Docker Hub directly.
+            # 8443 is the pods' websecure port (the Service maps 443 to it).
+            extraRules:
+              - to:
+                  - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: traefik } }
+                    podSelector: { matchLabels: { app.kubernetes.io/name: traefik } }
+                ports: [{ port: 8443, protocol: TCP }]
         # No registry: images live in Ceph RGW and nodes pull them from gitimage-node on
         # localhost:25050 (containerd allows plain HTTP to localhost without node config).
         storage:
