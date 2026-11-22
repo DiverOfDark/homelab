@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner-appbahn-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    targetRevision: 0.15.1
+    chart: gha-runner-scale-set
+    helm:
+      valuesObject:
+        githubConfigUrl: "https://github.com/DiverOfDark/appbahn-dev"
+        # Workflows use `runs-on: appbahn-dev`.
+        runnerScaleSetName: appbahn-dev
+        githubConfigSecret: github-secret
+
+        # No containerMode: the job only installs the Dagger CLI and runs `dagger check`. Dagger
+        # starts its engine as a container on shared-dind and reuses it, so its build cache survives
+        # between jobs (a cold run takes minutes, a warm one seconds).
+        maxRunners: 2
+        minRunners: 0
+        controllerServiceAccount:
+          name: "github-runner-controller-gha-rs-controller"
+          namespace: "github-runner"
+
+        template:
+          spec:
+            restartPolicy: Never
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values:
+                            - asgard
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: DOCKER_HOST
+                    value: tcp://shared-dind.github-runner.svc:2375
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 512Mi
+                  limits:
+                    cpu: "2"
+                    memory: 4Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: github-runner
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
