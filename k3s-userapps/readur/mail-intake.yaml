@@ -219,7 +219,7 @@ spec:
             - name: intake
               # The Readur image already ships python3; reusing it avoids
               # pulling and tracking a second image for a 150-line script.
-              image: 'ghcr.io/readur/readur:3.1.3'
+              image: 'ghcr.io/readur/readur:3.1.4'
               imagePullPolicy: IfNotPresent
               command: ["python3", "-I", "/script/intake.py"]
               securityContext:
