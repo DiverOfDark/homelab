@@ -274,7 +274,7 @@ spec:
               hugin.dev/widget.url: http://prometheus-operated.prometheus.svc.cluster.local:9090 
 
     repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 93.3.1
+    targetRevision: 93.4.0
   syncPolicy:
     managedNamespaceMetadata:
       labels:
