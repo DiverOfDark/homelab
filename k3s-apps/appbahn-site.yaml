@@ -1,0 +1,64 @@
+# appbahn.cloud, AppBahn's public site. Its manifests live in the private
+# DiverOfDark/appbahn-dev repository under deploy/site/, so changes to the
+# site's deployment ship in that repository's pull requests. GitImage builds
+# site/Dockerfile from master; the Deployment runs on midgard (edge).
+#
+# One read-only deploy key of appbahn-dev (OpenBao secret/appbahn-site,
+# property identity) serves Argo CD (below) and GitImage (deploy/site/git-secret.yaml).
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: repo-appbahn-dev
+  namespace: argocd
+spec:
+  secretStoreRef:
+    name: openbao-store
+    kind: ClusterSecretStore
+  refreshInterval: 1h
+  target:
+    name: repo-appbahn-dev
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    template:
+      type: Opaque
+      metadata:
+        labels:
+          argocd.argoproj.io/secret-type: repository
+      data:
+        type: git
+        url: git@github.com:DiverOfDark/appbahn-dev.git
+        sshPrivateKey: "{{ .identity }}"
+  data:
+    - secretKey: identity
+      remoteRef:
+        key: appbahn-site
+        property: identity
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: appbahn-site
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:DiverOfDark/appbahn-dev.git
+    targetRevision: master
+    path: deploy/site
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: appbahn-site
+  # GitImage's roller pins gitimage.dev/revision.* on the Deployment (field
+  # manager gitimage-controller); Argo must not revert it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers: [gitimage-controller]
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
