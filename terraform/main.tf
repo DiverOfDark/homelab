@@ -15,7 +15,7 @@ terraform {
     }
     bunnynet = {
       source  = "registry.terraform.io/BunnyWay/bunnynet"
-      version = "0.20.1"
+      version = "0.20.2"
     }
     harbor = {
       source  = "goharbor/harbor"
