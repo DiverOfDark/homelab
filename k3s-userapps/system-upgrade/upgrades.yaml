@@ -52,19 +52,94 @@ spec:
       kind: Cluster
       expr: has(status.readyInstances) && status.readyInstances == status.instances
       timeout: 30m
-  # NOTE (2026-10-04): a full drain of asgard (64 GB, most of the workload)
-  # overloads the other nodes. v1.14.6 (2026-11-15) was done in two merges:
-  #   1. nodeSelector `NotIn [asgard]`, normal drain policy;
-  #   2. nodeSelector `In [asgard]`, `nodrain: true`, `waitForVolumeDetach: false`.
-  # Step 2 took asgard down for ~4.5 min. Its pods do not restart in place:
-  # the node shutdown ends them and the replacements are scheduled onto the
-  # other nodes while asgard is away, so afterwards cordon the others and
-  # delete the pods created during the reboot to move them back. Before step 2
-  # move the standby MDS daemons off asgard.
+  # Two plans because a full drain of asgard (64 GB, most of the workload)
+  # overloads the 16 GB nodes (2026-10-04: jotunheimr load 94, openbao and
+  # argocd-repo-server down). This plan drains normally and covers every node
+  # except asgard; `talos-asgard` below reboots asgard without a drain.
+  # Renovate bumps both plans in the same commit. tuppr runs one plan at a time,
+  # but the ORDER is not fixed: plans take turns between nodes, so asgard can go
+  # first, last or in between. Do not add a health check to one plan that
+  # waits for the other: a plan waiting on health checks is "active" and blocks
+  # the other plan from starting (deadlock).
   nodeSelector:
     matchExpressions:
       - key: kubernetes.io/hostname
-        operator: Exists
+        operator: NotIn
+        values: [asgard]
+  talosctl:
+    image:
+      repository: ghcr.io/siderolabs/talosctl
+      # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
+      tag: v1.14.7
+---
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: talos-asgard
+  namespace: system-upgrade
+spec:
+  talos:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
+    version: v1.14.7
+  # asgard is rebooted WITHOUT a drain (see the `talos` plan above for why).
+  # Downtime ~4.5 min (v1.14.6, 2026-11-15). Its pods do not restart in place:
+  # the node shutdown ends them and the replacements are scheduled onto the
+  # other nodes while asgard is away. If asgard went last, cordon the others
+  # afterwards and delete the pods created during the reboot to move them back.
+  # No waitForVolumeDetach: nothing is drained, so there is nothing to wait for.
+  # CephFS MDS placement is unconstrained, so several MDS daemons (sometimes
+  # both actives) can sit on asgard; an undrained reboot then takes CephFS
+  # down until they fail over. Since the order is not fixed, check
+  # `kubectl -n rook-ceph get pods -l app=rook-ceph-mds -o wide` before
+  # merging a Talos bump and move the standby MDS pods off asgard.
+  policy:
+    rebootMode: powercycle
+    nodrain: true
+    waitForVolumeDetach: false
+  # Gates evaluated before EACH node upgrade (and re-checked between nodes).
+  # A failing check makes tuppr wait and retry every minute — it does not fail
+  # the batch. Added after 2026-07-22: tuppr crashed mid-flow on a starved
+  # cluster, left asgard cordoned, and the resulting muspelheimr pileup took
+  # down the next node's upgrade too.
+  healthChecks:
+    # Every node Ready and schedulable — catches leaked cordons and refuses
+    # to start another reboot while capacity is already missing.
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.filter(c, c.type == "Ready").all(c, c.status == "True") && (!has(object.spec.unschedulable) || !object.spec.unschedulable)
+      timeout: 30m
+    # Ceph healthy enough to lose an OSD host — forces a re-replication pause
+    # between reboots. Strict HEALTH_OK is unusable here: the cluster sits in
+    # HEALTH_WARN ~half the time from BLUESTORE_SLOW_OP_ALERT (osd.0 thermal
+    # throttling, known hardware issue) and TOO_MANY_PGS, neither of which
+    # affects redundancy. Anything else (PG_DEGRADED, OSD_DOWN, *_NEARFULL,
+    # PG_BACKFILL_FULL, MON_DOWN, ...) still blocks the next node.
+    # AUTH_INSECURE_* warnings remain after the CVE-2025-30156 rotation (2026-10-04):
+    # CSI keys must stay `aes` until every node runs kernel >= 7.0, so the mons keep
+    # allowing/creating aes keys. AUTH_INSECURE_SERVICE_TICKETS (= CVE not resolved)
+    # is deliberately NOT tolerated.
+    - apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      name: rook-ceph
+      namespace: rook-ceph
+      expr: >-
+        status.ceph.health == "HEALTH_OK" ||
+        (status.ceph.health == "HEALTH_WARN" &&
+         status.ceph.details.all(k, k in ["BLUESTORE_SLOW_OP_ALERT", "TOO_MANY_PGS",
+           "AUTH_INSECURE_CLIENT_KEY_TYPE", "AUTH_INSECURE_KEYS_ALLOWED",
+           "AUTH_INSECURE_KEYS_CREATABLE", "AUTH_INSECURE_ROTATING_SERVICE_KEY_TYPE"]))
+      timeout: 30m
+    # Every CNPG database cluster has all instances ready (all namespaces),
+    # so replicas finished rejoining before the next primary's node reboots.
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      expr: has(status.readyInstances) && status.readyInstances == status.instances
+      timeout: 30m
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values: [asgard]
   talosctl:
     image:
       repository: ghcr.io/siderolabs/talosctl
