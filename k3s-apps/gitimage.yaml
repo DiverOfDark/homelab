@@ -12,7 +12,7 @@ spec:
     # https://diverofdark.github.io/gitimage/
     repoURL: ghcr.io/diverofdark/charts
     chart: gitimage
-    targetRevision: 0.1.74
+    targetRevision: 0.1.82
     helm:
       releaseName: gitimage
       valuesObject:
@@ -60,9 +60,12 @@ spec:
           # ext4 by an init container and mounted by BuildKit. phos needs ~15-25G.
           # persistent: one PVC per GitImage (<name>-buildkit), kept between its builds and
           # formatted only once, so BuildKit's local cache and RUN --mount=type=cache survive
-          # instead of every build re-downloading its layers from RGW. BuildKit GC keeps each
-          # within 80% (32G); RBD is thin, so a small app's PVC uses only what it caches.
-          # Reset one: kubectl -n <ns> delete pvc <name>-buildkit.
+          # instead of every build re-downloading its layers from RGW. Each build first prunes
+          # it to 80% used (32G) and enough free for the build: minFreeSpace (default 25%,
+          # 10G) or 1.25x the most a recent build grew it by. One that fills it anyway is
+          # retried once on an emptied volume, then fails as OutOfSpace: raise size then.
+          # The UI's "Build cache" panel shows usage. RBD is thin, so a small app's PVC uses
+          # only what it caches. Reset one: kubectl -n <ns> delete pvc <name>-buildkit.
           stateVolume:
             persistent:
               storageClassName: ceph-block
