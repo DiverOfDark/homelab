@@ -20,6 +20,9 @@ spec:
       selector:
         dnsZones:
         - 'kirillorlov.pro'
+        # The Cloudflare API token (OpenBao secret/cloudflare, api_token) must
+        # be allowed to edit DNS in this zone too.
+        - 'appbahn.cloud'
 
 ---
 apiVersion: cert-manager.io/v1
