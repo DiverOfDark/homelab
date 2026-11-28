@@ -115,10 +115,12 @@ spec:
                   - id: keystore_password
                     secretRef: { name: phos-android-keystore, key: password }
                 # Rust (with a from-source ffmpeg), Vue and a Gradle Android build in
-                # parallel stages. More than 4 CPUs requested, so only asgard fits;
-                # the cold build must finish inside the cluster's 1h activeDeadline.
+                # parallel stages, bursting to the 10-CPU limit. Low CPU request so it
+                # schedules while asgard is busy; the memory request (12Gi + 2.5Gi Kata
+                # overhead) is what keeps it on asgard: a 20Gi build on a 15Gi node would
+                # starve it. The cold build must finish inside the 2h activeDeadline.
                 resources:
-                  requests: { cpu: "6", memory: 8Gi }
+                  requests: { cpu: "2", memory: 12Gi }
                   limits: { cpu: "10", memory: 20Gi }
 
   destination:
