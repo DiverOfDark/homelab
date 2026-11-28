@@ -30,7 +30,8 @@ resource "cloudflare_dns_record" "appbahn_www" {
   proxied = false
 }
 
-# The registrar must delegate appbahn.cloud to these name servers.
+# The zone existed before this file (created by hand on 2026-02-07, already
+# delegated by the registrar) and was imported; these are its name servers.
 output "appbahn_name_servers" {
   value = cloudflare_zone.appbahn.name_servers
 }
