@@ -25,7 +25,7 @@ spec:
           persistentVolumeClaim:
             claimName: readur-watch
       containers:
-        - image: 'ghcr.io/readur/readur:3.1.4'
+        - image: 'ghcr.io/readur/readur:3.1.5'
           imagePullPolicy: IfNotPresent
           name: readur
           ports:
